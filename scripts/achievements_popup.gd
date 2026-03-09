@@ -11,9 +11,29 @@ const ACHIEVEMENT_DESCRIPTIONS := {
 	"Catch Master": "Earn $200 total from the catch minigame"
 }
 
+var was_paused: bool = false
+var list_container: VBoxContainer = null
+
 func _ready():
+	layer = 11 # Higher than PauseMenu (layer 10)
+	process_mode = Node.PROCESS_MODE_ALWAYS # Run while paused
+	
+	was_paused = get_tree().paused
+	get_tree().paused = true
+	
 	UITheme.apply_overlay_theme(self )
 	_build_ui()
+	
+	# Connect to the unlock signal to refresh live if ever needed
+	if not GameState.achievement_unlocked.is_connected(_on_achievement_unlocked):
+		GameState.achievement_unlocked.connect(_on_achievement_unlocked)
+
+func _on_achievement_unlocked(_name: String):
+	# Refresh UI dynamically
+	if list_container:
+		for child in list_container.get_children():
+			child.queue_free()
+		_fill_list(list_container)
 
 func _build_ui():
 	# Background dimmer
@@ -65,7 +85,7 @@ func _build_ui():
 	close_btn.text = " X "
 	close_btn.custom_minimum_size = Vector2(80, 80)
 	close_btn.add_theme_font_size_override("font_size", 42)
-	close_btn.pressed.connect(func(): queue_free())
+	close_btn.pressed.connect(_close_popup)
 	header.add_child(close_btn)
 
 	# Separator
@@ -78,11 +98,16 @@ func _build_ui():
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox.add_child(scroll)
 
-	var list = VBoxContainer.new()
-	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	list.add_theme_constant_override("separation", 18)
-	scroll.add_child(list)
+	list_container = VBoxContainer.new()
+	list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	list_container.add_theme_constant_override("separation", 18)
+	scroll.add_child(list_container)
+
+	_fill_list(list_container)
+
+func _fill_list(list: VBoxContainer):
+	var font = UITheme.get_pixel_font()
 
 	# Build achievement rows
 	for achievement_name in GameState.achievements.keys():
@@ -129,5 +154,9 @@ func _build_ui():
 
 func _input(event):
 	if event.is_action_pressed("ui_cancel"):
-		queue_free()
+		_close_popup()
 		get_viewport().set_input_as_handled()
+
+func _close_popup():
+	get_tree().paused = was_paused
+	queue_free()

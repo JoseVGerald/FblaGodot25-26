@@ -172,9 +172,7 @@ func advance_day():
 			event_triggered.emit("Could not pay tax! Dog gets stressed.")
 			
 	# Achievements check
-	if not achievements["Golden Years"] and current_day >= 30:
-		achievements["Golden Years"] = true
-		achievement_unlocked.emit("Golden Years")
+	check_achievements()
 	
 	day_started.emit(current_day)
 	
@@ -288,6 +286,7 @@ func deposit_to_savings(amount: int) -> bool:
 		savings_balance += amount
 		record_transaction("Deposit to Savings", -amount, "Transfer")
 		savings_updated.emit()
+		check_achievements()
 		return true
 	return false
 
@@ -366,6 +365,19 @@ func get_time_string() -> String:
 	var day_name = days_of_week[current_day % 7]
 	var week_num: int = int(float(current_day) / 7.0) + 1
 	return "%s Week %d" % [day_name, week_num]
+
+func check_achievements():
+	if savings_balance >= 200 and not achievements["Penny Pincher"]:
+		achievements["Penny Pincher"] = true
+		achievement_unlocked.emit("Penny Pincher")
+	
+	if times_fed >= 10 and not achievements["Master Chef"]:
+		achievements["Master Chef"] = true
+		achievement_unlocked.emit("Master Chef")
+		
+	if current_day >= 30 and not achievements["Golden Years"]:
+		achievements["Golden Years"] = true
+		achievement_unlocked.emit("Golden Years")
 
 const SAVE_PATH = "user://save_game.dat"
 
