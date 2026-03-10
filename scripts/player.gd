@@ -1,6 +1,6 @@
 # COMMIT: Achievements and Catch Minigame Update
 extends CharacterBody2D
-
+#uses encapsulation because the variables are private showing its only being used locally
 @export var speed := 300
 
 var input_dir := Vector2.ZERO

@@ -890,5 +890,3 @@ shape = SubResource("RectangleShape2D_mu1ml")
 position = Vector2(362, 221)
 build_mode = 1
 polygon = PackedVector2Array(-103, -1007, 285, -1003, 287, -769, -98, -772)
-
-; COMMIT: Achievements and Catch Minigame Update
