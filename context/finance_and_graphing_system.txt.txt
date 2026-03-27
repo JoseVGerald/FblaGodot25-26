@@ -1,0 +1,51 @@
+--- File: finance_and_graphing_system.txt ---
+
+# Project Financial and Graphing System Documentation
+
+## 1. The Financial Core (`GameState.gd`)
+All financial data is centralized in a singleton node (`GameState.gd`). It acts as the backend managing money flow.
+
+*   **Currency Tracking**:
+    *   `money`: The player's active spending wallet (starts around $150).
+    *   `savings_balance`: Emergency Fund that bears 5% daily interest (starts around $200).
+    *   `weekly_allowance`: Automatic income of $150 every 7 days.
+
+*   **Budgeting**:
+    *   `budget_data`: Tracks limits vs spent aggregates inside categories: "Food", "Vet", and "Travel".
+    *   **Emergency Overrides**: If essentials ("Food", "Vet") exceed allowances, the system automatically pays from savings using `check_emergency_fund`.
+
+*   **Advanced Mechanics**:
+    *   **Inflation rate**: Incrementing multiplier increasing costs over time.
+    *   **Random Events**: Random overnight events that can add or subtract money.
+
+---
+
+## 2. Finance Dashboard UI (`finance_menu.gd`)
+Provides dynamic overlay displays rendering backend statistics visually to the player.
+
+*   **Overview Tab**: Renders expenditures using `ProgressBar` components colored Green/Yellow/Red based on utilization percentage relative to the budget limit.
+*   **Budget Planner**: Dynamic Sliders linked directly to reading/writing GameState limits.
+*   **All Time History**: Populates a visual list of duplicates based on `transaction_history`.
+
+---
+
+## 3. Graph Layout Logic (`spending_graph.gd`)
+Handles specialized graphic representation drawing custom polylines on a Canvas.
+
+*   **Backing Model**: Uses `spending_points` (cumulative spending) and `cash_points` (wallet balance) mapped over time.
+*   **Drawing**: Uses standard canvas functions like `draw_polyline` and `draw_circle` mapping normalized Vector2 points scaling with max dataset size margins properly formatted accurately.
+*   **Tooltip Support**: Tracks mouse collision coordinates rendering detailed context info hover mechanics smoothly layout smoothly setups.
+
+---
+
+## 4. Money Flow Directions
+
+### 🔼 Income (Money Goes UP)
+1.  **Chore Quiz (`chore_menu.gd`)**: Math minigame awarding cash on successful answers.
+2.  **Catch Minigame (`catch_game.gd`)**: Action physics catching items receiving values aggregates.
+
+### 🔽 Expenditure (Money Goes DOWN)
+1.  **Shop Layout (`shop_menu.gd`)**: Item counter calculators checking totals against limits before executing sequential category expenditures accurately mapped sequentially accurately.
+2.  **Automatic Deductions**: Random night events or license duties.
+
+Every movement logs using `GameState.record_transaction()` storing `{day, description, amount, category}` keeping everything fully synchronized flawlessly!

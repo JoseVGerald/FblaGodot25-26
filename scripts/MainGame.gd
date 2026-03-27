@@ -71,7 +71,7 @@ func _on_shop_closed():
 		var tutorial_hint_scene = preload("res://scenes/ui/tutorial_hint.tscn")
 		var hint = tutorial_hint_scene.instantiate()
 		get_tree().root.add_child(hint)
-		hint.show_hint("Press the home button 🏠 to go home.", 6.0)
+		hint.show_hint("Press 📱 to go home.", 6.0)
 
 func _on_vet_talk_finished():
 	if GameState.is_day_one:
@@ -151,6 +151,7 @@ func _spawn_legacy_player():
 		
 	var player = load(scene_path).instantiate()
 	player.global_position = player_spawn_pos
+	player.scale = Vector2(0.75, 0.75)
 	player.set_script(load("res://scripts/player.gd"))
 	player.input_pickable = true
 	add_child(player)
@@ -163,7 +164,7 @@ func _spawn_component_player():
 	var player = CharacterBody2D.new()
 	player.name = "Player"
 	player.global_position = player_spawn_pos
-	player.scale = Vector2(1.0, 1.0)
+	player.scale = Vector2(0.75, 0.75)
 	player.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	player.input_pickable = true
 

@@ -1,504 +1,752 @@
-# COMMIT: Achievements and Catch Minigame Update
+# spending_graph.gd
+# Two-mode financial graph for the Financial Hub's AllTimeHistory tab.
+#
+# MODE 1 — Overview: One aggregated point per DAY.
+#   Shows BOTH lines: cyan Current Cash + red Spending (positive values).
+#   Clickable day buttons on x-axis with bold-on-hover animation.
+#
+# MODE 2 — Day Drill-Down: Individual transactions within a single day.
+#   Shows ONLY the cyan Current Cash line.
+#   Point labels: Start, Purch.1…; last point = "End of Day" (gold, click → overview).
 extends Control
 class_name SpendingGraph
 
-# Graph data
-var spending_points: Array[Vector2] = [] # (day, cumulative_spending)
-var cash_points: Array[Vector2] = [] # (day, current_cash_balance)
+# ── Colour palette ──────────────────────────────────────────────────────────────
+const CLR_BG        := Color("#0d1b36")       # Graph background
+const CLR_BORDER    := Color("#4A90D9")       # Axes + outer border
+const CLR_GRID      := Color("#1e3a6e")       # Subtle grid lines
+const CLR_ZERO      := Color("#4A90D9")       # Zero-dollar baseline
+const CLR_CASH      := Color("#53d8fb")       # Cash balance line (cyan)
+const CLR_SPENDING  := Color("#EF5350")       # Spending line (red, positive)
+const CLR_WHITE     := Color.WHITE
+const CLR_TOOLTIP   := Color("#4A90D9E8")     # Sky-blue tooltip box
+const CLR_BTN       := Color("#4A90D9")       # Day pill-buttons
+const CLR_BTN_HOVER := Color("#5BA3E8")       # Lightened on hover
+const CLR_GOLD      := Color("#FFD700")       # End of Day button
+const CLR_GREEN     := Color("#4CAF50")
+const CLR_RED       := Color("#EF5350")
 
-# Graph dimensions
-var margin_left: int = 80
-var margin_right: int = 40
-var margin_top: int = 40
-var margin_bottom: int = 60
-var graph_width: float
-var graph_height: float
+# ── Drawn text sizes (larger for readability; graph area is shrunk in Finance menu) ─
+const SZ_TITLE       : int = 26
+const SZ_GRID        : int = 24
+const SZ_LEGEND      : int = 22
+const SZ_EMPTY       : int = 28
+const SZ_TOOLTIP     : int = 22
+const TOOLTIP_LH     : float = 30.0
+const SZ_AXIS_BTN    : int = 21
+const SZ_DRILL_PILL  : int = 19
+const SZ_END_DAY_BTN : int = 21
 
-# Axis scaling
-var max_day: int = 0
-var max_amount: float = 0.0
-var day_increment: int = 3
-var amount_increment: float = 10.0
+# ── Graph mode enum ────────────────────────────────────────────────────────────
+enum Mode { OVERVIEW, DRILLDOWN }
+var current_mode : int = Mode.OVERVIEW
 
-# Tooltip
-var tooltip_label: Label
-var hovered_point: Vector2 = Vector2(-1, -1)
+# ── Layout margins (px) — tighter plot area so the hub graph feels smaller ─────
+var margin_left   : int   = 72
+var margin_right  : int   = 36
+var margin_top    : int   = 44
+var margin_bottom : int   = 68
+var graph_width   : float = 0.0
+var graph_height  : float = 0.0
 
-func _ready():
-	# Find tooltip label (parent's sibling)
-	var parent = get_parent()
-	if parent and parent.has_node("TooltipLabel"):
-		tooltip_label = parent.get_node("TooltipLabel")
-		tooltip_label.visible = false
+# ── Overview data ──────────────────────────────────────────────────────────────
+## Cash points: { "day": int, "cash": float } — one per day
+var overview_points   : Array = []
+## Spending points: { "day": int, "spent": float } — cumulative total spend up to that day
+var overview_spending : Array = []
+var overview_max_day  : int   = 0
+var overview_y_max    : float = 250.0
+var overview_y_min    : float = -250.0
 
-func build_graph_data(transaction_history: Array):
-	# Reset data
-	spending_points.clear()
-	cash_points.clear()
-	
-	# Sort by day (oldest first for graph)
-	var sorted_transactions = transaction_history.duplicate()
-	sorted_transactions.sort_custom(func(a, b): return a["day"] < b["day"])
-	
-	var cumulative_spending: float = 0.0
-	var current_cash: float = 150.0 # Starting cash balance
-	max_day = 0
-	max_amount = 0.0
-	var min_amount: float = 0.0 # Track minimum for negative balances
-	
-	# Add starting point at day 0
-	cash_points.append(Vector2(0, current_cash))
-	if current_cash > max_amount:
-		max_amount = current_cash
-	if current_cash < min_amount:
-		min_amount = current_cash
-	
-	# Build cumulative points
-	for entry in sorted_transactions:
-		var day = entry["day"]
-		var amount = float(entry["amount"])
-		
-		if day > max_day:
-			max_day = day
-		
-		if amount < 0:
-			# Spending (negative) - subtract from cash
-			cumulative_spending += abs(amount)
-			spending_points.append(Vector2(day, cumulative_spending))
-			if cumulative_spending > max_amount:
-				max_amount = cumulative_spending
-			
-			current_cash += amount # amount is negative, so this subtracts
-			cash_points.append(Vector2(day, current_cash))
-			if current_cash > max_amount:
-				max_amount = current_cash
-			if current_cash < min_amount:
-				min_amount = current_cash
-		else:
-			# Income (positive) - add to cash
-			current_cash += amount
-			cash_points.append(Vector2(day, current_cash))
-			if current_cash > max_amount:
-				max_amount = current_cash
-			if current_cash < min_amount:
-				min_amount = current_cash
-	
-	# Adjust max_amount to include negative values if needed
-	# max_amount should represent the range from -max_amount to +max_amount
-	if min_amount < 0:
-		max_amount = max(max_amount, abs(min_amount))
-	# Add some padding for better visualization
-	if max_amount > 0:
-		max_amount *= 1.1 # 10% padding
-	
-	# Calculate increments based on max values - auto-scale to fit data
-	# The graph area size stays fixed, but numbers scale with data
-	# For days: aim for about 6-10 grid lines for readability
-	if max_day > 0:
-		var target_grid_lines = 8.0
-		var base_increment = max_day / target_grid_lines
-		# Round to nice numbers using logarithmic scaling
-		if base_increment <= 1.5:
-			day_increment = 1
-		elif base_increment <= 3:
-			day_increment = 2
-		elif base_increment <= 6:
-			day_increment = 5
-		elif base_increment <= 10:
-			day_increment = 7
-		elif base_increment <= 20:
-			day_increment = 14
-		elif base_increment <= 50:
-			day_increment = 30
-		else:
-			# For very large ranges, round to nearest power of 10
-			var log_val = log(base_increment) / log(10)
-			var magnitude = pow(10, floor(log_val))
-			var multiplier = round(base_increment / magnitude)
-			day_increment = int(magnitude * multiplier)
-			# Ensure at least 1
-			if day_increment < 1:
-				day_increment = 1
-	
-	# For amounts: aim for about 6-10 grid lines, use nice round numbers
-	if max_amount > 0:
-		var target_grid_lines = 8.0
-		var base_increment = max_amount / target_grid_lines
-		# Round to nice numbers (1, 5, 10, 25, 50, 100, 250, 500, 1000, etc.)
-		if base_increment <= 2:
-			amount_increment = 1.0
-		elif base_increment <= 7.5:
-			amount_increment = 5.0
-		elif base_increment <= 15:
-			amount_increment = 10.0
-		elif base_increment <= 37.5:
-			amount_increment = 25.0
-		elif base_increment <= 75:
-			amount_increment = 50.0
-		elif base_increment <= 150:
-			amount_increment = 100.0
-		elif base_increment <= 375:
-			amount_increment = 250.0
-		elif base_increment <= 750:
-			amount_increment = 500.0
-		elif base_increment <= 1500:
-			amount_increment = 1000.0
-		else:
-			# For very large amounts, round to nearest power of 1000
-			var log_val = log(base_increment) / log(1000)
-			var magnitude = pow(1000, floor(log_val))
-			var multiplier = round(base_increment / magnitude)
-			amount_increment = magnitude * multiplier
-			# Ensure at least 1
-			if amount_increment < 1:
-				amount_increment = 1.0
-	
+# ── Drill-down data ───────────────────────────────────────────────────────────
+var drill_points : Array  = []
+var drill_day    : int    = -1
+var drill_y_max  : float  = 200.0
+var drill_y_min  : float  = 0.0
+
+# ── Raw transaction reference ──────────────────────────────────────────────────
+var _raw_history : Array = []
+
+# ── Hover / tooltip state ─────────────────────────────────────────────────────
+var _hovered_screen : Vector2 = Vector2(-1, -1)
+var _tooltip_text   : String  = ""
+
+# ── Tween animation ──────────────────────────────────────────────────────────
+var _anim_progress : float = 1.0
+var _anim_tween    : Tween = null
+
+# ── Buttons ───────────────────────────────────────────────────────────────────
+var _day_buttons   : Array  = []
+var _drill_buttons : Array  = []   # Drill labels; last is interactive "End of Day"
+
+# ── Lifecycle ──────────────────────────────────────────────────────────────────
+
+func _ready() -> void:
+	clip_contents = true
+
+# ── Public API (signature unchanged) ──────────────────────────────────────────
+
+## Rebuild graph data from the full transaction_history array.
+func build_graph_data(transaction_history: Array) -> void:
+	_raw_history = transaction_history.duplicate()
+	_build_overview()
+	current_mode   = Mode.OVERVIEW
+	_anim_progress = 1.0
+	_clear_day_buttons()
+	_clear_drill_buttons()
+	_create_day_buttons()
 	queue_redraw()
 
-func _draw():
-	if spending_points.is_empty() and cash_points.is_empty():
-		# Draw "No data" message
-		draw_string(
-			get_theme_default_font(),
-			Vector2(size.x / 2 - 100, size.y / 2),
-			"No transaction data yet",
-			HORIZONTAL_ALIGNMENT_CENTER,
-			-1,
-			24,
-			Color(0.7, 0.7, 0.7)
-		)
-		return
-	
-	# Calculate graph area
-	graph_width = size.x - margin_left - margin_right
-	graph_height = size.y - margin_top - margin_bottom
-	
+# ══════════════════════════════════════════════════════════════════════════════
+#  OVERVIEW DATA BUILDER
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _build_overview() -> void:
+	overview_points.clear()
+	overview_spending.clear()
+
+	var sorted := _raw_history.duplicate()
+	sorted.sort_custom(func(a, b): return a["day"] < b["day"])
+
+	# Aggregate cash balance and spending per day
+	var cash       : float      = float(GameState.starting_money)
+	var day_cash   : Dictionary = {}   # day → final cash after all txns
+	var day_spent  : Dictionary = {}   # day → total abs(expenses) that day
+	var seen_days  : Array      = []
+
+	# Seed day 0 (before any transactions)
+	day_cash[0]  = cash
+	day_spent[0] = 0.0
+	if not 0 in seen_days:
+		seen_days.append(0)
+
+	for entry in sorted:
+		var day_num : int   = entry["day"]
+		var amt     : float = float(entry["amount"])
+		cash += amt
+		day_cash[day_num] = cash
+
+		# Aggregate spending as POSITIVE values
+		if amt < 0:
+			if not day_num in day_spent:
+				day_spent[day_num] = 0.0
+			day_spent[day_num] = day_spent.get(day_num, 0.0) + abs(amt)
+
+		if not day_num in seen_days:
+			seen_days.append(day_num)
+			if not day_num in day_spent:
+				day_spent[day_num] = 0.0
+
+	seen_days.sort()
+
+	# Build point arrays
+	overview_max_day = 0
+	overview_y_max   = 250.0
+	overview_y_min   = -250.0
+
+	var cumulative_spending := 0.0
+	for day_num in seen_days:
+		var cash_val  = float(day_cash[day_num])
+		var day_spend = float(day_spent.get(day_num, 0.0))
+		cumulative_spending += day_spend
+
+		overview_points.append({ "day": day_num, "cash": cash_val })
+		overview_spending.append({ "day": day_num, "spent": cumulative_spending })
+
+		if day_num > overview_max_day:
+			overview_max_day = day_num
+		if cash_val > overview_y_max:
+			overview_y_max = cash_val * 1.15
+		if cash_val < overview_y_min:
+			overview_y_min = cash_val * 1.15
+		if cumulative_spending > overview_y_max:
+			overview_y_max = cumulative_spending * 1.15
+
+	# Ensure symmetric range
+	var abs_max = max(abs(overview_y_max), abs(overview_y_min))
+	abs_max = max(abs_max, 50.0)
+	overview_y_max = abs_max
+	overview_y_min = -abs_max
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  DRILL-DOWN DATA BUILDER
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _build_drilldown(day: int) -> void:
+	drill_points.clear()
+	drill_day = day
+
+	var sorted := _raw_history.duplicate()
+	sorted.sort_custom(func(a, b): return a["day"] < b["day"])
+
+	# Get cash balance at start of this day
+	var cash : float = float(GameState.starting_money)
+	for entry in sorted:
+		if entry["day"] < day:
+			cash += float(entry["amount"])
+		else:
+			break
+
+	# Process this day's transactions
+	var idx := 0
+	drill_y_max = cash
+	drill_y_min = cash
+
+	drill_points.append({
+		"index": idx, "cash": cash,
+		"description": "Start of Day", "amount": 0
+	})
+	idx += 1
+
+	for entry in sorted:
+		if entry["day"] != day:
+			continue
+		cash += float(entry["amount"])
+		drill_points.append({
+			"index": idx, "cash": cash,
+			"description": entry.get("description", "Transaction"),
+			"amount": int(entry["amount"])
+		})
+		idx += 1
+		if cash > drill_y_max: drill_y_max = cash
+		if cash < drill_y_min: drill_y_min = cash
+
+	# Pad the y-range
+	var y_range := drill_y_max - drill_y_min
+	if y_range < 10:
+		y_range = 10
+	drill_y_max += y_range * 0.15
+	drill_y_min -= y_range * 0.15
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MODE SWITCHING WITH TWEEN ANIMATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _switch_to_drilldown(day: int) -> void:
+	_build_drilldown(day)
+	current_mode = Mode.DRILLDOWN
+	_clear_day_buttons()
+	_create_drill_buttons()
+
+	_anim_progress = 0.0
+	if _anim_tween and _anim_tween.is_valid():
+		_anim_tween.kill()
+	_anim_tween = create_tween()
+	_anim_tween.tween_property(self, "_anim_progress", 1.0, 0.3) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_anim_tween.tween_callback(queue_redraw)
+	queue_redraw()
+
+func _switch_to_overview() -> void:
+	current_mode = Mode.OVERVIEW
+	_clear_drill_buttons()
+
+	_anim_progress = 0.0
+	if _anim_tween and _anim_tween.is_valid():
+		_anim_tween.kill()
+	_anim_tween = create_tween()
+	_anim_tween.tween_property(self, "_anim_progress", 1.0, 0.3) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_anim_tween.tween_callback(func():
+		_create_day_buttons()
+		queue_redraw()
+	)
+	queue_redraw()
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  DRAWING
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _draw() -> void:
+	graph_width  = size.x - margin_left - margin_right
+	graph_height = size.y - margin_top  - margin_bottom
+
+	# Background + border
+	draw_rect(Rect2(Vector2.ZERO, size), CLR_BG)
+	draw_rect(Rect2(Vector2.ZERO, size), CLR_BORDER, false, 2.0)
+
 	if graph_width <= 0 or graph_height <= 0:
 		return
-	
-	# Draw axes
-	draw_axes()
-	
-	# Draw grid lines
-	draw_grid()
-	
-	# Draw lines
-	if spending_points.size() > 0:
-		draw_spending_line()
-	if cash_points.size() > 0:
-		draw_cash_line()
-	
-	# Draw legend
-	draw_legend()
-	
-	# Draw hovered point
-	if hovered_point.x >= 0:
-		draw_point(hovered_point)
 
-func draw_axes():
-	# Y-axis (left)
-	draw_line(
-		Vector2(margin_left, margin_top),
-		Vector2(margin_left, size.y - margin_bottom),
-		Color.WHITE,
-		2.0
-	)
-	
-	# X-axis (bottom)
-	draw_line(
-		Vector2(margin_left, size.y - margin_bottom),
-		Vector2(size.x - margin_right, size.y - margin_bottom),
-		Color.WHITE,
-		2.0
-	)
-	
-	# Axis labels
-	draw_string(
-		get_theme_default_font(),
-		Vector2(size.x / 2 - 20, size.y - 10),
-		"Days",
-		HORIZONTAL_ALIGNMENT_CENTER,
-		-1,
-		18,
-		Color.WHITE
-	)
+	if current_mode == Mode.OVERVIEW:
+		_draw_overview()
+	else:
+		_draw_drilldown()
 
-func draw_grid():
-	# Prevent division by zero
-	if max_day <= 0 or max_amount <= 0:
+	# Hover highlight + tooltip
+	if _hovered_screen.x >= 0:
+		draw_circle(_hovered_screen, 9.0, Color.YELLOW)
+		draw_circle(_hovered_screen, 9.0, CLR_WHITE, false, 2.0)
+		_draw_tooltip()
+
+func _process(_delta: float) -> void:
+	if _anim_progress < 1.0:
+		queue_redraw()
+
+# ── OVERVIEW drawing ──────────────────────────────────────────────────────────
+
+func _draw_overview() -> void:
+	var font := get_theme_default_font()
+	var y_max := overview_y_max
+	var y_min := overview_y_min
+	var y_range := y_max - y_min
+	if y_range <= 0:
+		y_range = 1.0
+
+	var max_day_safe = max(overview_max_day, 1)
+
+	draw_string(font, Vector2(margin_left + 4, margin_top - 10),
+		"Cash Balance — Overview", HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_TITLE, CLR_WHITE)
+
+	# Grid + axes
+	_draw_h_grid(y_min, y_max, y_range)
+	_draw_axes()
+
+	# Zero baseline
+	var zero_y := margin_top + ((y_max - 0.0) / y_range) * graph_height
+	draw_line(Vector2(margin_left, zero_y), Vector2(size.x - margin_right, zero_y),
+		CLR_ZERO, 1.5)
+
+	# Empty data guard
+	if overview_points.is_empty():
+		draw_string(font, Vector2(size.x / 2.0 - 140, size.y / 2.0),
+			"No transaction data yet", HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_EMPTY,
+			Color(0.6, 0.6, 0.6))
 		return
-	
-	# Vertical grid lines (days)
-	var day = 0
-	while day <= max_day:
-		var x = margin_left + (float(day) / float(max_day)) * graph_width
-		draw_line(
-			Vector2(x, margin_top),
-			Vector2(x, size.y - margin_bottom),
-			Color(0.3, 0.3, 0.3),
-			1.0
-		)
-		
-		# Day label
-		var label_pos = Vector2(x - 10, size.y - margin_bottom + 25)
-		draw_string(
-			get_theme_default_font(),
-			label_pos,
-			str(day),
-			HORIZONTAL_ALIGNMENT_CENTER,
-			-1,
-			18,
-			Color.WHITE
-		)
-		
-		day += day_increment
-		if day_increment == 0:
-			break # Safety
-	
-	# Horizontal grid lines (amounts)
-	# Check if we need to handle negative values
-	var min_cash: float = 0.0
-	if cash_points.size() > 0:
-		for cp in cash_points:
-			if cp.y < min_cash:
-				min_cash = cp.y
-	
-	# Calculate zero line position
-	var zero_y = margin_top + graph_height / 2.0
-	
-	# Draw negative grid lines if needed
-	if min_cash < 0:
-		var amount = - amount_increment
-		while amount >= -max_amount:
-			var normalized_y = amount / max_amount
-			var y = zero_y - normalized_y * (graph_height / 2.0)
-			draw_line(
-				Vector2(margin_left, y),
-				Vector2(size.x - margin_right, y),
-				Color(0.3, 0.3, 0.3),
-				1.0
-			)
-			
-			# Amount label
-			var label_pos = Vector2(5, y + 5)
-			draw_string(
-				get_theme_default_font(),
-				label_pos,
-				"$" + str(int(amount)),
-				HORIZONTAL_ALIGNMENT_LEFT,
-				-1,
-				18,
-				Color.WHITE
-			)
-			
-			amount -= amount_increment
-			if amount_increment == 0:
-				break # Safety
-	
-	# Draw positive grid lines
-	var pos_amount = 0.0
-	while pos_amount <= max_amount:
-		var normalized_y = pos_amount / max_amount
-		var y = zero_y - normalized_y * (graph_height / 2.0)
-		draw_line(
-			Vector2(margin_left, y),
-			Vector2(size.x - margin_right, y),
-			Color(0.3, 0.3, 0.3),
-			1.0
-		)
-		
-		# Amount label
-		var label_pos = Vector2(5, y + 5)
-		draw_string(
-			get_theme_default_font(),
-			label_pos,
-			"$" + str(int(pos_amount)),
-			HORIZONTAL_ALIGNMENT_LEFT,
-			-1,
-			18,
-			Color.WHITE
-		)
-		
-		pos_amount += amount_increment
-		if amount_increment == 0:
-			break # Safety
 
-func draw_spending_line():
-	# Prevent division by zero
-	if max_day <= 0 or max_amount <= 0:
+	# ── Spending polyline (red, POSITIVE values) ──────────────────────────────
+	var spending_packed := PackedVector2Array()
+	for pt in overview_spending:
+		var day_num = pt["day"]
+		var spent   = pt["spent"]
+		var x := margin_left + (float(day_num) / float(max_day_safe)) * graph_width
+		var y := margin_top + ((y_max - float(spent)) / y_range) * graph_height
+		spending_packed.append(Vector2(x, y))
+
+	if spending_packed.size() >= 2:
+		draw_polyline(spending_packed, CLR_SPENDING, 2.0)
+	for p in spending_packed:
+		draw_circle(p, 5.0, CLR_SPENDING)
+
+	# ── Cash polyline (cyan) ──────────────────────────────────────────────────
+	var cash_packed := PackedVector2Array()
+	for pt in overview_points:
+		var day_num = pt["day"]
+		var cash    = pt["cash"]
+		var x := margin_left + (float(day_num) / float(max_day_safe)) * graph_width
+		var y := margin_top + ((y_max - float(cash)) / y_range) * graph_height
+		cash_packed.append(Vector2(x, y))
+
+	if cash_packed.size() >= 2:
+		draw_polyline(cash_packed, CLR_CASH, 2.0)
+	for p in cash_packed:
+		draw_circle(p, 5.0, CLR_CASH)
+
+	# ── Legend (top-right: both lines) ────────────────────────────────────────
+	var lx := size.x - margin_right - 200
+	var ly := margin_top + 4
+	draw_circle(Vector2(lx, ly + 9), 6.0, CLR_CASH)
+	draw_string(font, Vector2(lx + 14, ly + 16), "Current Cash",
+		HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_LEGEND, CLR_WHITE)
+	draw_circle(Vector2(lx, ly + 34), 6.0, CLR_SPENDING)
+	draw_string(font, Vector2(lx + 14, ly + 42), "Cumulative spent",
+		HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_LEGEND, CLR_WHITE)
+
+# ── DRILL-DOWN drawing (Cash line only) ───────────────────────────────────────
+
+func _draw_drilldown() -> void:
+	var font := get_theme_default_font()
+	var y_max := drill_y_max
+	var y_min := drill_y_min
+	var y_range := y_max - y_min
+	if y_range <= 0:
+		y_range = 1.0
+
+	var n_points := drill_points.size()
+	var max_idx  = max(n_points - 1, 1)
+
+	draw_string(font, Vector2(margin_left + 4, margin_top - 10),
+		"Day %d — Transaction Detail" % drill_day,
+		HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_TITLE, CLR_WHITE)
+
+	_draw_h_grid(y_min, y_max, y_range)
+	_draw_axes()
+
+	# Zero baseline (if visible)
+	if y_min <= 0 and y_max >= 0:
+		var zero_y := margin_top + ((y_max - 0.0) / y_range) * graph_height
+		draw_line(Vector2(margin_left, zero_y), Vector2(size.x - margin_right, zero_y),
+			CLR_ZERO, 1.5)
+
+	# Cash polyline
+	var packed := PackedVector2Array()
+	for pt in drill_points:
+		var idx = pt["index"]
+		var c   = pt["cash"]
+		var x := margin_left + (float(idx) / float(max_idx)) * graph_width
+		var y := margin_top + ((y_max - float(c)) / y_range) * graph_height
+		packed.append(Vector2(x, y))
+
+	if packed.size() >= 2:
+		draw_polyline(packed, CLR_CASH, 2.0)
+	for p in packed:
+		draw_circle(p, 5.0, CLR_CASH)
+
+	# Legend
+	var lx := size.x - margin_right - 170
+	var ly := margin_top + 4
+	draw_circle(Vector2(lx, ly + 9), 6.0, CLR_CASH)
+	draw_string(font, Vector2(lx + 14, ly + 16), "Current Cash",
+		HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_LEGEND, CLR_WHITE)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  SHARED DRAWING HELPERS
+# ══════════════════════════════════════════════════════════════════════════════
+
+## Draw horizontal grid lines with "$N" labels (16px WHITE text).
+func _draw_h_grid(y_min: float, y_max: float, y_range: float) -> void:
+	var font := get_theme_default_font()
+	var target_lines := 6.0
+	var raw_inc := y_range / target_lines
+	var increment := _nice_round(raw_inc)
+	if increment <= 0:
+		increment = 50.0
+
+	var val = snapped(y_min, increment)
+	while val <= y_max:
+		var y = margin_top + ((y_max - val) / y_range) * graph_height
+		draw_line(Vector2(margin_left, y), Vector2(size.x - margin_right, y),
+			CLR_GRID, 1.0)
+		draw_string(font, Vector2(4, y + 6),
+			"$%d" % int(val), HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_GRID, CLR_WHITE)
+		val += increment
+
+## Draw x-axis and y-axis lines.
+func _draw_axes() -> void:
+	var bot_y := margin_top + graph_height
+	draw_line(Vector2(margin_left, margin_top), Vector2(margin_left, bot_y),
+		CLR_BORDER, 2.0)
+	draw_line(Vector2(margin_left, bot_y), Vector2(size.x - margin_right, bot_y),
+		CLR_BORDER, 2.0)
+
+## Round a number to a nice human-readable increment.
+func _nice_round(val: float) -> float:
+	if val <= 2:     return 1.0
+	if val <= 7:     return 5.0
+	if val <= 15:    return 10.0
+	if val <= 35:    return 25.0
+	if val <= 75:    return 50.0
+	if val <= 150:   return 100.0
+	if val <= 350:   return 250.0
+	if val <= 750:   return 500.0
+	return 1000.0
+
+## Draw the tooltip box near the hovered point.
+func _draw_tooltip() -> void:
+	if _tooltip_text.is_empty():
 		return
-	
-	var points = PackedVector2Array()
-	for point in spending_points:
-		var x = margin_left + (point.x / float(max_day)) * graph_width
-		var y = size.y - margin_bottom - (point.y / max_amount) * graph_height
-		points.append(Vector2(x, y))
-	
-	if points.size() >= 2:
-		draw_polyline(points, Color(1.0, 0.4, 0.4), 3.0)
-	
-	# Draw points
-	for point in points:
-		draw_circle(point, 5.0, Color(1.0, 0.4, 0.4))
+	var lines := _tooltip_text.split("\n")
+	var box_w := 280.0
+	var box_h := 18.0 + lines.size() * TOOLTIP_LH
+	var tip   := _hovered_screen + Vector2(14, -box_h - 6)
+	if tip.x + box_w > size.x - 4:
+		tip.x = _hovered_screen.x - box_w - 14
+	if tip.y < 4:
+		tip.y = 4
+	draw_rect(Rect2(tip, Vector2(box_w, box_h)), CLR_TOOLTIP)
+	draw_rect(Rect2(tip, Vector2(box_w, box_h)), CLR_WHITE, false, 1.0)
+	var font := get_theme_default_font()
+	for i in range(lines.size()):
+		draw_string(font, tip + Vector2(10, 20 + i * TOOLTIP_LH),
+			lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, SZ_TOOLTIP, CLR_WHITE)
 
-func draw_cash_line():
-	# Prevent division by zero
-	if max_day <= 0 or max_amount <= 0:
+# ══════════════════════════════════════════════════════════════════════════════
+#  DAY BUTTONS (Overview x-axis — clickable pills with bold hover)
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _create_day_buttons() -> void:
+	_clear_day_buttons()
+	if overview_points.is_empty():
 		return
-	
-	var points = PackedVector2Array()
-	# Calculate zero line position: map 0 to middle of graph
-	# Range is from -max_amount to +max_amount, so zero is at normalized_y = 0
-	# y position = middle of graph area
-	var zero_y = margin_top + graph_height / 2.0
-	
-	# Check if we have negative values to determine if we need zero line
-	var has_negative = false
-	if cash_points.size() > 0:
-		for cp in cash_points:
-			if cp.y < 0:
-				has_negative = true
-				break
-	
-	for point in cash_points:
-		var x = margin_left + (point.x / float(max_day)) * graph_width
-		# Map value from [-max_amount, max_amount] to graph height
-		# normalized_y: -1 (bottom) to +1 (top), with 0 at center
-		var normalized_y = point.y / max_amount
-		# Map to y position: center of graph + offset
-		var y = zero_y - normalized_y * (graph_height / 2.0)
-		points.append(Vector2(x, y))
-	
-	if points.size() >= 2:
-		draw_polyline(points, Color(0.4, 1.0, 0.4), 3.0)
-	
-	# Draw points
-	for point in points:
-		draw_circle(point, 5.0, Color(0.4, 1.0, 0.4))
-	
-	# Draw zero line if there are negative values
-	if has_negative:
-		draw_line(
-			Vector2(margin_left, zero_y),
-			Vector2(size.x - margin_right, zero_y),
-			Color(0.5, 0.5, 0.5),
-			1.0
-		)
 
-func draw_legend():
-	# Legend background
-	var legend_x = size.x - margin_right - 150
-	var legend_y = margin_top + 10
-	
-	# Spending legend
-	draw_circle(Vector2(legend_x, legend_y + 10), 6.0, Color(1.0, 0.4, 0.4))
-	draw_string(
-		get_theme_default_font(),
-		Vector2(legend_x + 15, legend_y + 15),
-		"Spending",
-		HORIZONTAL_ALIGNMENT_LEFT,
-		-1,
-		18,
-		Color(1.0, 0.4, 0.4)
-	)
-	
-	# Current Cash legend
-	draw_circle(Vector2(legend_x, legend_y + 35), 6.0, Color(0.4, 1.0, 0.4))
-	draw_string(
-		get_theme_default_font(),
-		Vector2(legend_x + 15, legend_y + 40),
-		"Current Cash",
-		HORIZONTAL_ALIGNMENT_LEFT,
-		-1,
-		18,
-		Color(0.4, 1.0, 0.4)
-	)
+	graph_width  = size.x - margin_left - margin_right
+	graph_height = size.y - margin_top  - margin_bottom
+	var max_day_safe = max(overview_max_day, 1)
 
-func draw_point(pos: Vector2):
-	draw_circle(pos, 8.0, Color.YELLOW)
-	draw_circle(pos, 8.0, Color.WHITE, false, 2.0)
+	for pt in overview_points:
+		var day_num = int(pt["day"])
+		var x := margin_left + (float(day_num) / float(max_day_safe)) * graph_width
 
-func _input(event):
+		var btn := Button.new()
+		btn.text = "Day %d" % day_num
+		btn.custom_minimum_size = Vector2(72, 30)
+		btn.position = Vector2(x - 36, size.y - margin_bottom + 34)
+		btn.pivot_offset = btn.custom_minimum_size / 2.0
+
+		# Sky-blue pill style
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = CLR_BTN
+		sb.set_corner_radius_all(3)
+		sb.content_margin_left   = 6
+		sb.content_margin_right  = 6
+		sb.content_margin_top    = 3
+		sb.content_margin_bottom = 3
+		btn.add_theme_stylebox_override("normal", sb)
+
+		# Hover: lightened background
+		var sb_h : StyleBoxFlat = sb.duplicate()
+		sb_h.bg_color = CLR_BTN_HOVER
+		btn.add_theme_stylebox_override("hover", sb_h)
+
+		btn.add_theme_color_override("font_color", CLR_WHITE)
+		btn.add_theme_color_override("font_hover_color", CLR_WHITE)
+		btn.add_theme_font_size_override("font_size", SZ_AXIS_BTN)
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+		# Bold on hover via mouse signals + tween scale
+		btn.mouse_entered.connect(func(): _on_btn_hover_enter(btn))
+		btn.mouse_exited.connect(func(): _on_btn_hover_exit(btn))
+
+		# Click drills into this day
+		var captured_day = day_num
+		btn.pressed.connect(func(): _switch_to_drilldown(captured_day))
+
+		add_child(btn)
+		_day_buttons.append(btn)
+
+func _clear_day_buttons() -> void:
+	for btn in _day_buttons:
+		if is_instance_valid(btn):
+			btn.queue_free()
+	_day_buttons.clear()
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  DRILL-DOWN BUTTONS (Start / purchases / End of Day on last point)
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _create_drill_buttons() -> void:
+	_clear_drill_buttons()
+	if drill_points.is_empty():
+		return
+
+	graph_width  = size.x - margin_left - margin_right
+	graph_height = size.y - margin_top  - margin_bottom
+	var n_points := drill_points.size()
+	var max_idx  = max(n_points - 1, 1)
+
+	var last_idx := drill_points.size() - 1
+
+	# One button per point: Start, Purch.1…, last point = "End of Day" (replaces last "Purch.")
+	for pt in drill_points:
+		var idx = int(pt["index"])
+		var x := margin_left + (float(idx) / float(max_idx)) * graph_width
+		var is_end_of_day := idx > 0 and idx == last_idx
+		var label_text: String
+		if idx == 0:
+			label_text = "Start"
+		elif is_end_of_day:
+			label_text = "End of Day"
+		else:
+			label_text = "Purch. %d" % idx
+
+		var btn := Button.new()
+		btn.text = label_text
+		if is_end_of_day:
+			btn.custom_minimum_size = Vector2(142, 34)
+			btn.position = Vector2(x - 86, size.y - margin_bottom + 31)
+			btn.disabled = false
+			btn.mouse_filter = Control.MOUSE_FILTER_STOP
+			btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			var gold_sb := StyleBoxFlat.new()
+			gold_sb.bg_color = CLR_GOLD
+			gold_sb.set_corner_radius_all(4)
+			gold_sb.content_margin_left   = 8
+			gold_sb.content_margin_right  = 8
+			gold_sb.content_margin_top    = 3
+			gold_sb.content_margin_bottom = 3
+			btn.add_theme_stylebox_override("normal", gold_sb)
+			var gold_hover : StyleBoxFlat = gold_sb.duplicate()
+			gold_hover.bg_color = CLR_GOLD.lightened(0.15)
+			btn.add_theme_stylebox_override("hover", gold_hover)
+			btn.add_theme_color_override("font_color", Color("#1a1a1a"))
+			btn.add_theme_color_override("font_hover_color", Color("#000000"))
+			btn.add_theme_font_size_override("font_size", SZ_END_DAY_BTN)
+			btn.mouse_entered.connect(func(): _on_btn_hover_enter(btn))
+			btn.mouse_exited.connect(func(): _on_btn_hover_exit(btn))
+			btn.pressed.connect(_switch_to_overview)
+		else:
+			btn.custom_minimum_size = Vector2(78, 28)
+			btn.position = Vector2(x - 39, size.y - margin_bottom + 34)
+			btn.disabled = true
+			btn.mouse_filter = Control.MOUSE_FILTER_PASS
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = CLR_GRID
+			sb.set_corner_radius_all(3)
+			sb.content_margin_left   = 4
+			sb.content_margin_right  = 4
+			sb.content_margin_top    = 2
+			sb.content_margin_bottom = 2
+			btn.add_theme_stylebox_override("normal", sb)
+			btn.add_theme_stylebox_override("disabled", sb)
+			btn.add_theme_color_override("font_color", CLR_WHITE)
+			btn.add_theme_color_override("font_disabled_color", CLR_WHITE)
+			btn.add_theme_font_size_override("font_size", SZ_DRILL_PILL)
+
+		btn.pivot_offset = btn.custom_minimum_size / 2.0
+
+		add_child(btn)
+		_drill_buttons.append(btn)
+
+func _clear_drill_buttons() -> void:
+	for btn in _drill_buttons:
+		if is_instance_valid(btn):
+			btn.queue_free()
+	_drill_buttons.clear()
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  BUTTON HOVER EFFECTS (bold text + scale tween)
+# ══════════════════════════════════════════════════════════════════════════════
+
+## On hover: scale up to 1.05x with tween, increase font size for "bold" feel.
+func _on_btn_hover_enter(btn: Button) -> void:
+	if not is_instance_valid(btn):
+		return
+	var tween := create_tween()
+	tween.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.1) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	# Bump font size by 2 for a "bold" visual effect
+	var base_size = btn.get_theme_font_size("font_size")
+	btn.add_theme_font_size_override("font_size", base_size + 2)
+
+## On hover exit: scale back to 1.0, restore font size.
+func _on_btn_hover_exit(btn: Button) -> void:
+	if not is_instance_valid(btn):
+		return
+	var tween := create_tween()
+	tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1) \
+		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	var base_size = btn.get_theme_font_size("font_size")
+	if base_size > 10:
+		btn.add_theme_font_size_override("font_size", base_size - 2)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MOUSE HOVER DETECTION (for data point tooltips)
+# ══════════════════════════════════════════════════════════════════════════════
+
+func _input(event: InputEvent) -> void:
 	if not visible or not is_visible_in_tree():
 		return
 	if event is InputEventMouseMotion:
-		var mouse_pos = get_local_mouse_position()
-		check_hover(mouse_pos)
+		_check_hover(get_local_mouse_position())
 
-func check_hover(mouse_pos: Vector2):
-	# Prevent division by zero
-	if max_day <= 0 or max_amount <= 0:
-		hovered_point = Vector2(-1, -1)
-		if tooltip_label:
-			tooltip_label.visible = false
-		return
-	
-	# Calculate graph dimensions if not set
-	graph_width = size.x - margin_left - margin_right
-	graph_height = size.y - margin_top - margin_bottom
-	
+func _check_hover(mouse_pos: Vector2) -> void:
+	graph_width  = size.x - margin_left - margin_right
+	graph_height = size.y - margin_top  - margin_bottom
+
 	if graph_width <= 0 or graph_height <= 0:
-		hovered_point = Vector2(-1, -1)
-		if tooltip_label:
-			tooltip_label.visible = false
+		_clear_hover()
 		return
-	
-	# Check if mouse is over graph area
-	if mouse_pos.x < margin_left or mouse_pos.x > size.x - margin_right:
-		hovered_point = Vector2(-1, -1)
-		if tooltip_label:
-			tooltip_label.visible = false
+
+	if mouse_pos.x < margin_left or mouse_pos.x > size.x - margin_right \
+	or mouse_pos.y < margin_top  or mouse_pos.y > size.y - margin_bottom:
+		_clear_hover()
 		return
-	
-	if mouse_pos.y < margin_top or mouse_pos.y > size.y - margin_bottom:
-		hovered_point = Vector2(-1, -1)
-		if tooltip_label:
-			tooltip_label.visible = false
-		return
-	
-	# Find nearest point
-	var nearest_point = Vector2(-1, -1)
-	var nearest_dist = 999999.0
-	var nearest_data: Vector2 = Vector2(-1, -1)
-	var is_spending: bool = false
-	
-	# Check spending points
-	for point_data in spending_points:
-		var x = margin_left + (point_data.x / float(max_day)) * graph_width
-		var y = size.y - margin_bottom - (point_data.y / max_amount) * graph_height
-		var point = Vector2(x, y)
-		var dist = mouse_pos.distance_to(point)
-		
-		if dist < 25.0 and dist < nearest_dist:
-			nearest_dist = dist
-			nearest_point = point
-			nearest_data = point_data
-			is_spending = true
-	
-	# Check cash points
-	var zero_y = margin_top + graph_height / 2.0
-	for point_data in cash_points:
-		var x = margin_left + (point_data.x / float(max_day)) * graph_width
-		var normalized_y = point_data.y / max_amount
-		var y = zero_y - normalized_y * (graph_height / 2.0)
-		var point = Vector2(x, y)
-		var dist = mouse_pos.distance_to(point)
-		
-		if dist < 25.0 and dist < nearest_dist:
-			nearest_dist = dist
-			nearest_point = point
-			nearest_data = point_data
-			is_spending = false
-	
-	if nearest_point.x >= 0 and tooltip_label:
-		hovered_point = nearest_point
-		var type_str = "Spent" if is_spending else "Current Cash"
-		tooltip_label.text = "Day %d\n%s: $%.0f" % [int(nearest_data.x), type_str, nearest_data.y]
-		tooltip_label.position = nearest_point + Vector2(15, -50)
-		tooltip_label.visible = true
+
+	if current_mode == Mode.OVERVIEW:
+		_hover_overview(mouse_pos)
 	else:
-		hovered_point = Vector2(-1, -1)
-		if tooltip_label:
-			tooltip_label.visible = false
-	
+		_hover_drilldown(mouse_pos)
+
 	queue_redraw()
+
+func _hover_overview(mouse_pos: Vector2) -> void:
+	var max_day_safe = max(overview_max_day, 1)
+	var y_range := overview_y_max - overview_y_min
+	if y_range <= 0:
+		_clear_hover()
+		return
+
+	var nearest_dist := 999999.0
+	var nearest_screen := Vector2(-1, -1)
+	var nearest_text := ""
+
+	# Check cash points
+	for pt in overview_points:
+		var day_num = pt["day"]
+		var cash    = pt["cash"]
+		var x := margin_left + (float(day_num) / float(max_day_safe)) * graph_width
+		var y := margin_top + ((overview_y_max - float(cash)) / y_range) * graph_height
+		var dist := mouse_pos.distance_to(Vector2(x, y))
+		if dist < 30.0 and dist < nearest_dist:
+			nearest_dist   = dist
+			nearest_screen = Vector2(x, y)
+			nearest_text   = "Day %d\nCash: $%d" % [day_num, int(cash)]
+
+	# Check spending points
+	for pt in overview_spending:
+		var day_num = pt["day"]
+		var spent   = pt["spent"]
+		var x := margin_left + (float(day_num) / float(max_day_safe)) * graph_width
+		var y := margin_top + ((overview_y_max - float(spent)) / y_range) * graph_height
+		var dist := mouse_pos.distance_to(Vector2(x, y))
+		if dist < 30.0 and dist < nearest_dist:
+			nearest_dist   = dist
+			nearest_screen = Vector2(x, y)
+			nearest_text   = "Day %d\nTotal spent: $%d" % [day_num, int(spent)]
+
+	if nearest_screen.x >= 0:
+		_hovered_screen = nearest_screen
+		_tooltip_text   = nearest_text
+	else:
+		_clear_hover()
+
+func _hover_drilldown(mouse_pos: Vector2) -> void:
+	var n := drill_points.size()
+	var max_idx = max(n - 1, 1)
+	var y_range := drill_y_max - drill_y_min
+	if y_range <= 0:
+		_clear_hover()
+		return
+
+	var nearest_dist := 999999.0
+	var nearest_screen := Vector2(-1, -1)
+	var nearest_text := ""
+
+	for pt in drill_points:
+		var idx = pt["index"]
+		var c   = pt["cash"]
+		var x := margin_left + (float(idx) / float(max_idx)) * graph_width
+		var y := margin_top + ((drill_y_max - float(c)) / y_range) * graph_height
+		var dist := mouse_pos.distance_to(Vector2(x, y))
+		if dist < 30.0 and dist < nearest_dist:
+			nearest_dist   = dist
+			nearest_screen = Vector2(x, y)
+			var desc = pt.get("description", "")
+			var amt : int = pt.get("amount", 0)
+			var prefix := "+" if amt >= 0 else ""
+			if amt == 0:
+				nearest_text = "%s\nCash: $%d" % [desc, int(c)]
+			else:
+				nearest_text = "%s: %s$%d\nCash: $%d" % [desc, prefix, amt, int(c)]
+
+	if nearest_screen.x >= 0:
+		_hovered_screen = nearest_screen
+		_tooltip_text   = nearest_text
+	else:
+		_clear_hover()
+
+func _clear_hover() -> void:
+	_hovered_screen = Vector2(-1, -1)
+	_tooltip_text   = ""
+
+# ── Size changed: recreate buttons ───────────────────────────────────────────
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		if current_mode == Mode.OVERVIEW and _anim_progress >= 1.0:
+			_clear_day_buttons()
+			_create_day_buttons()
+		elif current_mode == Mode.DRILLDOWN and _anim_progress >= 1.0:
+			_clear_drill_buttons()
+			_create_drill_buttons()
+		queue_redraw()

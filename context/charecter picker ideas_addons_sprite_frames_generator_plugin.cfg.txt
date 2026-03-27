@@ -1,0 +1,9 @@
+--- File: charecter picker ideas/addons/sprite_frames_generator/plugin.cfg ---
+
+[plugin]
+
+name="SpriteFrames Generator"
+description=""
+author="stefantacu"
+version=""
+script="plugin.gd"

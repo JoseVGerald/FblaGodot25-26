@@ -1,0 +1,5 @@
+--- File: charecter picker ideas/resources/character_selection_button_groups/eyes.tres ---
+
+[gd_resource type="ButtonGroup" format=3 uid="uid://bave2i60ci523"]
+
+[resource]

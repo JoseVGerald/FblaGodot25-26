@@ -70,6 +70,7 @@ func _start_catch_game():
 	# Create the catch game as an overlay CanvasLayer
 	var canvas = CanvasLayer.new()
 	canvas.layer = 10
+	canvas.process_mode = Node.PROCESS_MODE_ALWAYS
 	var game = load("res://scripts/catch_game.gd").new()
 	game.name = "CatchGame"
 	canvas.add_child(game)

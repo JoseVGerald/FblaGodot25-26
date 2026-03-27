@@ -1,0 +1,9 @@
+--- File: addons/SimpleTODO/plugin.cfg ---
+
+[plugin]
+
+name="Simple TODO"
+description="Organize random notes in columns."
+author="KoBeWi"
+version="1.6"
+script="SimpleTODO.gd"

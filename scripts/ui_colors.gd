@@ -1,0 +1,65 @@
+# ui_colors.gd
+# Centralized color palette for "My Little Buddy" UI.
+# All menus reference these constants for visual consistency across the game.
+# Matches the sky-blue checkerboard / warm-green button identity of the main menu.
+#
+# Usage:  UIColors.BG_NAVY, UIColors.BTN_GREEN, etc.
+class_name UIColors
+
+# ── Background layers (darkest → lightest) ────────────────────────────────────
+const BG_DARK    := Color("#0d1b36")   # Darkest: input fields, bar tracks, graph bg
+const BG_NAVY    := Color("#1a2a4a")   # Main panel background
+const BG_PANEL   := Color("#1e3a6e")   # Card / row / header strip background
+
+# ── Borders & accents ─────────────────────────────────────────────────────────
+const BORDER_BLUE := Color("#4A90D9")  # Sky-blue borders (matches main-menu checker)
+const ACCENT_CYAN := Color("#53d8fb")  # Highlights, cash values, counters
+
+# ── Buttons ────────────────────────────────────────────────────────────────────
+const BTN_GREEN   := Color("#4CAF50")  # Primary action / income / affordable
+const BTN_RED     := Color("#EF5350")  # Close / danger / expenses
+
+# ── Semantic colours ───────────────────────────────────────────────────────────
+const WARN_ORANGE := Color("#FFA726")  # Warning state (bar 50-80 %)
+const DANGER_RED  := Color("#EF5350")  # Danger, over-budget, expense amounts
+const GOLD        := Color("#FFD700")  # Achievements, trophies
+
+# ── Text colours ───────────────────────────────────────────────────────────────
+const TEXT_WHITE  := Color("#FFFFFF")  # Primary text colour
+const TEXT_DIM    := Color(1.0, 1.0, 1.0, 0.5)  # Disabled / locked text
+
+# ── Category colours (budget breakdown) ───────────────────────────────────────
+const CAT_FOOD    := Color("#FF8C00")  # Orange — Food & Water
+const CAT_VET     := Color("#EF5350")  # Red — Vet & Medicine
+const CAT_TRAVEL  := Color("#4A90D9")  # Blue — Travel & Transport
+
+# ── Stat bar fills (needs menu) ────────────────────────────────────────────────
+const BAR_HUNGER  := Color("#FF8C00")  # Warm orange
+const BAR_THIRST  := Color("#1E90FF")  # Bright blue
+const BAR_ENERGY  := Color("#FFD700")  # Yellow
+const BAR_HEALTH  := Color("#32CD32")  # Bright green
+
+# ── Locked / grey tones ───────────────────────────────────────────────────────
+const GREY_ICON   := Color("#666688")  # Locked achievement icon
+const GREY_TITLE  := Color(0.6, 0.6, 0.6, 0.5)  # 50 % grey locked title
+const GREY_DESC   := Color(0.38, 0.38, 0.38)     # Dark grey locked description
+
+# ── Helper: create a navy panel StyleBoxFlat ───────────────────────────────────
+## Returns a ready-to-use StyleBoxFlat with navy bg, sky-blue border, rounded corners.
+## Attach via:  panel.add_theme_stylebox_override("panel", UIColors.make_panel_style())
+static func make_panel_style(border_width: int = 2, corner_radius: int = 8, margin: int = 18) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = BG_NAVY
+	sb.border_color = BORDER_BLUE
+	sb.set_border_width_all(border_width)
+	sb.set_corner_radius_all(corner_radius)
+	sb.set_content_margin_all(margin)
+	return sb
+
+## Apply the standard opaque navy-blue panel style to a PanelContainer or Panel node.
+## Also forces modulate.a = 1.0 so nothing bleeds through.
+static func apply_opaque_panel(panel_node: Control) -> void:
+	var sb := make_panel_style()
+	if panel_node is PanelContainer or panel_node is Panel:
+		panel_node.add_theme_stylebox_override("panel", sb)
+	panel_node.modulate.a = 1.0

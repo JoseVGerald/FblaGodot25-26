@@ -35,11 +35,13 @@ var days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sat
 var day_timer: float = 0.0
 var DAY_DURATION: float = 300.0
 
+const WITHDRAWAL_PENALTY_RATE := 0.15  # 15% penalty for early withdrawal from savings
+
 # Supplies Group (player inventory, NOT pet needs)
 var food: int = 0 # Days of food remaining
 var water: int = 0 # Days of water remaining
 var medication: String = "none" # Current medication status
-var dog_health: float = 100.0 # Utility for dialogue/UI
+var dog_health: float = 30.0 # Utility for dialogue/UI (Low start for notification demo)
 var has_prescription: bool = false # Added to track vet orders
 
 # Tutorial state
@@ -109,15 +111,17 @@ func apply_volume():
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), db)
 	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), master_volume == 0)
 
-func _process(_delta):
-	# Day advancement is now handled via advance_day() called from sleep interaction
-	pass
+
 
 func advance_day():
 	# Decrement supplies
 	food = max(0, food - 1)
 	water = max(0, water - 1)
-	
+	_advance_day_after_supply_decrement()
+
+
+## Calendar + economy events after food/water have been applied (week simulation applies supplies separately).
+func _advance_day_after_supply_decrement() -> void:
 	# Process medication
 	if medication != "none":
 		# Medication heals dog by 30 each night
@@ -192,6 +196,20 @@ func advance_day():
 				spend_money(abs(ev["amt"]), "Emergency")
 		elif ev["type"] == "health":
 			dog_health = min(100.0, dog_health + ev["amt"])
+
+
+## Week simulation: random nightly health roll (called before calendar advance).
+func apply_random_night_event() -> void:
+	var dog = get_tree().get_first_node_in_group("dog") if get_tree() else null
+	if dog and dog.has_method("apply_random_night_health_roll"):
+		dog.apply_random_night_health_roll()
+		dog_health = dog.health
+
+
+## Week simulation: advance calendar after food/water were already applied for this day.
+func advance_day_after_simulation_supply() -> void:
+	_advance_day_after_supply_decrement()
+
 
 func old_process_disabled(delta):
 	if get_tree().paused:
@@ -290,6 +308,25 @@ func deposit_to_savings(amount: int) -> bool:
 		return true
 	return false
 
+
+## Withdraw from savings with a 15% early withdrawal penalty.
+## Returns the amount actually received (after penalty), or 0 if insufficient.
+func withdraw_from_savings(amount: int) -> int:
+	if amount <= 0 or savings_balance < amount:
+		return 0
+	var penalty := int(ceil(float(amount) * WITHDRAWAL_PENALTY_RATE))
+	var received := amount - penalty
+	savings_balance -= amount
+	money += received
+	record_transaction("Savings Withdrawal", received, "Transfer")
+	if penalty > 0:
+		record_transaction("Withdrawal Penalty (15%%)", -penalty, "Emergency")
+	weekly_report["emergency_usage"] += penalty
+	savings_updated.emit()
+	budget_updated.emit()
+	event_triggered.emit("Withdrew $%d from savings. Lost $%d penalty!" % [amount, penalty])
+	return received
+
 func check_emergency_fund(cost: int, item_name: String) -> bool:
 	# Auto-pay from savings if affordable
 	if savings_balance >= cost:
@@ -321,6 +358,7 @@ func initialize_day_one():
 		"Vet": {"limit": 50, "spent": 0},
 		"Travel": {"limit": 50, "spent": 0}
 	}
+	dog_health = 30.0
 	transaction_history = []
 	all_time_spent = 0
 

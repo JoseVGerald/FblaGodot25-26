@@ -33,8 +33,10 @@ theme_override_constants/margin_bottom = 20
 layout_mode = 2
 
 [node name="LeftSection" type="HBoxContainer" parent="Background/Margin/MainHBox"]
+custom_minimum_size = Vector2(380, 0)
 layout_mode = 2
 theme_override_constants/separation = 30
+alignment = 0
 
 [node name="MoneyLabel" type="Label" parent="Background/Margin/MainHBox/LeftSection"]
 layout_mode = 2
@@ -46,9 +48,15 @@ vertical_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="TimeLabel" type="Label" parent="Background/Margin/MainHBox"]
+[node name="TimeLabel" type="RichTextLabel" parent="Background/Margin/MainHBox"]
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 50
+mouse_filter = 0
+bbcode_enabled = true
+autowrap_mode = 0
+fit_content = true
+scroll_active = false
+theme_override_font_sizes/normal_font_size = 50
 text = "Monday Week 1"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -58,8 +66,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="RightSection" type="HBoxContainer" parent="Background/Margin/MainHBox"]
+custom_minimum_size = Vector2(380, 0)
 layout_mode = 2
 theme_override_constants/separation = 20
+alignment = 2
 
 [node name="SuppliesBtn" type="Button" parent="Background/Margin/MainHBox/RightSection"]
 custom_minimum_size = Vector2(100, 0)
@@ -96,6 +106,11 @@ custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 theme_override_font_sizes/font_size = 50
 text = " 📝 "
+
+[node name="NotifBtn" type="Button" parent="TopRightHUD"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+theme_override_font_sizes/font_size = 50
 
 [node name="PauseBtn" type="Button" parent="TopRightHUD"]
 custom_minimum_size = Vector2(100, 100)

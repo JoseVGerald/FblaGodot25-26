@@ -46,6 +46,12 @@ func apply_daily_health_change():
 	if GameState.medication != "none":
 		health = min(100.0, health + 30)
 
+
+## Random nightly health roll only (week simulation — no duplicate antibiotic bonus here).
+func apply_random_night_health_roll() -> void:
+	var change = randi_range(-30, 30)
+	health = clamp(health + change, 10, 100)
+
 func _ready() -> void:
 	add_to_group("dog")
 	input_pickable = true
@@ -181,9 +187,9 @@ func _physics_process(delta: float) -> void:
 func _apply_dynamic_appearance():
 	if not animated_sprite_2d: return
 	
-	# 5. Growing Up (Scale)
-	var age_scale_factor = 1.0 + float(GameState.current_day) * 0.05
-	age_scale_factor = min(age_scale_factor, 2.0) # max double size
+	# 5. Growing Up (Scale) — keep dog closer to player size (old curve hit 2× and read as “giant dog”).
+	var age_growth: float = minf(float(GameState.current_day) * 0.012, 0.32)
+	var age_scale_factor: float = clampf(0.72 + age_growth, 0.68, 1.06)
 	animated_sprite_2d.scale = Vector2(age_scale_factor, age_scale_factor)
 	
 	# 3. Color Moods

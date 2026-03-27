@@ -9,7 +9,7 @@ extends Node2D
 # Missing ends the game and shows earnings.
 
 const BALL_RADIUS := 24.0
-const DOG_SPEED := 280.0
+const DOG_SPEED := 420.0
 
 var time_limit: float = 10.0
 var timer: float = 0.0
@@ -75,6 +75,10 @@ func _ready():
 	_spawn_ball()
 	game_active = true
 	timer = time_limit
+	
+	# Pause the main game so the player can't move
+	get_tree().paused = true
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 func _play_dog_anim(anim_name: String):
 	if not dog_sprite or not dog_sprite.sprite_frames:
@@ -177,8 +181,10 @@ func _end_game():
 	game_active = false
 	show_end_screen = true
 
-	# Stop dog animation
+	# Center dog on the summary (was at bottom of arena — looked off to the side)
 	if dog_sprite:
+		var c := get_viewport_rect().size * 0.5
+		dog_sprite.position = Vector2(c.x, c.y - 140)
 		_play_dog_anim("idle")
 
 	# Award money
@@ -197,16 +203,17 @@ func _end_game():
 func _draw():
 	var vp_size = get_viewport_rect().size
 
+	if show_end_screen:
+		draw_rect(Rect2(Vector2.ZERO, vp_size), Color(0.12, 0.22, 0.12))
+		_draw_end_screen()
+		return
+
 	# Background (full screen dark green)
 	draw_rect(Rect2(Vector2.ZERO, vp_size), Color(0.12, 0.22, 0.12))
 	# Arena grass
 	draw_rect(arena_rect, Color(0.25, 0.55, 0.22))
 	# Arena border
 	draw_rect(arena_rect, Color(1, 1, 1, 0.3), false, 3.0)
-
-	if show_end_screen:
-		_draw_end_screen()
-		return
 
 	if not game_active:
 		return
@@ -232,8 +239,10 @@ func _draw():
 
 	# Dog sprite is drawn automatically as a child node
 
-	# Earnings label (below the arena)
-	draw_string(ThemeDB.fallback_font, Vector2(arena_rect.position.x + 10, arena_rect.position.y + arena_rect.size.y + 40), "Earned: $%d" % round_earnings, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, Color(0.2, 1.0, 0.2))
+	# Earnings label (centered below the arena)
+	var earned_text = "Earned: $%d" % round_earnings
+	var earned_x = arena_rect.position.x + arena_rect.size.x / 2 - 80
+	draw_string(ThemeDB.fallback_font, Vector2(earned_x, arena_rect.position.y + arena_rect.size.y + 40), earned_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 40, Color(0.2, 1.0, 0.2))
 
 	# Popups
 	for popup in popup_list:
@@ -242,29 +251,41 @@ func _draw():
 
 func _draw_end_screen():
 	var vp_size = get_viewport_rect().size
-	# Darken
-	draw_rect(Rect2(Vector2.ZERO, vp_size), Color(0, 0, 0, 0.6))
+	draw_rect(Rect2(Vector2.ZERO, vp_size), Color(0, 0, 0, 0.55))
 
-	var center = vp_size / 2
-	# Panel
-	var panel_rect = Rect2(center.x - 200, center.y - 100, 400, 200)
-	draw_rect(panel_rect, Color(0.15, 0.15, 0.2, 0.95))
-	draw_rect(panel_rect, Color(0.5, 0.8, 0.5), false, 3.0)
+	var center: Vector2 = vp_size * 0.5
+	var pw: float = minf(920.0, vp_size.x - 48.0)
+	var ph: float = minf(520.0, vp_size.y - 48.0)
+	var panel_rect := Rect2(center.x - pw * 0.5, center.y - ph * 0.5, pw, ph)
+	draw_rect(panel_rect, Color(0.15, 0.15, 0.2, 0.97))
+	draw_rect(panel_rect, Color(0.5, 0.8, 0.5), false, 4.0)
 
-	# Title
-	draw_string(ThemeDB.fallback_font, Vector2(center.x - 120, center.y - 40), "You earned $%d" % round_earnings, HORIZONTAL_ALIGNMENT_CENTER, -1, 48, Color(0.2, 1.0, 0.2))
+	var font := ThemeDB.fallback_font
+	var title_text := "You earned $%d" % round_earnings
+	var title_size := 72
+	# width -1: do not clip; place from left edge so full string is visible
+	var title_w := font.get_string_size(title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x
+	var title_pos := Vector2(center.x - title_w * 0.5, center.y - 40)
+	draw_string(font, title_pos, title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size, Color(0.2, 1.0, 0.2))
 
-	# Exit button
-	var btn_rect = Rect2(center.x - 80, center.y + 20, 160, 50)
+	var btn_w := 400.0
+	var btn_h := 120.0
+	var btn_rect := Rect2(center.x - btn_w * 0.5, center.y + 80, btn_w, btn_h)
 	draw_rect(btn_rect, Color(0.3, 0.6, 0.3))
-	draw_rect(btn_rect, Color(0.5, 0.9, 0.5), false, 2.0)
-	draw_string(ThemeDB.fallback_font, Vector2(center.x - 30, center.y + 55), "Exit", HORIZONTAL_ALIGNMENT_CENTER, -1, 40, Color.WHITE)
+	draw_rect(btn_rect, Color(0.5, 0.9, 0.5), false, 3.0)
+	var exit_text := "Exit"
+	var exit_size := 60
+	var exit_w := font.get_string_size(exit_text, HORIZONTAL_ALIGNMENT_LEFT, -1, exit_size).x
+	var exit_baseline_y := center.y + 80.0 + btn_h * 0.5 + exit_size * 0.35
+	draw_string(font, Vector2(center.x - exit_w * 0.5, exit_baseline_y), exit_text, HORIZONTAL_ALIGNMENT_LEFT, -1, exit_size, Color.WHITE)
 
 func _unhandled_input(event):
 	if show_end_screen:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			var center = get_viewport_rect().size / 2
-			var btn_rect = Rect2(center.x - 80, center.y + 20, 160, 50)
+			var btn_w = 400.0
+			var btn_h = 120.0
+			var btn_rect = Rect2(center.x - btn_w / 2, center.y + 80, btn_w, btn_h)
 			if btn_rect.has_point(event.position):
 				_exit_game()
 		# Also allow pressing E or Enter or Escape to exit

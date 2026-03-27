@@ -136,9 +136,11 @@ static func style_line_edit(input: LineEdit) -> void:
 
 
 static func style_panel(panel: Control) -> void:
+	# Navy-blue panel style matching the game's sky-blue / green identity.
+	# Colours match UIColors constants: BG_NAVY=#1a2a4a, BORDER_BLUE=#4A90D9
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.10, 0.12, 0.16, 0.92)
-	sb.border_color = Color(0.30, 0.35, 0.42)
+	sb.bg_color     = Color("#1a2a4a")
+	sb.border_color = Color("#4A90D9")
 	sb.set_border_width_all(3)
 	sb.set_corner_radius_all(8)
 	sb.set_content_margin_all(20)
@@ -146,6 +148,8 @@ static func style_panel(panel: Control) -> void:
 		panel.add_theme_stylebox_override("panel", sb)
 	elif panel is Panel:
 		panel.add_theme_stylebox_override("panel", sb)
+	# Force full opacity — prevents world from bleeding through
+	panel.modulate.a = 1.0
 
 
 static func style_rich_text(rtl: RichTextLabel) -> void:

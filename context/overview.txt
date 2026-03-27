@@ -1,0 +1,30 @@
+# My Little Buddy - Game Overview
+
+## Summary
+"My Little Buddy" is a pet care simulation and financial management game built in Godot Engine 4.5. The player is responsible for raising and caring for a virtual dog by managing its daily needs, while also handling a realistic personal budget, generating income through mini-games, and dealing with unexpected expenses.
+
+## Core Gameplay: Pet Care
+The player's primary goal is to maintain the dog's core stats (0-100 scale):
+- **Hunger**: Restored by feeding the dog (requires Food supply).
+- **Thirst**: Restored by giving water (requires Water supply).
+- **Energy**: Restored by putting the dog to sleep (advances the day).
+- **Hygiene**: Cleanliness level of the dog.
+- **Health**: Changes randomly each day. Maintained by visiting the Vet for checkups ($50) and buying prescribed medication ($40).
+
+The player navigates a 2D map to visit different locations:
+- **Home**: Where the player feeds, waters, and puts the dog to sleep.
+- **Shop**: Where the player purchases Food ($20 for 5 days), Water ($10 for 5 days), and Medication.
+- **Vet**: Where the player gets health checkups and prescriptions.
+
+## Financial System
+A robust economic system (managed by `GameState.gd`) underpins the gameplay, requiring the player to budget carefully:
+- **Income**: The player receives a $150 weekly allowance every 7 in-game days. Additional money can be earned through mini-games like the "Chore Quiz" (math questions) and the "Catch Minigame" (action physics).
+- **Savings & Emergency Fund**: The player starts with $200 in an emergency savings account that bears 5% daily interest. If essential supplies are purchased without enough active cash, the emergency fund is automatically used.
+- **Budgeting**: Players use the Finance Dashboard (`finance_menu.gd`) to set spending limits. Progress bars warn the player (Green/Yellow/Red) as they approach their budget cap.
+- **Economy Realism**: The game features an inflation rate that increases costs over time, and random overnight events. A comprehensive transaction history and visual spending graph (`spending_graph.gd`) track all financial flows.
+
+## Technical Architecture
+- **Engine**: Godot 4.5
+- **Languages / Structure**: GDScript for primary logic, serialized node configurations (`.tscn`) for scenes, and `.dialogue` files for NPC interactions.
+- **Design Patterns**: The codebase heavily relies on Object-Oriented Programming (OOP) principles, utilizing encapsulation (private array manipulations), inheritance (extending native Godot nodes), polymorphism (unified interaction interfaces), and abstraction (centralizing complex timeline shifts into `advance_day()` routines).
+- **Dependencies**: The project utilizes open-source libraries like Dialogue Manager (Nathan Hoad), Scene Manager (GlassBrick), and SimpleTODO (KoBeWi).

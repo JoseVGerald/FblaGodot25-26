@@ -1,0 +1,6 @@
+--- File: charecter picker ideas/resources/character_selection_button_groups/accessory.tres ---
+
+[gd_resource type="ButtonGroup" format=3 uid="uid://cq0dph2lvkmfh"]
+
+[resource]
+allow_unpress = true

@@ -1,0 +1,5 @@
+--- File: charecter picker ideas/resources/character_selection_button_groups/body.tres ---
+
+[gd_resource type="ButtonGroup" format=3 uid="uid://bds83keio2gnv"]
+
+[resource]

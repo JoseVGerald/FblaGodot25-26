@@ -1,162 +1,216 @@
-# COMMIT: Achievements and Catch Minigame Update
+# achievements_popup.gd
+# Achievements Panel — shows all achievements, descriptions, and unlock status.
+# Redesigned to match the game's sky-blue / green pixel-art identity.
+#
+# Fully opaque navy-blue panel — no world / pause-menu bleed-through.
+# layer = 11 so it renders above PauseMenu (layer 10).
 extends CanvasLayer
 
-## Achievements popup — shows all achievements, their descriptions, and unlock status.
-
 const ACHIEVEMENT_DESCRIPTIONS := {
-	"Penny Pincher": "Save $200 in your emergency fund",
-	"Master Chef": "Feed your dog 10 times",
-	"Golden Years": "Reach Day 30",
-	"Catch Pro": "Earn $40 in a single catch round",
-	"Catch Master": "Earn $200 total from the catch minigame"
+	"Penny Pincher" : "Save $200 in your emergency fund",
+	"Master Chef"   : "Feed your dog 10 times",
+	"Golden Years"  : "Reach Day 30",
+	"Catch Pro"     : "Earn $40 in a single catch round",
+	"Catch Master"  : "Earn $200 total from the catch minigame"
 }
 
-var was_paused: bool = false
-var list_container: VBoxContainer = null
+# ── Colour palette ──────────────────────────────────────────────────────────────
+const CLR_NAVY       := Color("#1a2a4a")
+const CLR_NAVY_LIGHT := Color("#1e3a6e")
+const CLR_NAVY_DEEP  := Color("#0d1b36")
+const CLR_SKY        := Color("#4A90D9")
+const CLR_CYAN       := Color("#53d8fb")
+const CLR_GREEN      := Color("#4CAF50")
+const CLR_GOLD       := Color("#FFD700")
+const CLR_RED        := Color("#EF5350")
+const CLR_WHITE      := Color.WHITE
+const CLR_GREY_ICON  := Color("#666688")
+const CLR_GREY_TITLE := Color(0.6, 0.6, 0.6, 0.5)
+const CLR_GREY_DESC  := Color(0.38, 0.38, 0.38)
 
-func _ready():
-	layer = 11 # Higher than PauseMenu (layer 10)
-	process_mode = Node.PROCESS_MODE_ALWAYS # Run while paused
-	
-	was_paused = get_tree().paused
+var was_paused     : bool         = false
+var list_container : VBoxContainer = null
+
+func _ready() -> void:
+	layer        = 11
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	was_paused        = get_tree().paused
 	get_tree().paused = true
-	
-	UITheme.apply_overlay_theme(self )
+	UITheme.apply_overlay_theme(self)
 	_build_ui()
-	
-	# Connect to the unlock signal to refresh live if ever needed
 	if not GameState.achievement_unlocked.is_connected(_on_achievement_unlocked):
 		GameState.achievement_unlocked.connect(_on_achievement_unlocked)
 
-func _on_achievement_unlocked(_name: String):
-	# Refresh UI dynamically
+func _on_achievement_unlocked(_name: String) -> void:
 	if list_container:
 		for child in list_container.get_children():
 			child.queue_free()
 		_fill_list(list_container)
 
-func _build_ui():
-	# Background dimmer
-	var bg = ColorRect.new()
+func _build_ui() -> void:
+	# Full-screen dimmer
+	var bg := ColorRect.new()
 	bg.anchors_preset = Control.PRESET_FULL_RECT
-	bg.anchor_right = 1.0
-	bg.anchor_bottom = 1.0
-	bg.color = Color(0, 0, 0, 0.5)
+	bg.anchor_right   = 1.0
+	bg.anchor_bottom  = 1.0
+	bg.color          = Color(0, 0, 0, 0.65)
+	bg.mouse_filter   = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	# Panel
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(900, 650)
-	panel.anchors_preset = Control.PRESET_CENTER
-	panel.anchor_left = 0.5
-	panel.anchor_top = 0.5
-	panel.anchor_right = 0.5
+	# Main panel
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(960, 680)
+	panel.anchors_preset      = Control.PRESET_CENTER
+	panel.anchor_left   = 0.5
+	panel.anchor_top    = 0.5
+	panel.anchor_right  = 0.5
 	panel.anchor_bottom = 0.5
-	panel.offset_left = -450
-	panel.offset_top = -325
-	panel.offset_right = 450
-	panel.offset_bottom = 325
+	panel.offset_left   = -480
+	panel.offset_top    = -340
+	panel.offset_right  = 480
+	panel.offset_bottom = 340
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical   = Control.GROW_DIRECTION_BOTH
+	panel.modulate.a      = 1.0
+
+	var panel_sb := StyleBoxFlat.new()
+	panel_sb.bg_color     = CLR_NAVY
+	panel_sb.border_color = CLR_SKY
+	panel_sb.set_border_width_all(3)
+	panel_sb.set_corner_radius_all(10)
+	panel_sb.set_content_margin_all(20)
+	panel.add_theme_stylebox_override("panel", panel_sb)
 	add_child(panel)
 
-	var vbox = VBoxContainer.new()
+	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 20)
+	vbox.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 14)
 	panel.add_child(vbox)
 
-	# Header with title and close button
-	var header = HBoxContainer.new()
+	# Header: title + close
+	var header := HBoxContainer.new()
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(header)
 
-	var title = Label.new()
+	var title := Label.new()
 	title.text = "Achievements"
 	title.add_theme_font_size_override("font_size", 58)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var font = UITheme.get_pixel_font()
+	title.size_flags_horizontal  = Control.SIZE_EXPAND_FILL
+	title.horizontal_alignment   = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", CLR_WHITE)
+	var font := UITheme.get_pixel_font()
 	if font:
 		title.add_theme_font_override("font", font)
 	header.add_child(title)
 
-	var close_btn = Button.new()
+	var close_btn := Button.new()
 	close_btn.text = " X "
 	close_btn.custom_minimum_size = Vector2(80, 80)
 	close_btn.add_theme_font_size_override("font_size", 42)
 	close_btn.pressed.connect(_close_popup)
+	UITheme.style_button(close_btn, CLR_RED)
 	header.add_child(close_btn)
 
 	# Separator
-	var sep = HSeparator.new()
-	vbox.add_child(sep)
+	var title_sep := ColorRect.new()
+	title_sep.color                 = CLR_SKY
+	title_sep.custom_minimum_size   = Vector2(0, 2)
+	title_sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(title_sep)
 
-	# Scrollable list
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# Counter
+	var unlocked_count := GameState.achievements.values().filter(func(v): return v).size()
+	var total_count    := GameState.achievements.size()
+	var counter        := Label.new()
+	counter.text = "%d / %d Achievements Unlocked" % [unlocked_count, total_count]
+	counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	counter.add_theme_font_size_override("font_size", 32)
+	counter.add_theme_color_override("font_color", CLR_CYAN)
+	if font:
+		counter.add_theme_font_override("font", font)
+	vbox.add_child(counter)
+
+	# Scroll list
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical    = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox.add_child(scroll)
 
 	list_container = VBoxContainer.new()
 	list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	list_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	list_container.add_theme_constant_override("separation", 18)
+	list_container.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+	list_container.add_theme_constant_override("separation", 0)
 	scroll.add_child(list_container)
-
 	_fill_list(list_container)
 
-func _fill_list(list: VBoxContainer):
-	var font = UITheme.get_pixel_font()
-
-	# Build achievement rows
+func _fill_list(list: VBoxContainer) -> void:
+	var font := UITheme.get_pixel_font()
 	for achievement_name in GameState.achievements.keys():
-		var is_unlocked = GameState.achievements[achievement_name]
-		var description = ACHIEVEMENT_DESCRIPTIONS.get(achievement_name, "")
+		var is_unlocked : bool   = GameState.achievements[achievement_name]
+		var description : String = ACHIEVEMENT_DESCRIPTIONS.get(achievement_name, "")
 
-		var row = HBoxContainer.new()
+		var row_bg := ColorRect.new()
+		row_bg.color = CLR_NAVY_LIGHT if is_unlocked else CLR_NAVY_DEEP
+		row_bg.custom_minimum_size   = Vector2(0, 64)
+		row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		list.add_child(row_bg)
+
+		var row := HBoxContainer.new()
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 20)
+		row.add_theme_constant_override("separation", 18)
 		list.add_child(row)
 
-		# Left side: achievement name + icon
-		var name_label = Label.new()
+		# Icon
+		var icon := Label.new()
 		if is_unlocked:
-			name_label.text = "🏆 " + achievement_name
-			name_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+			icon.text = "T"
+			icon.add_theme_color_override("font_color", CLR_GOLD)
 		else:
-			name_label.text = "🔒 " + achievement_name
-			name_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		name_label.add_theme_font_size_override("font_size", 38)
+			icon.text = "L"
+			icon.add_theme_color_override("font_color", CLR_GREY_ICON)
+		icon.add_theme_font_size_override("font_size", 40)
+		icon.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
+		icon.custom_minimum_size.x = 54
+		if font:
+			icon.add_theme_font_override("font", font)
+		row.add_child(icon)
+
+		# Name
+		var name_label := Label.new()
+		name_label.text = achievement_name
+		name_label.add_theme_font_size_override("font_size", 36)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
+		name_label.add_theme_color_override("font_color", CLR_WHITE if is_unlocked else CLR_GREY_TITLE)
 		if font:
 			name_label.add_theme_font_override("font", font)
 		row.add_child(name_label)
 
-		# Right side: description
-		var desc_label = Label.new()
+		# Description
+		var desc_label := Label.new()
 		desc_label.text = description
-		desc_label.add_theme_font_size_override("font_size", 26)
+		desc_label.add_theme_font_size_override("font_size", 24)
 		desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		if is_unlocked:
-			desc_label.add_theme_color_override("font_color", Color(0.7, 0.9, 0.7))
-		else:
-			desc_label.add_theme_color_override("font_color", Color(0.45, 0.45, 0.45))
+		desc_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_RIGHT
+		desc_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
+		desc_label.add_theme_color_override("font_color", CLR_GREEN if is_unlocked else CLR_GREY_DESC)
 		if font:
 			desc_label.add_theme_font_override("font", font)
 		row.add_child(desc_label)
 
-		# Separator between rows
-		var row_sep = HSeparator.new()
-		row_sep.modulate = Color(1, 1, 1, 0.3)
-		list.add_child(row_sep)
+		# Separator
+		var sep := ColorRect.new()
+		sep.color                   = CLR_SKY
+		sep.custom_minimum_size     = Vector2(0, 1)
+		sep.size_flags_horizontal   = Control.SIZE_EXPAND_FILL
+		list.add_child(sep)
 
-func _input(event):
+func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_close_popup()
 		get_viewport().set_input_as_handled()
 
-func _close_popup():
+func _close_popup() -> void:
 	get_tree().paused = was_paused
 	queue_free()

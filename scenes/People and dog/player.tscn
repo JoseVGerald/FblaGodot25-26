@@ -384,7 +384,7 @@ animations = [{
 }]
 
 [node name="Player" type="CharacterBody2D" groups=["player"]]
-scale = Vector2(2.2732878, 2.2703533)
+scale = Vector2(0.75, 0.75)
 motion_mode = 1
 script = ExtResource("1_g2els")
 

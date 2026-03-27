@@ -634,7 +634,7 @@ visible = false
 position = Vector2(-214, 1828.5)
 
 [node name="world" parent="." unique_id=1163188942 instance=ExtResource("2_utfc0")]
-position = Vector2(-717, -320)
+position = Vector2(-721, -320)
 
 [node name="Shop" parent="." unique_id=906636356 instance=ExtResource("3_rl3lx")]
 position = Vector2(-1806, 1048)

@@ -1,0 +1,5 @@
+--- File: charecter picker ideas/resources/character_selection_button_groups/hairstyle.tres ---
+
+[gd_resource type="ButtonGroup" format=3 uid="uid://b38da7m7iif8g"]
+
+[resource]

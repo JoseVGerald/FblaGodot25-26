@@ -1,0 +1,9 @@
+--- File: charecter picker ideas/addons/scene_manager/plugin.cfg ---
+
+[plugin]
+
+name="Scene Manager"
+description="Scene Manager"
+author="GlassBrick"
+version="1.1.1"
+script="SceneManagerPlugin.gd"
