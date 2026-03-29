@@ -69,7 +69,7 @@ var next_target: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
-	ball_texture = load("res://assets/sprites/red_ball_new.png") as Texture2D
+	ball_texture = load("res://assets/sprites/red_ball_pixel.png") as Texture2D
 	var vp := get_viewport_rect().size
 	var aw := vp.x * 0.5
 	var ah := vp.y * 0.5
