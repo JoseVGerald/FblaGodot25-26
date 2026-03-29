@@ -22,9 +22,6 @@ const THROW_INTERVAL_FRENZY := 0.2
 const FRENZY_THRESHOLD      := 10.0
 const GAME_DURATION         := 40.0
 
-# ── Ball texture ──────────────────────────────────────────────────────────────
-var ball_texture: Texture2D = null
-
 # ── State ──────────────────────────────────────────────────────────────────────
 var round_earnings: int  = 0
 var game_active:    bool = false
@@ -69,7 +66,7 @@ var next_target: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
-	ball_texture = load("res://assets/sprites/red_ball_pixel.png") as Texture2D
+
 	var vp := get_viewport_rect().size
 	var aw := vp.x * 0.5
 	var ah := vp.y * 0.5
@@ -427,19 +424,10 @@ func _draw() -> void:
 	# ── Draw all balls ────────────────────────────────────────────────────────
 	for ball in balls:
 		var bp: Vector2 = ball["pos"]
-		if ball_texture:
-			var ball_scale := 0.85 if ball["flying"] else 1.0
-			var tex_size := Vector2(ball_texture.get_width(), ball_texture.get_height()) * ball_scale
-			var ball_color := Color(1.0, 1.0, 1.0, 0.85) if ball["flying"] else Color.WHITE
-			draw_texture_rect(ball_texture,
-				Rect2(bp - tex_size * 0.5, tex_size),
-				false, ball_color)
+		if ball["flying"]:
+			draw_circle(bp, BALL_RADIUS * 0.85, Color(0.9, 0.15, 0.15, 0.85))
 		else:
-			# Fallback if texture didn't load
-			if ball["flying"]:
-				draw_circle(bp, BALL_RADIUS * 0.85, Color(0.9, 0.15, 0.15, 0.85))
-			else:
-				draw_circle(bp, BALL_RADIUS, Color(0.9, 0.15, 0.15))
+			draw_circle(bp, BALL_RADIUS, Color(0.9, 0.15, 0.15))
 
 	# ── 40-second countdown bar ───────────────────────────────────────────────
 	var bar_w := arena_rect.size.x
