@@ -246,12 +246,13 @@ func _process_player(delta: float) -> void:
 			player_throw_t = 0.0
 			_play_player_anim("idle_right")
 
-	# Throw interval scheduler — only fire when no ball is currently active
+	# Throw interval scheduler
 	var interval := THROW_INTERVAL_FRENZY if frenzy_active else THROW_INTERVAL_NORMAL
 	throw_timer += delta
-	if throw_timer >= interval and balls.is_empty():
+	if throw_timer >= interval:
 		throw_timer = 0.0
-		_launch_ball()
+		if frenzy_active or balls.is_empty():
+			_launch_ball()
 
 
 func _pick_next_target() -> void:
@@ -347,7 +348,10 @@ func _catch_ball(ball: Dictionary) -> void:
 		GameState.max_balls_one_session = session_catches
 	if session_catches >= 15:
 		GameState._unlock("Ball Machine")
-	# Do NOT reset throw_timer — interval clock fires naturally
+	# Normal mode: throw immediately on catch, reset clock
+	if not frenzy_active:
+		throw_timer = 0.0
+		_launch_ball()
 
 
 # ── End game ───────────────────────────────────────────────────────────────────
