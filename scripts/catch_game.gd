@@ -407,7 +407,7 @@ func _draw() -> void:
 	draw_rect(pzone, Color(1.0, 1.0, 1.0, 0.2), false, 2.0)
 
 	# ── Yellow aim line (next throw target) — hidden in FRENZY MODE ──────────
-	if not frenzy_active and next_target != Vector2.ZERO and balls.is_empty():
+	if not frenzy_active and next_target != Vector2.ZERO:
 		var line_from := player_pos + Vector2(20.0, 0.0)
 		var line_to   := next_target
 		var total_len := line_from.distance_to(line_to)
