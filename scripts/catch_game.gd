@@ -236,6 +236,8 @@ func _process_player(delta: float) -> void:
 	else:
 		player_pos.y = aim_target_y
 		_sync_player_positions()
+		if player_throw_t <= 0.0:
+			_play_player_anim("idle_right")
 
 	# Throw animation timer (drives move_right during throw)
 	if player_throw_t > 0.0:
@@ -404,7 +406,7 @@ func _draw() -> void:
 	draw_rect(pzone, Color(1.0, 1.0, 1.0, 0.2), false, 2.0)
 
 	# ── Yellow aim line (next throw target) — hidden in FRENZY MODE ──────────
-	if not frenzy_active and next_target != Vector2.ZERO:
+	if not frenzy_active and next_target != Vector2.ZERO and balls.is_empty():
 		var line_from := player_pos + Vector2(20.0, 0.0)
 		var line_to   := next_target
 		var total_len := line_from.distance_to(line_to)
