@@ -30,6 +30,12 @@ var hunger_decay: float = 100.0 / 240.0 # ~0.417 per second (4 minutes to empty)
 var thirst_decay: float = 100.0 / 240.0
 var energy_decay: float = 100.0 / 240.0
 
+# Emotion bubble
+var emotion_label: Label = null
+var is_hovered: bool = false
+var prev_emotion: String = ""
+var emotion_timer: float = 0.0
+
 # Initialize all pet needs for Day 1
 func initialize_day_one():
 	hunger = 100.0
@@ -66,6 +72,46 @@ func _ready() -> void:
 	
 	# Connect to day started signal
 	GameState.day_started.connect(_on_day_started)
+
+	# Create emotion bubble label above the dog
+	emotion_label = Label.new()
+	emotion_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	emotion_label.add_theme_font_size_override("font_size", 24)
+	emotion_label.position = Vector2(-16, -60)
+	emotion_label.z_index = 10
+	emotion_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	emotion_label.visible = false
+	add_child(emotion_label)
+
+	# Hover detection
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
+
+func _on_mouse_entered() -> void:
+	is_hovered = true
+
+func _on_mouse_exited() -> void:
+	is_hovered = false
+
+func _get_emotion_emoji() -> String:
+	if health < 50:   return "🤒"
+	if hunger < 30:   return "😢"
+	if thirst < 30:   return "💧"
+	if energy < 30:   return "😴"
+	return "❤️"
+
+func _update_emotion_bubble(delta: float) -> void:
+	if not emotion_label: return
+	var emoji := _get_emotion_emoji()
+	# State changed — restart 2-second display timer
+	if emoji != prev_emotion:
+		prev_emotion = emoji
+		emotion_timer = 2.0
+	# Tick down timer
+	if emotion_timer > 0.0:
+		emotion_timer = max(0.0, emotion_timer - delta)
+	emotion_label.text = emoji
+	emotion_label.visible = emotion_timer > 0.0 or is_hovered
 
 func _on_day_started(_day: int):
 	# Wake up from sleep
@@ -131,9 +177,7 @@ func _on_food_complete():
 		GameState.event_triggered.emit("Fed dog " + fed_type + ".")
 		
 	GameState.times_fed += 1
-	if GameState.times_fed >= 10 and not GameState.achievements["Master Chef"]:
-		GameState.achievements["Master Chef"] = true
-		GameState.achievement_unlocked.emit("Master Chef")
+	GameState.check_achievements()
 		
 	current_state = DogState.FOLLOWING_PLAYER
 	print("Dog ate! Hunger: ", hunger)
@@ -143,10 +187,12 @@ func _on_water_complete():
 		GameState.event_triggered.emit("⚠️ No water at home! Buy some from the shop.")
 		current_state = DogState.FOLLOWING_PLAYER
 		return
-	
+
 	GameState.water -= 1
 	thirst = min(100.0, thirst + 30.0)
 	current_state = DogState.FOLLOWING_PLAYER
+	GameState.times_watered += 1
+	GameState.check_achievements()
 	print("Dog drank! Thirst: ", thirst)
 
 func _on_sleep_complete():
@@ -154,6 +200,8 @@ func _on_sleep_complete():
 	current_state = DogState.SLEEPING
 	GameState.is_dog_sleeping = true
 	_play_animation("sleeping")
+	GameState.nap_count += 1
+	GameState.check_achievements()
 	print("Dog sleeping! Energy: ", energy)
 
 func toggle_menu() -> void:
@@ -165,11 +213,22 @@ func toggle_menu() -> void:
 
 func _physics_process(delta: float) -> void:
 	GameState.dog_health = health
+
+	# On the Mend: track if health was critically low then recovered
+	if health < 30.0:
+		GameState.dog_health_was_low = true
+	elif GameState.dog_health_was_low and health > 60.0:
+		GameState.dog_health_was_low = false
+		GameState._unlock("On the Mend")
+
+	# Clean Bill of Health: health reaches 100
+	if health >= 100.0:
+		GameState._unlock("Clean Bill of Health")
 	
 	
 	# Features 3, 5, 8: Age Scaling, Color Moods, Jitter, Sleep Cycles
-	_apply_dynamic_appearance()
-	
+	_apply_dynamic_appearance(delta)
+
 	# Handle state-specific behavior
 	match current_state:
 		DogState.SLEEPING:
@@ -184,7 +243,7 @@ func _physics_process(delta: float) -> void:
 		DogState.FOLLOWING_PLAYER:
 			_process_following_player(delta)
 
-func _apply_dynamic_appearance():
+func _apply_dynamic_appearance(delta: float) -> void:
 	if not animated_sprite_2d: return
 	
 	# 5. Growing Up (Scale) — keep dog closer to player size (old curve hit 2× and read as “giant dog”).
@@ -202,6 +261,8 @@ func _apply_dynamic_appearance():
 	else:
 		animated_sprite_2d.modulate = Color(1, 1, 1) # Normal
 		
+	_update_emotion_bubble(delta)
+
 	# 3. Jitter / Shake if really sick
 	if health < 20:
 		var jitter = Vector2(randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
