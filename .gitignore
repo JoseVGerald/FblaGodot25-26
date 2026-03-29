@@ -2,6 +2,9 @@
 .godot/
 .nomedia
 
+# Git worktrees
+.worktrees/
+
 # Godot-specific ignores
 .import/
 export.cfg
