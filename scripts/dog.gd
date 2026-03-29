@@ -35,6 +35,9 @@ var emotion_label: Label = null
 var is_hovered: bool = false
 var prev_emotion: String = ""
 var emotion_timer: float = 0.0
+# Idle twitch
+var idle_time: float = 0.0
+var twitch_timer: float = 0.0
 
 # Initialize all pet needs for Day 1
 func initialize_day_one():
@@ -365,8 +368,20 @@ func _process_following_player(delta: float):
 			animated_sprite_2d.flip_h = true
 		elif global_position.x > old_pos.x:
 			animated_sprite_2d.flip_h = false
+		idle_time = 0.0
+		twitch_timer = 0.0
 	else:
 		_play_animation("idle")
+		# Idle twitch — fidget after 3s of standing still
+		idle_time += delta
+		if twitch_timer > 0.0:
+			twitch_timer -= delta
+			_play_animation("run")
+			if twitch_timer <= 0.0:
+				_play_animation("idle")
+		elif idle_time >= 3.0:
+			idle_time = 0.0
+			twitch_timer = 0.3
 
 var emergency_cooldown: float = 0.0
 
