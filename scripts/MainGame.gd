@@ -19,6 +19,12 @@ func _ready():
 	spawn_player()
 	spawn_dog()
 	setup_hud()
+	# Dressed to the Nines: all 5 layers are non-default
+	if GameState.uses_component_system:
+		var comps := GameState.get_character_components()
+		if comps.get("body", 0) > 0 and comps.get("eyes", 0) > 0 and comps.get("outfit", 0) > 0 \
+				and comps.get("hairstyle", 0) > 0 and comps.get("accessory", 0) > 0:
+			GameState._unlock("Dressed to the Nines")
 	# Only show tutorial paths if it's Day 1 and tutorial isn't complete
 	if GameState.is_day_one and not GameState.is_tutorial_complete:
 		_make_paths_visible()

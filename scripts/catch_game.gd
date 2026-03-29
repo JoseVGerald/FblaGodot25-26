@@ -24,6 +24,7 @@ const GAME_DURATION         := 40.0
 
 # ── State ──────────────────────────────────────────────────────────────────────
 var round_earnings: int  = 0
+var session_catches: int = 0
 var game_active:    bool = false
 var show_end_screen: bool = false
 
@@ -336,11 +337,12 @@ func _process_balls(delta: float) -> void:
 
 
 func _catch_ball(ball: Dictionary) -> void:
-	round_earnings += 2
-	popup_list.append({"text": "+$2", "pos": Vector2(ball["pos"]), "time": 1.0})
+	round_earnings += GameState.ball_chore
+	popup_list.append({"text": "+$%d" % GameState.ball_chore, "pos": Vector2(ball["pos"]), "time": 1.0})
 	balls.erase(ball)
+	session_catches += 1
+	
 	# Ball Machine: check if 15+ caught this session
-	var session_catches: int = roundi(round_earnings * 0.5)
 	if session_catches > GameState.max_balls_one_session:
 		GameState.max_balls_one_session = session_catches
 	if session_catches >= 15:
@@ -373,7 +375,7 @@ func _end_game() -> void:
 	GameState._unlock("First Fetch")
 	GameState.check_achievements()
 
-	if round_earnings >= 40 and not GameState.achievements["Catch Pro"]:
+	if session_catches >= 20 and not GameState.achievements.get("Catch Pro", false):
 		GameState.achievements["Catch Pro"] = true
 		GameState.achievement_unlocked.emit("Catch Pro")
 	if GameState.catch_total_earnings >= 200 and not GameState.achievements["Catch Master"]:
@@ -459,7 +461,7 @@ func _draw() -> void:
 	# ── Popups ────────────────────────────────────────────────────────────────
 	for popup in popup_list:
 		var alpha: float = clamp(popup["time"], 0.0, 1.0)
-		draw_string(ThemeDB.fallback_font, popup["pos"], "+$2",
+		draw_string(ThemeDB.fallback_font, popup["pos"], popup["text"],
 			HORIZONTAL_ALIGNMENT_CENTER, -1, 48, Color(0.1, 1.0, 0.1, alpha))
 
 	# ── FRENZY MODE overlay ───────────────────────────────────────────────────

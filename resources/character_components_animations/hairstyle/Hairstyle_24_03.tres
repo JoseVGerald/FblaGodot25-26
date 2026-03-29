@@ -147,6 +147,25 @@ region = Rect2(1056, 192, 48, 96)
 atlas = ExtResource("1_tex")
 region = Rect2(1104, 192, 48, 96)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_throw_right_0"]
+atlas = ExtResource("1_tex")
+region = Rect2(0, 1056, 48, 96)
+[sub_resource type="AtlasTexture" id="AtlasTexture_throw_right_1"]
+atlas = ExtResource("1_tex")
+region = Rect2(48, 1056, 48, 96)
+[sub_resource type="AtlasTexture" id="AtlasTexture_throw_right_2"]
+atlas = ExtResource("1_tex")
+region = Rect2(96, 1056, 48, 96)
+[sub_resource type="AtlasTexture" id="AtlasTexture_throw_right_3"]
+atlas = ExtResource("1_tex")
+region = Rect2(144, 1056, 48, 96)
+[sub_resource type="AtlasTexture" id="AtlasTexture_throw_right_4"]
+atlas = ExtResource("1_tex")
+region = Rect2(192, 1056, 48, 96)
+[sub_resource type="AtlasTexture" id="AtlasTexture_throw_right_5"]
+atlas = ExtResource("1_tex")
+region = Rect2(240, 1056, 48, 96)
+
 [resource]
 resource_name = "Hairstyle_24_03.tres"
 animations = [{
@@ -378,4 +397,32 @@ animations = [{
 "loop": true,
 "name": &"move_down",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_throw_right_0")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_throw_right_1")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_throw_right_2")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_throw_right_3")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_throw_right_4")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_throw_right_5")
+}],
+"loop": false,
+"name": &"throw_right",
+"speed": 8.0
 }]

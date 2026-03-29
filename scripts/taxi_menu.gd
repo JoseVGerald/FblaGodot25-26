@@ -49,9 +49,14 @@ func get_menu_visible() -> bool:
 func _travel_to(destination: String):
 	var pos = DESTINATIONS[destination]
 	if not GameState.spend_money(GameState.taxi_cost, "Travel"):
-		# Not enough money - could show a notification
 		return
 	hide_menu()
+
+	# Achievement tracking
+	GameState.taxi_ride_count += 1
+	if not GameState.locations_visited.has(destination):
+		GameState.locations_visited.append(destination)
+	GameState.check_achievements()
 	
 	var player = get_tree().get_first_node_in_group("player")
 	var dog = get_tree().get_first_node_in_group("dog")

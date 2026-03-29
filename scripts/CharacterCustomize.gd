@@ -494,6 +494,25 @@ func _on_continue_pressed() -> void:
 		return
 	continue_btn.disabled = true
 	GameState.save_player_name(name_input.text.strip_edges())
+
+	# Hat Collector: track hat-type accessories
+	var acc_idx: int = selections.get("Accessory", 1)
+	if acc_idx in GameState.HAT_ACCESSORY_INDICES and not GameState.hats_collected.has(acc_idx):
+		GameState.hats_collected.append(acc_idx)
+
+	# Identity Crisis: all 5 components changed from previous save
+	if GameState.uses_component_system:
+		var all_changed: bool = (
+			selections["Body"]      != GameState.char_body      and
+			selections["Hairstyle"] != GameState.char_hairstyle and
+			selections["Outfit"]    != GameState.char_outfit    and
+			selections["Eyes"]      != GameState.char_eyes      and
+			selections["Accessory"] != GameState.char_accessory
+		)
+		if all_changed:
+			GameState.full_look_changes += 1
+	GameState.check_achievements()
+
 	GameState.save_character_components(
 		selections["Body"],
 		selections["Hairstyle"],

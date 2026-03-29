@@ -21,6 +21,7 @@ func _on_start_pressed():
 	var dir = DirAccess.open("user://")
 	if dir:
 		dir.remove("save_game.dat")
+	GameState.reset_all()
 	SceneManager.change_scene("res://scenes/ui/IntroCutscene.tscn")
 
 func _on_settings_pressed():

@@ -205,14 +205,17 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 		row_bg.color = CLR_NAVY_DEEP
 	)
 
+	# ── Determine action for this row ─────────────────────────────────────
+	var action := _get_action(entry)
+
 	# ── Click handling via gui_input on the HBox ───────────────────────────
-	# Finance notifications open the finance menu; others just close the panel.
 	row.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			if _is_finance_notification(entry):
-				_open_finance_menu()
-			else:
-				_close_panel()
+			match action["kind"]:
+				"taxi":         _show_taxi_dialog(action["dest"])
+				"achievements": _open_achievements_popup()
+				"finance":      _open_finance_menu()
+				_:              _close_panel()
 	)
 
 	# ── Icon column (54px wide) ────────────────────────────────────────────
@@ -274,6 +277,17 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 		desc_label.add_theme_color_override("font_color", CLR_GREY_DESC)
 	)
 
+	# ── Action arrow indicator (→) for clickable rows ─────────────────────
+	if action["kind"] != "none":
+		var arrow := Label.new()
+		arrow.text = "→"
+		arrow.add_theme_font_size_override("font_size", 32)
+		arrow.add_theme_color_override("font_color", CLR_GOLD)
+		arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		if font:
+			arrow.add_theme_font_override("font", font)
+		row.add_child(arrow)
+
 	# ── Dismiss button (Red X) ────────────────────────────────────────────
 	# Uses a smaller button on the far right to clear this specific entry.
 	var x_btn := Button.new()
@@ -296,6 +310,39 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	sep.custom_minimum_size     = Vector2(0, 1)
 	sep.size_flags_horizontal   = Control.SIZE_EXPAND_FILL
 	_list_container.add_child(sep)
+
+func _get_action(entry: Dictionary) -> Dictionary:
+	var msg: String = entry.get("message", "").to_lower()
+	var t = entry.get("type", NotificationCenter.NotifType.EVENT)
+
+	if t == NotificationCenter.NotifType.ACHIEVEMENT:
+		return { "kind": "achievements", "dest": "" }
+
+	if msg.contains("budget") or msg.contains("savings") or msg.contains("emergency fund") \
+	   or msg.contains("spent") or msg.contains("finance") or msg.contains("allowance") \
+	   or msg.contains("inflation") or msg.contains("tax") or msg.contains("earned"):
+		return { "kind": "finance", "dest": "" }
+
+	if msg.contains("food") or msg.contains("hungry") or msg.contains("starv") \
+	   or msg.contains("water") or msg.contains("thirst") or msg.contains("dehydrat") \
+	   or msg.contains("supply") or msg.contains("store"):
+		return { "kind": "taxi", "dest": "Store" }
+
+	if msg.contains("health") or msg.contains("sick") or msg.contains("vet") \
+	   or msg.contains("medic") or msg.contains("prescri") or msg.contains("critical"):
+		return { "kind": "taxi", "dest": "Vet" }
+
+	return { "kind": "none", "dest": "" }
+
+
+func _open_achievements_popup() -> void:
+	_close_panel()
+	var popup_script := load("res://scripts/achievements_popup.gd")
+	if popup_script:
+		var popup := CanvasLayer.new()
+		popup.set_script(popup_script)
+		get_tree().root.add_child(popup)
+
 
 func _is_finance_notification(entry: Dictionary) -> bool:
 	var msg = entry.message.to_lower()
@@ -324,12 +371,6 @@ func _open_finance_menu() -> void:
 				get_tree().paused = false
 				menu.queue_free()
 			)
-
-func _on_achievement_row_clicked() -> void:
-	_close_panel()
-
-func _on_warning_row_clicked(_entry: Dictionary) -> void:
-	_close_panel()
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAXI CONFIRM DIALOG

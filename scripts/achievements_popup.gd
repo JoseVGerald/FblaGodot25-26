@@ -7,11 +7,43 @@
 extends CanvasLayer
 
 const ACHIEVEMENT_DESCRIPTIONS := {
-	"Penny Pincher" : "Save $200 in your emergency fund",
-	"Master Chef"   : "Feed your dog 10 times",
-	"Golden Years"  : "Reach Day 30",
-	"Catch Pro"     : "Earn $40 in a single catch round",
-	"Catch Master"  : "Earn $200 total from the catch minigame"
+	# Pet Care
+	"Penny Pincher"        : "Save $200 in your emergency fund",
+	"Master Chef"          : "Feed your dog 10 times",
+	"Hydration Hero"       : "Give your dog water 10 times",
+	"Dr. Doolittle"        : "Administer medication 5 times",
+	"Clean Bill of Health" : "Bring your dog's health to 100",
+	"Vet Regular"          : "Visit the vet 3 times",
+	"On the Mend"          : "Nurse your dog from critical (<30) to healthy (>60)",
+	# Economy
+	"Rainy Day Fund"       : "Save $500 in your emergency fund",
+	"Big Spender"          : "Spend $300 in total",
+	"Taxi Tycoon"          : "Take 10 taxi rides",
+	"First Paycheck"       : "Receive your first weekly allowance",
+	"Shopaholic"           : "Visit the store 5 times",
+	"Tightwad"             : "Finish a week spending $30 or less",
+	# Catch Minigame
+	"Catch Pro"            : "Earn $40 in a single catch round",
+	"Catch Master"         : "Earn $200 total from the catch minigame",
+	"First Fetch"          : "Complete your first catch minigame",
+	"Into the Frenzy"      : "Survive to FRENZY MODE",
+	"Ball Machine"         : "Catch 15 balls in a single session",
+	"Daily Exercise"       : "Play the catch minigame on 5 different days",
+	# Day / Time
+	"Golden Years"         : "Reach Day 30",
+	"Survivor"             : "Reach Day 7",
+	"Dedicated"            : "Reach Day 14",
+	"Graduated"            : "Complete the Day 1 tutorial",
+	# Character Customization
+	"Dressed to the Nines" : "Start a game with all 5 character layers equipped",
+	"Hat Collector"        : "Equip 4 different hat-type accessories",
+	"Identity Crisis"      : "Completely change your look 2 times",
+	# Social / Exploration
+	"Neighborhood Friend"  : "Talk to 5 different NPCs",
+	"World Explorer"       : "Visit all 4 destinations by taxi",
+	# Bonus
+	"Nap Champion"         : "Let your dog sleep 5 times",
+	"Week One Down"        : "Complete all Day 1 tutorial actions",
 }
 
 # ── Colour palette ──────────────────────────────────────────────────────────────

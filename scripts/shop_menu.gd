@@ -47,6 +47,8 @@ func _ready():
 	update_ui()
 
 func show_shop():
+	GameState.store_visit_count += 1
+	GameState.check_achievements()
 	food_cart_count  = 0
 	water_cart_count = 0
 	food_label.text  = "Dog food (Lasts for 5 days)    $" + str(GameState.food_cost)
@@ -118,6 +120,7 @@ func _on_purchase_pressed():
 		if success and prescription_selected:
 			success = GameState.spend_money(GameState.medicine_cost, "Vet")
 			if success:
+				GameState.times_medicated += 1
 				GameState.medication = "Antibiotics (5 days)"
 				GameState.has_prescription = false
 				var dog = get_tree().get_first_node_in_group("dog")

@@ -106,13 +106,13 @@ func update_ui() -> void:
 	var health_val_raw  = target_dog.health
 	# Update each stat row with its dedicated colour
 	_update_stat_row(hunger_bar, hunger_val, hunger_val_raw, CLR_HUNGER,
-		$PanelContainer/VBoxContainer/GridContainer/Hunger/HBox/StatName)
+		$PanelContainer/VBoxContainer/GridContainer/Hunger/Label)
 	_update_stat_row(thirst_bar, thirst_val, thirst_val_raw, CLR_THIRST,
-		$PanelContainer/VBoxContainer/GridContainer/Thirst/HBox/StatName)
+		$PanelContainer/VBoxContainer/GridContainer/Thirst/Label)
 	_update_stat_row(energy_bar, energy_val, energy_val_raw, CLR_ENERGY,
-		$PanelContainer/VBoxContainer/GridContainer/Energy/HBox/StatName)
+		$PanelContainer/VBoxContainer/GridContainer/Energy/Label)
 	_update_stat_row(health_bar, health_val, health_val_raw, CLR_HEALTH,
-		$PanelContainer/VBoxContainer/GridContainer/Health/HBox/StatName)
+		$PanelContainer/VBoxContainer/GridContainer/Health/Label)
 
 ## Update a single stat row: progress bar fill, value label, and warning icon.
 func _update_stat_row(

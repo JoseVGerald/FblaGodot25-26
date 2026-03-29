@@ -116,7 +116,10 @@ func end_tutorial():
 	
 	# Allow movement again
 	GameState.tutorial_blocks_movement = false
-	
+
+	GameState._unlock("Graduated")
+	GameState._unlock("Week One Down")
+
 	tutorial_completed.emit()
 	
 	# Start vet visit sequence (keep tutorial_hint for these hints)

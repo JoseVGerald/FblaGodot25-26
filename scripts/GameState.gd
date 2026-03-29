@@ -29,6 +29,7 @@ var water_cost: int = 10
 var medicine_cost: int = 40
 var vet_fee: int = 50
 var taxi_cost: int = 10
+var ball_chore: int = 2
 var master_volume: int = 70
 var current_day: int = 0
 var days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -77,13 +78,66 @@ var foods: Array = ["Cheap Kibble", "Healthy Veggies", "Premium Meat"]
 var favorite_food: String = "Premium Meat"
 var disliked_food: String = "Cheap Kibble"
 var achievements: Dictionary = {
-	"Penny Pincher": false, # $200 in savings
-	"Master Chef": false, # Feed 10 times
-	"Golden Years": false, # Reach Day 30
-	"Catch Pro": false, # Earn $40 in one catch round
-	"Catch Master": false # Earn $200 total from catch
+	# Pet Care
+	"Penny Pincher":        false, # $200 in savings
+	"Master Chef":          false, # Feed 10 times
+	"Hydration Hero":       false, # Water 10 times
+	"Dr. Doolittle":        false, # Medicate 5 times
+	"Clean Bill of Health": false, # Dog health reaches 100
+	"Vet Regular":          false, # Visit vet 3 times
+	"On the Mend":          false, # Health rises from <30 to >60 in one session
+	# Economy
+	"Rainy Day Fund":       false, # Savings >= $500
+	"Big Spender":          false, # Total spent >= $300
+	"Taxi Tycoon":          false, # 10 taxi rides
+	"First Paycheck":       false, # Receive first weekly allowance
+	"Shopaholic":           false, # Visit store 5 times
+	"Tightwad":             false, # Finish a week spending <= $30
+	# Catch Minigame
+	"Catch Pro":            false, # Earn $40 in one catch round
+	"Catch Master":         false, # Earn $200 total from catch
+	"First Fetch":          false, # Complete first catch game
+	"Into the Frenzy":      false, # Reach FRENZY MODE
+	"Ball Machine":         false, # Catch 15 balls in one session
+	"Daily Exercise":       false, # Play catch 5 different days
+	# Day / Time
+	"Golden Years":         false, # Reach Day 30
+	"Survivor":             false, # Reach Day 7
+	"Dedicated":            false, # Reach Day 14
+	"Graduated":            false, # Complete Day 1 tutorial
+	# Character Customization
+	"Dressed to the Nines": false, # All 5 layers active at game start
+	"Hat Collector":        false, # Equip 4 different hat accessories
+	"Identity Crisis":      false, # Change full look 2 times
+	# Social / Exploration
+	"Neighborhood Friend":  false, # Talk to 5 different NPCs
+	"World Explorer":       false, # Visit all 4 taxi destinations
+	# Bonus
+	"Nap Champion":         false, # Dog sleeps 5 times
+	"Week One Down":        false, # Complete all Day 1 actions
 }
 var times_fed: int = 0
+
+# Achievement tracking counters
+var times_watered:     int   = 0
+var times_medicated:   int   = 0
+var vet_visit_count:   int   = 0
+var taxi_ride_count:   int   = 0
+var total_spent:       int   = 0  # cumulative across all sessions
+var store_visit_count: int   = 0
+var catch_games_played: int  = 0
+var max_balls_one_session: int = 0
+var npcs_talked:       int   = 0
+var locations_visited: Array = []  # ["Home","Store","Vet","Park"]
+var hats_collected:    Array = []  # accessory indices that are hat-type
+var full_look_changes: int   = 0   # times all 5 components changed from prior save
+var nap_count:         int   = 0
+var catch_days_played: Array = []  # list of days catch was played (for Daily Exercise)
+var dog_health_was_low: bool = false  # for On the Mend tracking
+var weekly_spend_at_reset: int = 0   # snapshot at week start, for Tightwad
+
+# Hat-type accessory indices (1-based, matching CharacterAssets)
+const HAT_ACCESSORY_INDICES: Array = [4, 5, 6, 7, 8, 11, 18, 19]
 
 # Catch minigame
 var catch_played_today: bool = false
@@ -233,15 +287,20 @@ func old_process_disabled(delta):
 signal budget_warning(category: String, message: String)
 
 func reset_weekly_budgets():
+	# Tightwad check: if total weekly spend was <= $30
+	if weekly_report["total_spent"] <= 30:
+		_unlock("Tightwad")
+
 	# Archive current week's report (could store in a history list if needed)
 	weekly_report["income"] = weekly_allowance
 	weekly_report["total_spent"] = 0
 	weekly_report["category_breakdown"] = {}
 	weekly_report["emergency_usage"] = 0
-	
+
 	# Add allowance
 	money += weekly_allowance
 	record_transaction("Weekly Allowance", weekly_allowance, "Income")
+	_unlock("First Paycheck")
 	
 	# Reset spent amounts, keep limits
 	for category in budget_data:
@@ -266,6 +325,7 @@ func record_transaction(description: String, amount: int, category: String):
 func spend_money(amount: int, category: String) -> bool:
 	if money >= amount:
 		money -= amount
+		total_spent += amount
 		record_transaction("Purchase: " + category, -amount, category)
 		
 		# Update budget if category exists
@@ -344,6 +404,49 @@ func get_budget_status(category: String) -> float:
 	return 0.0
 
 # Initialize Day 1 supplies
+func reset_all() -> void:
+	"""Reset every in-memory variable to its new-game default."""
+	# Character
+	character_id = 1
+	character_variant = "male"
+	dog_breed = "Golden_Retriever"
+	pet_name = ""
+	player_name = ""
+	char_body = 1; char_hairstyle = 1; char_outfit = 1; char_eyes = 1; char_accessory = 1
+	uses_component_system = false
+	# Finance
+	money = starting_money
+	savings_balance = 200
+	budget_data = {
+		"Food": {"limit": 50, "spent": 0},
+		"Vet":  {"limit": 50, "spent": 0},
+		"Travel": {"limit": 50, "spent": 0}
+	}
+	weekly_report = {"income": 0, "total_spent": 0, "category_breakdown": {}, "emergency_usage": 0}
+	transaction_history = []
+	all_time_spent = 0
+	# Supplies / pet
+	food = 0; water = 0; medication = "none"
+	dog_health = 30.0; has_prescription = false
+	# Day / tutorial
+	current_day = 0; day_timer = 0.0
+	is_day_one = true; is_tutorial_complete = false
+	tutorial_blocks_movement = false; is_dog_sleeping = false
+	# Catch minigame
+	catch_played_today = false; catch_last_played_day = -1; catch_total_earnings = 0
+	# Achievement trackers
+	times_fed = 0; times_watered = 0; times_medicated = 0
+	vet_visit_count = 0; taxi_ride_count = 0; total_spent = 0
+	store_visit_count = 0; catch_games_played = 0; max_balls_one_session = 0
+	npcs_talked = 0; nap_count = 0; full_look_changes = 0
+	dog_health_was_low = false; weekly_spend_at_reset = 0
+	locations_visited = []; hats_collected = []; catch_days_played = []
+	# Inflation / age
+	inflation_rate = 1.0; pet_age_days = 0
+	# Reset all achievements to false
+	for key in achievements.keys():
+		achievements[key] = false
+
 func initialize_day_one():
 	food = 0
 	water = 0
@@ -404,18 +507,35 @@ func get_time_string() -> String:
 	var week_num: int = int(float(current_day) / 7.0) + 1
 	return "%s Week %d" % [day_name, week_num]
 
+func _unlock(achievement: String) -> void:
+	if not achievements.has(achievement) or achievements[achievement]:
+		return
+	achievements[achievement] = true
+	achievement_unlocked.emit(achievement)
+
+
 func check_achievements():
-	if savings_balance >= 200 and not achievements["Penny Pincher"]:
-		achievements["Penny Pincher"] = true
-		achievement_unlocked.emit("Penny Pincher")
-	
-	if times_fed >= 10 and not achievements["Master Chef"]:
-		achievements["Master Chef"] = true
-		achievement_unlocked.emit("Master Chef")
-		
-	if current_day >= 30 and not achievements["Golden Years"]:
-		achievements["Golden Years"] = true
-		achievement_unlocked.emit("Golden Years")
+	# Pet Care
+	if savings_balance >= 200:  _unlock("Penny Pincher")
+	if times_fed >= 10:         _unlock("Master Chef")
+	if times_watered >= 10:     _unlock("Hydration Hero")
+	if times_medicated >= 5:    _unlock("Dr. Doolittle")
+	if vet_visit_count >= 3:    _unlock("Vet Regular")
+	# Economy
+	if savings_balance >= 500:  _unlock("Rainy Day Fund")
+	if total_spent >= 300:      _unlock("Big Spender")
+	if taxi_ride_count >= 10:   _unlock("Taxi Tycoon")
+	if store_visit_count >= 5:  _unlock("Shopaholic")
+	if hats_collected.size() >= 4: _unlock("Hat Collector")
+	if full_look_changes >= 2:  _unlock("Identity Crisis")
+	if npcs_talked >= 5:        _unlock("Neighborhood Friend")
+	if locations_visited.size() >= 4: _unlock("World Explorer")
+	if nap_count >= 5:          _unlock("Nap Champion")
+	if catch_days_played.size() >= 5: _unlock("Daily Exercise")
+	# Day / Time
+	if current_day >= 7:        _unlock("Survivor")
+	if current_day >= 14:       _unlock("Dedicated")
+	if current_day >= 30:       _unlock("Golden Years")
 
 const SAVE_PATH = "user://save_game.dat"
 
@@ -442,6 +562,7 @@ func save_game(dog_data: Dictionary = {}):
 		"medicine_cost": medicine_cost,
 		"vet_fee": vet_fee,
 		"taxi_cost": taxi_cost,
+		"ball_chore": ball_chore,
 		# Finance Data
 		"savings_balance": savings_balance,
 		"budget_data": budget_data,
@@ -458,6 +579,21 @@ func save_game(dog_data: Dictionary = {}):
 		"achievements": achievements,
 		"catch_last_played_day": catch_last_played_day,
 		"catch_total_earnings": catch_total_earnings,
+		# Achievement tracking
+		"times_watered": times_watered,
+		"times_medicated": times_medicated,
+		"vet_visit_count": vet_visit_count,
+		"taxi_ride_count": taxi_ride_count,
+		"total_spent": total_spent,
+		"store_visit_count": store_visit_count,
+		"catch_games_played": catch_games_played,
+		"max_balls_one_session": max_balls_one_session,
+		"npcs_talked": npcs_talked,
+		"locations_visited": locations_visited,
+		"hats_collected": hats_collected,
+		"full_look_changes": full_look_changes,
+		"nap_count": nap_count,
+		"catch_days_played": catch_days_played,
 		# Component-based character data
 		"uses_component_system": uses_component_system,
 		"char_body": char_body,
@@ -510,6 +646,7 @@ func load_game() -> bool:
 	medicine_cost = save_data.get("medicine_cost", 40)
 	vet_fee = save_data.get("vet_fee", 50)
 	taxi_cost = save_data.get("taxi_cost", 10)
+	ball_chore = save_data.get("ball_chore", 2)
 	
 	# Restore Finance Data
 	savings_balance = save_data.get("savings_balance", 200)
@@ -533,11 +670,27 @@ func load_game() -> bool:
 	for k in achievements.keys():
 		if loaded_achievements.has(k):
 			achievements[k] = loaded_achievements[k]
-	
+
 	# Restore catch game data
 	catch_last_played_day = save_data.get("catch_last_played_day", -1)
 	catch_total_earnings = save_data.get("catch_total_earnings", 0)
 	catch_played_today = (catch_last_played_day == current_day)
+
+	# Restore achievement tracking
+	times_watered      = save_data.get("times_watered", 0)
+	times_medicated    = save_data.get("times_medicated", 0)
+	vet_visit_count    = save_data.get("vet_visit_count", 0)
+	taxi_ride_count    = save_data.get("taxi_ride_count", 0)
+	total_spent        = save_data.get("total_spent", 0)
+	store_visit_count  = save_data.get("store_visit_count", 0)
+	catch_games_played = save_data.get("catch_games_played", 0)
+	max_balls_one_session = save_data.get("max_balls_one_session", 0)
+	npcs_talked        = save_data.get("npcs_talked", 0)
+	locations_visited  = save_data.get("locations_visited", [])
+	hats_collected     = save_data.get("hats_collected", [])
+	full_look_changes  = save_data.get("full_look_changes", 0)
+	nap_count          = save_data.get("nap_count", 0)
+	catch_days_played  = save_data.get("catch_days_played", [])
 	
 	# Restore component-based character data
 	uses_component_system = save_data.get("uses_component_system", false)

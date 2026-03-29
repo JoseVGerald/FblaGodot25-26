@@ -62,4 +62,6 @@ func teleport_to_vet():
 		hint_instance.hide_hint()
 	
 	player_in_area = false
+	GameState.vet_visit_count += 1
+	GameState.check_achievements()
 	print("[Vet] Teleported player to vet at ", VET_ENTRANCE_POS)

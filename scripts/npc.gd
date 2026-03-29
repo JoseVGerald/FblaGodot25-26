@@ -16,7 +16,11 @@ func _ready():
 
 func _process(_delta):
 	if player_in_range and Input.is_action_just_pressed("interact"):
+		if not finished:
+			GameState.npcs_talked += 1
+			GameState.check_achievements()
 		DialogueManager.show_example_dialogue_balloon(dialogue_resource, dialugue_start)
+		finished = true
 
 func _on_area_2d_body_entered(body):
 	if body.is_in_group("player"):
