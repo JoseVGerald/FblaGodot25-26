@@ -1,0 +1,115 @@
+<h2>Layout Approaches</h2>
+<p class="subtitle">Based on your sketch: 6 tabs, scrollable option grids, large character preview</p>
+
+<div class="options">
+  <div class="option" data-choice="vertical-tabs" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Vertical Tabs (Right Side)</h3>
+      <div class="mockup">
+        <div class="mockup-body" style="display: flex; gap: 20px; background: #1a1a1a; padding: 20px; border-radius: 4px;">
+          <!-- Preview -->
+          <div style="flex: 0 0 320px; background: #2a2a2a; padding: 20px; border-radius: 4px; text-align: center;">
+            <div style="width: 280px; height: 480px; background: linear-gradient(135deg, #444 0%, #222 100%); border-radius: 4px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888;">Character Preview (Scale to Fit)</div>
+          </div>
+          <!-- Tabs -->
+          <div style="flex: 0 0 140px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <button style="padding: 10px; background: #fff; color: #000; border: none; border-radius: 3px; font-size: 12px; font-weight: bold; cursor: pointer;">SKIN</button>
+              <button style="padding: 10px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">HAIR</button>
+              <button style="padding: 10px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">EYES</button>
+              <button style="padding: 10px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">OUTFIT</button>
+              <button style="padding: 10px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">ACCESSORY</button>
+              <button style="padding: 10px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">DETAILS</button>
+            </div>
+            <div style="margin-top: 20px; font-size: 11px; color: #999;">
+              <p>Scrollable Grid Below</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Compact, easy to scan tabs</li>
+            <li>Large preview visible always</li>
+            <li>Sketch matches this layout</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Grid options squeeze below tabs</li>
+            <li>Limited space for images per row</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="horizontal-tabs" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Horizontal Tabs (Top)</h3>
+      <div class="mockup">
+        <div class="mockup-body" style="background: #1a1a1a; padding: 20px; border-radius: 4px;">
+          <!-- Tab Bar -->
+          <div style="display: flex; gap: 4px; margin-bottom: 20px;">
+            <button style="padding: 8px 14px; background: #fff; color: #000; border: none; border-radius: 3px; font-size: 11px; font-weight: bold; cursor: pointer;">SKIN</button>
+            <button style="padding: 8px 14px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">HAIR</button>
+            <button style="padding: 8px 14px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">EYES</button>
+            <button style="padding: 8px 14px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">OUTFIT</button>
+            <button style="padding: 8px 14px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">ACCESSORY</button>
+            <button style="padding: 8px 14px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11px; cursor: pointer;">DETAILS</button>
+          </div>
+          <!-- Content area -->
+          <div style="display: flex; gap: 20px;">
+            <!-- Options grid -->
+            <div style="flex: 1; background: #2a2a2a; padding: 15px; border-radius: 4px; min-height: 420px;">
+              <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px; border: 2px solid #fff;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+                <div style="aspect-ratio: 1; background: #444; border-radius: 3px;"></div>
+              </div>
+              <p style="font-size: 12px; color: #999; margin-top: 12px; text-align: center;">Scrollable (10+ options per row)</p>
+            </div>
+            <!-- Preview -->
+            <div style="flex: 0 0 300px; background: #2a2a2a; padding: 20px; border-radius: 4px; text-align: center;">
+              <p style="font-size: 12px; color: #999; margin-bottom: 15px;">PREVIEW</p>
+              <div style="width: 260px; height: 440px; background: linear-gradient(135deg, #444 0%, #222 100%); border-radius: 4px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888;">Character Preview</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>More options visible per row (5+)</li>
+            <li>Large preview on right</li>
+            <li>Modern top-tab pattern</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Preview smaller than sketch shows</li>
+            <li>Tabs take horizontal space</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="font-size: 13px; color: #999; margin-top: 30px; text-align: center;">
+  Click to compare. Your sketch suggests Layout A (vertical). Does that feel right, or prefer B?
+</p>

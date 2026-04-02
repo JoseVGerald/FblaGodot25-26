@@ -64,6 +64,8 @@ signal supplies_menu_opened
 
 func _ready():
 	add_to_group("hud")
+	# Ensure HUD processes while paused so escape can unpause
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	UITheme.apply_overlay_theme(self)
 
 	supplies_btn.pressed.connect(_on_supplies_btn_pressed)
@@ -508,9 +510,14 @@ func _is_any_overlay_open() -> bool:
 		return true
 	return false
 
-func _unhandled_input(event):
-	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
-		if not _is_any_overlay_open():
+func _input(event):
+	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+		get_viewport().set_input_as_handled()
+		if _is_any_overlay_open():
+			_close_all_bottom_menus()
+			if shop_menu_instance and shop_menu_instance.visible:
+				shop_menu_instance.hide_shop()
+		else:
 			_on_pause_btn_pressed()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_C:
 		var chore_instance = get_node_or_null("ChoreMenu")

@@ -39,6 +39,20 @@ func _input(event):
 		elif current_slide == technical_slide_index:
 			if is_enter:
 				_on_continue_button_pressed()
+	
+	# Secret skip tutorial button
+	if event is InputEventKey and event.pressed and event.keycode == KEY_BACKSLASH:
+		_skip_tutorial()
+
+func _skip_tutorial():
+	GameState.reset_all()
+	GameState.player_name = "Player"
+	GameState.pet_name = "Buddy"
+	GameState.is_tutorial_complete = true
+	GameState.is_day_one = false
+	# Ensure the character has a reasonable default look
+	GameState.save_character_components(1, 1, 1, 1, 1)
+	SceneManager.change_scene("res://scenes/ui/MainGame.tscn", {"pattern": "curtains"})
 
 func show_slide(index):
 	if index < slides.size():
