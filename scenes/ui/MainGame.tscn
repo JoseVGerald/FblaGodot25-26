@@ -74,6 +74,24 @@ size = Vector2(118, 74)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_catch"]
 size = Vector2(118, 96)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2ha63"]
+size = Vector2(1323, 227)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6o2a8"]
+size = Vector2(1723.5, 227)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h6vey"]
+size = Vector2(943.75, 301.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_de2tl"]
+size = Vector2(591.875, 239)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o1h1t"]
+size = Vector2(215.9375, 1069.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gcspp"]
+size = Vector2(215.9375, 974.75)
+
 [sub_resource type="Curve2D" id="Curve2D_rl3lx"]
 _data = {
 "points": PackedVector2Array(0, 0, 0, 0, 740, 367, 0, 0, 0, 0, 1121, 396, 0, 0, 0, 0, 1172, 678, 0, 0, 0, 0, 1168, 863, 0, 0, 0, 0, 1164, 1170, 0, 0, 0, 0, 1122, 1194, 0, 0, 0, 0, 896, 1158, 0, 0, 0, 0, 724, 1152, 0, 0, 0, 0, 394, 1135, 0, 0, 0, 0, -63, 1178, 0, 0, 0, 0, -145, 1251, 0, 0, 0, 0, -218, 1322, 0, 0, 0, 0, -244, 1428, 0, 0, 0, 0, -236, 1522, 0, 0, 0, 0, -184, 1575, 0, 0, 0, 0, -125, 1633, 0, 0, 0, 0, -69, 1687, 0, 0, 0, 0, -9, 1681, 0, 0, 0, 0, 145, 1681, 0, 0, 0, 0, 243, 1709, 0, 0, 0, 0, 348, 1743, 0, 0, 0, 0, 1387, 1822, 0, 0, 0, 0, 1450, 1803)
@@ -723,6 +741,54 @@ script = ExtResource("catch_area_script")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/CatchArea" unique_id=1925786831]
 position = Vector2(1609, 577)
 shape = SubResource("RectangleShape2D_catch")
+
+[node name="Taxi call horizantal" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1545817761]
+collision_mask = 1
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal" unique_id=1124766675]
+position = Vector2(585.5, 425.5)
+shape = SubResource("RectangleShape2D_2ha63")
+
+[node name="Taxi call horizantal2" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1530531656]
+collision_mask = 1
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal2" unique_id=2021195486]
+position = Vector2(423.25, 1182)
+shape = SubResource("RectangleShape2D_6o2a8")
+
+[node name="Taxi call horizantal3" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1855460194]
+collision_mask = 1
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal3" unique_id=463850496]
+position = Vector2(2156.875, 1408.25)
+shape = SubResource("RectangleShape2D_h6vey")
+
+[node name="Taxi call horizantal4" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=260315488]
+collision_mask = 1
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal4" unique_id=216199341]
+position = Vector2(1568.0625, 1173.5)
+shape = SubResource("RectangleShape2D_de2tl")
+
+[node name="Taxi call vertical" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1323903949]
+collision_mask = 1
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call vertical" unique_id=1337698868]
+position = Vector2(1122.9688, 1073.25)
+shape = SubResource("RectangleShape2D_o1h1t")
+
+[node name="Taxi call vertical2" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=48909009]
+collision_mask = 1
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call vertical2" unique_id=1674782223]
+position = Vector2(1121, 2407.625)
+shape = SubResource("RectangleShape2D_gcspp")
 
 [node name="VetPath" type="Path2D" parent="." unique_id=54715628]
 curve = SubResource("Curve2D_rl3lx")
