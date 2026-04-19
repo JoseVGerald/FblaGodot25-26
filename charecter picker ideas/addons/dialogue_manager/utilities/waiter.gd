@@ -19,3 +19,5 @@ func _input(event: InputEvent) -> void:
 			if action == _null or (InputMap.has_action(action) and event.is_action(action)):
 				get_viewport().set_input_as_handled()
 				waited.emit()
+
+# Updated on 2026-04-19

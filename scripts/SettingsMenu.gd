@@ -61,3 +61,5 @@ func _on_mute_toggled(pressed: bool) -> void:
 func _update_mute_label() -> void:
 	if not mute_btn: return
 	mute_btn.text = "🔇 Unmute" if is_muted else "🔇 Mute"
+
+# Updated on 2026-04-19

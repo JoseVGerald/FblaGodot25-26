@@ -99,3 +99,5 @@ func _add_spawn_messages() -> void:
 	)
 	# Select first message so it shows in the detail pane; only this one is marked read.
 	message_screen.select_index(0)
+
+# Updated on 2026-04-19

@@ -41,3 +41,5 @@ func _on_button_up() -> void:
 func _update_texture() -> void:
 	if texture_none and texture_check:
 		texture_normal = texture_check if state == MsgState.MSGS else texture_none
+
+# Updated on 2026-04-19

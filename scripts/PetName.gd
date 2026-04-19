@@ -35,3 +35,5 @@ func _on_continue_button_pressed():
 		
 	GameState.save_pet_name(p_name)
 	SceneManager.change_scene("res://scenes/ui/CostCustomization.tscn", {"pattern": "curtains"})
+
+# Updated on 2026-04-19

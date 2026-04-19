@@ -44,3 +44,5 @@ func _on_resource_changed(next_resource: DialogueResource) -> void:
 
 
 #endregion
+
+# Updated on 2026-04-19

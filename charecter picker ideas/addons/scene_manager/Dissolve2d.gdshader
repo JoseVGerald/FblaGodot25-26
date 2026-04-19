@@ -17,3 +17,5 @@ void fragment() {
 		COLOR = vec4(fade_color.rgb, step(sample, dissolve_amount));
 	}
 }
+
+# Updated on 2026-04-19

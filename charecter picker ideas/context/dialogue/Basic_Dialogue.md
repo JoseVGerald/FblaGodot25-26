@@ -272,3 +272,5 @@ See [Conditions & Mutations](./Conditions_Mutations.md).
 ## Translations
 
 See [Translations](./Translations.md).
+
+<!-- Updated on 2026-04-19 -->

@@ -412,3 +412,5 @@ git commit -m "feat: dog plays idle twitch animation after 3s of standing still"
 - `prev_emotion: String` and `emotion_timer: float` are consistent throughout Task 2
 
 **Dependency note:** Task 2 Step 3 (delta plumbing) must be done before Step 2 compiles correctly.
+
+<!-- Updated on 2026-04-19 -->

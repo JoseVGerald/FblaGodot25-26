@@ -537,3 +537,5 @@ func _on_randomize_pressed() -> void:
 		if dropdowns.has(cat):
 			dropdowns[cat].selected = random_opt - 1
 		_update_preview_for_category(cat)
+
+# Updated on 2026-04-19

@@ -31,3 +31,5 @@ func _on_checkbox_checked(is_checked):
 		new_groups.remove(index)
 		edited_control.remove_from_group(group_name)
 	emit_changed('groups', new_groups)
+
+# Updated on 2026-04-19

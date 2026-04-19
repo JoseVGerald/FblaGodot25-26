@@ -159,3 +159,5 @@ func find_bbcode_positions_in_string(string: String, find_all: bool = true, incl
 					return positions
 
 	return positions
+
+# Updated on 2026-04-19

@@ -1620,3 +1620,5 @@ func _get_resource_uid(resource: DialogueResource) -> String:
 
 func _get_id_with_resource(resource: DialogueResource, id: String) -> String:
 	return id if "@" in id else "%s@%s" % [_get_resource_uid(resource), id]
+
+# Updated on 2026-04-19

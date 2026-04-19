@@ -553,3 +553,5 @@ func _exit_game() -> void:
 		get_parent().queue_free()
 	else:
 		queue_free()
+
+# Updated on 2026-04-19

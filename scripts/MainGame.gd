@@ -299,3 +299,5 @@ func _make_paths_visible():
 		line.default_color = Color(1, 1, 0, 0.5) # Semi-transparent yellow
 		path.add_child(line)
 		print("[MainGame] Made path visible: ", path.name)
+
+# Updated on 2026-04-19

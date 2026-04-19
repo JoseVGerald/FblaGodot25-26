@@ -19,3 +19,5 @@
 **Idle Animation / Body Language:** Leans on the counter with arms folded, watching the door. Taps the pencil on the counter when thinking. Stands up straight when something gets his attention.
 
 **Voice Tone:** Low, measured, and deliberate — speaks in short sentences and lets silences do the work. Occasionally lets dry humor slip through with a raised eyebrow rather than a laugh.
+
+<!-- Updated on 2026-04-19 -->

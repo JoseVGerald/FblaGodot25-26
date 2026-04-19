@@ -111,3 +111,5 @@ func add_chat_message(text: String, is_user: bool, is_error: bool = false):
 	# Auto-scroll to bottom after a frame
 	await get_tree().process_frame
 	chat_scroll.scroll_vertical = chat_scroll.get_v_scroll_bar().max_value
+
+# Updated on 2026-04-19

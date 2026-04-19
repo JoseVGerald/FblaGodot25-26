@@ -6,3 +6,5 @@ extends HBoxContainer
 @onready var name_edit: LineEdit = $Name
 @onready var counter: Label = $Counter
 @onready var minimize_button: Button = $Minimize
+
+# Updated on 2026-04-19

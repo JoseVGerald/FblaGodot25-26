@@ -87,3 +87,5 @@ func _input(event: InputEvent) -> void:
 	# Hide the prompt after teleporting
 	_player_in_range = null
 	_update_prompt_visibility()
+
+# Updated on 2026-04-19

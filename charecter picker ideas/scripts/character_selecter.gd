@@ -76,3 +76,5 @@ func _on_confirm_pressed() -> void:
 func _on_back_to_menu_pressed() -> void:
 	back_to_menu_button.disabled = true
 	await SceneManager.change_scene("res://scenes/menu/starting_menu.tscn", get_node("/root/TransitionPrefs").get_transition_dict())
+
+# Updated on 2026-04-19
