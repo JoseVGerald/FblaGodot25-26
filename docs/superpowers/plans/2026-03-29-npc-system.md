@@ -517,5 +517,3 @@ git commit -m "fix: adjust NPC spawn positions to avoid collision boundaries"
 | Girl2 | `Vector2(1116, 623)` | Bottom-right |
 
 Player spawns at `Vector2(716, 323)` for reference. All positions may need adjustment after visual testing.
-
-<!-- Updated on 2026-04-19 -->

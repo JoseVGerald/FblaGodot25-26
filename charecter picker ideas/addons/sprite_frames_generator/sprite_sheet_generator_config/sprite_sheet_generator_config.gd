@@ -133,5 +133,3 @@ func _scan_dir_recursive(path: String, entries: Array[SpriteSheetEntry]) -> void
 				entries.append(entry)
 
 	dir.list_dir_end()
-
-# Updated on 2026-04-19

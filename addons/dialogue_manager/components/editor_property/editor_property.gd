@@ -47,5 +47,3 @@ func _on_button_pressed() -> void:
 
 func _on_resource_changed(next_resource: Resource) -> void:
 	emit_changed(get_edited_property(), next_resource)
-
-# Updated on 2026-04-19

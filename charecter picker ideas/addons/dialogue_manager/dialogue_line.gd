@@ -104,5 +104,3 @@ func get_tag_value(tag_name: String) -> String:
 		if t.begins_with(wrapped):
 			return t.replace(wrapped, "").strip_edges()
 	return ""
-
-# Updated on 2026-04-19

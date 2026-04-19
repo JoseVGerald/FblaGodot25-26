@@ -90,4 +90,3 @@ func _split_to_words(text: String) -> Array[String]:
     if word != "":
         result.append(word)
     return result
-# Updated on 2026-04-19

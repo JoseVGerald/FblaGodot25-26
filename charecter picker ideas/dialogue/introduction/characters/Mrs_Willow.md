@@ -19,5 +19,3 @@
 **Idle Animation / Body Language:** Clasps her hands together anxiously, occasionally glancing toward the fence. Rocks gently on her heels when listening. Reaches to adjust her bun when flustered.
 
 **Voice Tone:** Soft, warm, and slightly breathless — like someone who's been worrying all morning. Speaks with gentle urgency. Occasionally drifts into reminiscing mid-sentence before catching herself.
-
-<!-- Updated on 2026-04-19 -->

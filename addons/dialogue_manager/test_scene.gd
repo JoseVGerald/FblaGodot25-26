@@ -36,5 +36,3 @@ func _on_dialogue_ended(_resource: DialogueResource):
 
 
 #endregion
-
-# Updated on 2026-04-19

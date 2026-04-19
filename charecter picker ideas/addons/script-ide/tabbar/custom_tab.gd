@@ -83,5 +83,3 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		return
 
 	dropped.emit(data["index"], get_index())
-
-# Updated on 2026-04-19

@@ -29,5 +29,3 @@ void fragment() {
 	vec4 color = texture(gradient_texture, vec2(sample_pos, 0.5));
 	COLOR = color;
 }
-
-# Updated on 2026-04-19

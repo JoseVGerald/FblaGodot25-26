@@ -236,5 +236,3 @@ func _highlight_goto(text: String, colors: Dictionary, index: int) -> int:
 		colors[index] = { color = theme.jumps_color }
 
 	return index
-
-# Updated on 2026-04-19

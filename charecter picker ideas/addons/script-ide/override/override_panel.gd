@@ -343,5 +343,3 @@ func is_dictionary(type_hint: int) -> bool:
 
 func is_array(type_hint: int) -> bool:
 	return type_hint == 28
-
-# Updated on 2026-04-19

@@ -1026,5 +1026,3 @@ func parse_children(tree_line: DMTreeLine, line: DMCompiledLine) -> Array[DMComp
 
 
 #endregion
-
-# Updated on 2026-04-19

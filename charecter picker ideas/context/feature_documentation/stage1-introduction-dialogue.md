@@ -22,5 +22,3 @@
 
 - Dialogue Manager expects `.dialogue` files; ensure each resource is added in the Godot project and the balloon/scene is configured to show the correct resource and title.
 - Character names in the script (e.g. “Mrs. Willow”, “Mr. Pines”) must match what the balloon or UI uses for the speaker label.
-
-<!-- Updated on 2026-04-19 -->

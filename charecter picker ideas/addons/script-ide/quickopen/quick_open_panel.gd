@@ -253,5 +253,3 @@ class FileData:
 	var file_name: String
 	var file_name_structure: String
 	var file_type: StringName
-
-# Updated on 2026-04-19

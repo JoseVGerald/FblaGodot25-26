@@ -931,5 +931,3 @@ This might be due to some other plugins or changes in the Engine.
 Please report this to Script-IDE, so we can figure out a fix.""")
 		return null
 	return arr[0] as Control
-
-# Updated on 2026-04-19

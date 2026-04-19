@@ -126,5 +126,3 @@ func _on_settings_pressed() -> void:
 func _on_quit_pressed() -> void:
 	_disable_menu_buttons()
 	await SceneManager.change_scene("res://scenes/menu/quitting_msg.tscn", get_node("/root/TransitionPrefs").get_transition_dict())
-
-# Updated on 2026-04-19

@@ -83,4 +83,3 @@ func _create_sprite_frames(entry: SpriteSheetEntry, config: SpriteSheetGenerator
 			new_sprite_frames.add_frame(animation, updated_texture)
 
 	return new_sprite_frames
-# Updated on 2026-04-19

@@ -46,5 +46,3 @@ static func new_from(from_code_edit: CodeEdit) -> CodeEdit:
 	new_code_edit.last_v_scroll = from_code_edit.scroll_vertical
 
 	return new_code_edit
-
-# Updated on 2026-04-19

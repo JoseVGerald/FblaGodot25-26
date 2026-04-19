@@ -180,5 +180,3 @@ func _on_dialogue_ended(_resource: DialogueResource) -> void:
 	_update_prompt_visibility()
 	if is_instance_valid(_player_in_range):
 		_player_in_range.can_move = true
-
-# Updated on 2026-04-19

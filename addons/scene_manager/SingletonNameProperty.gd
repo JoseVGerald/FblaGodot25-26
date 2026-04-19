@@ -33,5 +33,3 @@ func _on_text_changed(new_text: String):
 	else:
 		edited_control.set_meta(meta_name, new_text)
 	emit_changed("meta", new_text, meta_name)
-
-# Updated on 2026-04-19

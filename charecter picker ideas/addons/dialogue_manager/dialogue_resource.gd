@@ -44,5 +44,3 @@ func _to_string() -> String:
 		return "<DialogueResource path=\"%s\">" % [resource_path]
 	else:
 		return "<DialogueResource>"
-
-# Updated on 2026-04-19

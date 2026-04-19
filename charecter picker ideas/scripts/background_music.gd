@@ -17,5 +17,3 @@ func _ready() -> void:
 
 func _on_finished() -> void:
 	_audio_player.play()
-
-# Updated on 2026-04-19

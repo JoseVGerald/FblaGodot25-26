@@ -68,5 +68,3 @@ All settings can be changed in the `Editor Settings` under `Plugin` -> `Script I
 ![Example of the Override Popup](https://github.com/Maran23/script-ide/blob/demo/demo/6.png?raw=true)
 
 ![Example of the Plugin Editor Settings](https://github.com/Maran23/script-ide/blob/demo/demo/7.png?raw=true)
-
-<!-- Updated on 2026-04-19 -->

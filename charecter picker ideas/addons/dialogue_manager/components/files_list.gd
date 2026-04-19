@@ -149,5 +149,3 @@ func _on_list_item_activated(index: int) -> void:
 	var file = file_map.find_key(item_text)
 	select_file(file)
 	file_double_clicked.emit(file)
-
-# Updated on 2026-04-19

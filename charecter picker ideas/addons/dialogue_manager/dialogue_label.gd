@@ -221,5 +221,3 @@ func _should_auto_pause() -> bool:
 		return false
 
 	return parsed_text[visible_characters - 1] in pause_at_characters.split()
-
-# Updated on 2026-04-19

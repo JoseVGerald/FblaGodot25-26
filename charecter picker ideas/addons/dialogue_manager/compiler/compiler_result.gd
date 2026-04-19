@@ -26,5 +26,3 @@ var lines: Dictionary = {}
 
 ## The raw dialogue text.
 var raw_text: String = ""
-
-# Updated on 2026-04-19

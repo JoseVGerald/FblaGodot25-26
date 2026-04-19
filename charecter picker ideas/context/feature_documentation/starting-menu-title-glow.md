@@ -41,5 +41,3 @@ The main menu title "Maplewood Mysteries" glows when the cursor hovers over it. 
 
 - Hover is implemented with wrapper controls because `mouse_entered` / `mouse_exited` on `Label` alone can be unreliable in some Godot versions.
 - Clearing uses a deferred check so the mouse position is correct after the exit event.
-
-<!-- Updated on 2026-04-19 -->

@@ -7,5 +7,3 @@ func _ready() -> void:
 	await get_tree().create_timer(DISPLAY_DURATION).timeout
 	await SceneManager.fade_out(get_node("/root/TransitionPrefs").get_transition_dict())
 	get_tree().quit()
-
-# Updated on 2026-04-19

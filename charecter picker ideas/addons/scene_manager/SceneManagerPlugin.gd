@@ -12,5 +12,3 @@ func _enter_tree():
 func _exit_tree():
 	remove_autoload_singleton("SceneManager")
 	remove_inspector_plugin(_inspector_plugin)
-
-# Updated on 2026-04-19

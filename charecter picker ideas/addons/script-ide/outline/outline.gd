@@ -441,5 +441,3 @@ class OutlineCache:
 class OutlineType:
 	var type_name: StringName
 	var add_to_outline: Callable
-
-# Updated on 2026-04-19

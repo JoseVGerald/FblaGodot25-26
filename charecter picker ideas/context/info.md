@@ -295,4 +295,3 @@ This gives a concrete, playtested-feel roadmap for a 1-month Godot project: smal
 If you want, I can also draw a visual map layout of all 3 levels showing spawn points, NPC positions, and puzzle locations, so you could start building directly in Godot.
 
 Do you want me to do that next?
-<!-- Updated on 2026-04-19 -->

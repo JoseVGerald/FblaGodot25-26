@@ -234,5 +234,3 @@ Level 3 (Workshop)                                      │
 ---
 
 This plan fully describes the playthrough, progression, plot, mechanics, NPCs, items, and puzzles for **Maplewood Mysteries** and can be used as the single source of truth for design and implementation.
-
-<!-- Updated on 2026-04-19 -->

@@ -152,5 +152,3 @@ func _on_quick_open_dialog_confirmed() -> void:
 
 
 #endregion
-
-# Updated on 2026-04-19

@@ -59,5 +59,3 @@ The gradient resource uses 7 color stops (warm browns from dark to light and bac
 3. Optionally override `speed`, `direction`, or `pixel_steps` on the material if this scene needs a different look.
 
 No script is required; the shader animates using `TIME`.
-
-<!-- Updated on 2026-04-19 -->
