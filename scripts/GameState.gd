@@ -36,7 +36,22 @@ var days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sat
 var day_timer: float = 0.0
 var DAY_DURATION: float = 300.0
 
-const WITHDRAWAL_PENALTY_RATE := 0.15  # 15% penalty for early withdrawal from savings
+# Economy Modifiers (player-customizable)
+var starting_savings: int = 200                 # Initial savings on new game
+var withdrawal_penalty_rate: float = 0.15       # 15% penalty for early savings withdrawal
+var savings_interest_rate: float = 0.05         # 5% daily interest on savings
+var loan_interest_rate: float = 0.10            # 10% weekly interest on outstanding loans
+var max_loan_amount: int = 500                  # Cap on total outstanding loan balance
+var starting_food_budget: int = 50              # Starting weekly Food budget limit
+var starting_vet_budget: int = 50               # Starting weekly Vet budget limit
+var starting_travel_budget: int = 50            # Starting weekly Travel budget limit
+
+# Loan System (runtime state)
+var loan_balance: int = 0                       # Amount currently owed
+var loan_interest_accrued: int = 0              # Running tally of interest charged this playthrough
+
+# Back-compat alias for any old code that referenced the former const
+const WITHDRAWAL_PENALTY_RATE := 0.15
 
 # Supplies Group (player inventory, NOT pet needs)
 var food: int = 0 # Days of food remaining
@@ -150,6 +165,7 @@ signal achievement_unlocked(name: String)
 # Signals
 signal budget_updated
 signal savings_updated
+signal loan_updated
 signal emergency_fund_used(item_name: String)
 signal history_updated
 @warning_ignore("unused_signal")
@@ -213,7 +229,7 @@ func _advance_day_after_supply_decrement() -> void:
 	
 	# Banking Interest Logic
 	if savings_balance > 0:
-		var interest = int(savings_balance * 0.05)
+		var interest = int(savings_balance * savings_interest_rate)
 		if interest > 0:
 			savings_balance += interest
 			savings_updated.emit()
@@ -290,6 +306,9 @@ func reset_weekly_budgets():
 	# Tightwad check: if total weekly spend was <= $30
 	if weekly_report["total_spent"] <= 30:
 		_unlock("Tightwad")
+
+	# Loan interest accrues each new week before allowance arrives
+	_apply_weekly_loan_interest()
 
 	# Archive current week's report (could store in a history list if needed)
 	weekly_report["income"] = weekly_allowance
@@ -374,18 +393,63 @@ func deposit_to_savings(amount: int) -> bool:
 func withdraw_from_savings(amount: int) -> int:
 	if amount <= 0 or savings_balance < amount:
 		return 0
-	var penalty := int(ceil(float(amount) * WITHDRAWAL_PENALTY_RATE))
+	var penalty := int(ceil(float(amount) * withdrawal_penalty_rate))
 	var received := amount - penalty
 	savings_balance -= amount
 	money += received
 	record_transaction("Savings Withdrawal", received, "Transfer")
 	if penalty > 0:
-		record_transaction("Withdrawal Penalty (15%%)", -penalty, "Emergency")
+		record_transaction("Withdrawal Penalty (%d%%)" % int(round(withdrawal_penalty_rate * 100.0)), -penalty, "Emergency")
 	weekly_report["emergency_usage"] += penalty
 	savings_updated.emit()
 	budget_updated.emit()
 	event_triggered.emit("Withdrew $%d from savings. Lost $%d penalty!" % [amount, penalty])
 	return received
+
+## Borrow money from the bank. Adds cash on hand, grows loan_balance.
+## Returns true if the loan was approved.
+func take_loan(amount: int) -> bool:
+	if amount <= 0:
+		return false
+	if loan_balance + amount > max_loan_amount:
+		return false
+	loan_balance += amount
+	money += amount
+	record_transaction("Loan Taken", amount, "Loan")
+	loan_updated.emit()
+	savings_updated.emit()
+	event_triggered.emit("Loan approved: +$%d. You now owe $%d." % [amount, loan_balance])
+	return true
+
+
+## Pay back part of the loan balance from cash on hand.
+## Returns the amount actually paid.
+func repay_loan(amount: int) -> int:
+	if amount <= 0 or loan_balance <= 0 or money <= 0:
+		return 0
+	var payment: int = int(min(amount, min(money, loan_balance)))
+	money -= payment
+	loan_balance -= payment
+	total_spent += payment
+	record_transaction("Loan Repayment", -payment, "Loan")
+	loan_updated.emit()
+	savings_updated.emit()
+	return payment
+
+
+## Apply weekly loan interest. Called from reset_weekly_budgets.
+func _apply_weekly_loan_interest() -> void:
+	if loan_balance <= 0:
+		return
+	var interest: int = int(ceil(float(loan_balance) * loan_interest_rate))
+	if interest <= 0:
+		return
+	loan_balance += interest
+	loan_interest_accrued += interest
+	record_transaction("Loan Interest (%d%%)" % int(round(loan_interest_rate * 100.0)), -interest, "Loan")
+	loan_updated.emit()
+	event_triggered.emit("Loan interest charged: +$%d owed." % interest)
+
 
 func check_emergency_fund(cost: int, item_name: String) -> bool:
 	# Auto-pay from savings if affordable
@@ -416,11 +480,13 @@ func reset_all() -> void:
 	uses_component_system = false
 	# Finance
 	money = starting_money
-	savings_balance = 200
+	savings_balance = starting_savings
+	loan_balance = 0
+	loan_interest_accrued = 0
 	budget_data = {
-		"Food": {"limit": 50, "spent": 0},
-		"Vet":  {"limit": 50, "spent": 0},
-		"Travel": {"limit": 50, "spent": 0}
+		"Food": {"limit": starting_food_budget, "spent": 0},
+		"Vet":  {"limit": starting_vet_budget, "spent": 0},
+		"Travel": {"limit": starting_travel_budget, "spent": 0}
 	}
 	weekly_report = {"income": 0, "total_spent": 0, "category_breakdown": {}, "emergency_usage": 0}
 	transaction_history = []
@@ -455,11 +521,13 @@ func initialize_day_one():
 	is_tutorial_complete = false
 	# Reset finances for new game
 	money = starting_money
-	savings_balance = 200
+	savings_balance = starting_savings
+	loan_balance = 0
+	loan_interest_accrued = 0
 	budget_data = {
-		"Food": {"limit": 50, "spent": 0},
-		"Vet": {"limit": 50, "spent": 0},
-		"Travel": {"limit": 50, "spent": 0}
+		"Food": {"limit": starting_food_budget, "spent": 0},
+		"Vet": {"limit": starting_vet_budget, "spent": 0},
+		"Travel": {"limit": starting_travel_budget, "spent": 0}
 	}
 	dog_health = 30.0
 	transaction_history = []
@@ -565,7 +633,18 @@ func save_game(dog_data: Dictionary = {}):
 		"ball_chore": ball_chore,
 		# Finance Data
 		"savings_balance": savings_balance,
+		"starting_savings": starting_savings,
+		"weekly_allowance": weekly_allowance,
 		"budget_data": budget_data,
+		"starting_food_budget": starting_food_budget,
+		"starting_vet_budget": starting_vet_budget,
+		"starting_travel_budget": starting_travel_budget,
+		"withdrawal_penalty_rate": withdrawal_penalty_rate,
+		"savings_interest_rate": savings_interest_rate,
+		"loan_interest_rate": loan_interest_rate,
+		"max_loan_amount": max_loan_amount,
+		"loan_balance": loan_balance,
+		"loan_interest_accrued": loan_interest_accrued,
 		"weekly_report": weekly_report,
 		"transaction_history": transaction_history,
 		"all_time_spent": all_time_spent,
@@ -650,10 +729,21 @@ func load_game() -> bool:
 	
 	# Restore Finance Data
 	savings_balance = save_data.get("savings_balance", 200)
+	starting_savings = save_data.get("starting_savings", 200)
+	weekly_allowance = save_data.get("weekly_allowance", 150)
+	starting_food_budget = save_data.get("starting_food_budget", 50)
+	starting_vet_budget = save_data.get("starting_vet_budget", 50)
+	starting_travel_budget = save_data.get("starting_travel_budget", 50)
+	withdrawal_penalty_rate = save_data.get("withdrawal_penalty_rate", 0.15)
+	savings_interest_rate = save_data.get("savings_interest_rate", 0.05)
+	loan_interest_rate = save_data.get("loan_interest_rate", 0.10)
+	max_loan_amount = save_data.get("max_loan_amount", 500)
+	loan_balance = save_data.get("loan_balance", 0)
+	loan_interest_accrued = save_data.get("loan_interest_accrued", 0)
 	budget_data = save_data.get("budget_data", {
-		"Food": {"limit": 50, "spent": 0},
-		"Vet": {"limit": 50, "spent": 0},
-		"Travel": {"limit": 50, "spent": 0}
+		"Food": {"limit": starting_food_budget, "spent": 0},
+		"Vet": {"limit": starting_vet_budget, "spent": 0},
+		"Travel": {"limit": starting_travel_budget, "spent": 0}
 	})
 	weekly_report = save_data.get("weekly_report", {
 		"income": 0,

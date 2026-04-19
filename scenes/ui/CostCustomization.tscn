@@ -25,143 +25,309 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -400.0
+offset_left = -500.0
 offset_top = 10.0
-offset_right = 400.0
+offset_right = 500.0
 offset_bottom = 110.0
 grow_horizontal = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Title" type="Label" parent="Header"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "Customize Costs"
+text = "Customize Economy"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Header"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-text = "Set custom prices for items in your game"
+text = "Tune starting values, item prices, budgets, and banking/loan rates"
 horizontal_alignment = 1
 
-[node name="CostColumns" type="HBoxContainer" parent="."]
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -660.0
-offset_top = -100.0
-offset_right = 660.0
-offset_bottom = 100.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 125.0
+offset_right = -40.0
+offset_bottom = -120.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 25
-alignment = 1
+horizontal_scroll_mode = 0
 
-[node name="StartingCashColumn" type="VBoxContainer" parent="CostColumns"]
+[node name="Sections" type="VBoxContainer" parent="ScrollContainer"]
 layout_mode = 2
-theme_override_constants/separation = 15
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
 
-[node name="StartingCashLabel" type="Label" parent="CostColumns/StartingCashColumn"]
+[node name="StartingHeader" type="Label" parent="ScrollContainer/Sections"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.53, 0.85, 0.98, 1)
+text = "Starting Values"
+
+[node name="StartingGrid" type="GridContainer" parent="ScrollContainer/Sections"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="StartingCashLabel" type="Label" parent="ScrollContainer/Sections/StartingGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "Starting Cash"
 horizontal_alignment = 1
 
-[node name="StartingCashInput" type="LineEdit" parent="CostColumns/StartingCashColumn"]
-custom_minimum_size = Vector2(180, 70)
+[node name="StartingSavingsLabel" type="Label" parent="ScrollContainer/Sections/StartingGrid"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 22
+text = "Starting Savings"
+horizontal_alignment = 1
+
+[node name="WeeklyAllowanceLabel" type="Label" parent="ScrollContainer/Sections/StartingGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Weekly Allowance"
+horizontal_alignment = 1
+
+[node name="StartingCashInput" type="LineEdit" parent="ScrollContainer/Sections/StartingGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
 placeholder_text = "$150"
 alignment = 1
 
-[node name="FoodColumn" type="VBoxContainer" parent="CostColumns"]
-layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="FoodLabel" type="Label" parent="CostColumns/FoodColumn"]
+[node name="StartingSavingsInput" type="LineEdit" parent="ScrollContainer/Sections/StartingGrid"]
+custom_minimum_size = Vector2(220, 56)
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
+placeholder_text = "$200"
+alignment = 1
+
+[node name="WeeklyAllowanceInput" type="LineEdit" parent="ScrollContainer/Sections/StartingGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$150"
+alignment = 1
+
+[node name="Sep1" type="HSeparator" parent="ScrollContainer/Sections"]
+layout_mode = 2
+
+[node name="ItemCostsHeader" type="Label" parent="ScrollContainer/Sections"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.53, 0.85, 0.98, 1)
+text = "Item & Service Costs"
+
+[node name="CostsGrid" type="GridContainer" parent="ScrollContainer/Sections"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="FoodLabel" type="Label" parent="ScrollContainer/Sections/CostsGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "Food Cost"
 horizontal_alignment = 1
 
-[node name="FoodInput" type="LineEdit" parent="CostColumns/FoodColumn"]
-custom_minimum_size = Vector2(180, 70)
+[node name="WaterLabel" type="Label" parent="ScrollContainer/Sections/CostsGrid"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-placeholder_text = "$20"
-alignment = 1
-
-[node name="WaterColumn" type="VBoxContainer" parent="CostColumns"]
-layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="WaterLabel" type="Label" parent="CostColumns/WaterColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 22
 text = "Water Cost"
 horizontal_alignment = 1
 
-[node name="WaterInput" type="LineEdit" parent="CostColumns/WaterColumn"]
-custom_minimum_size = Vector2(180, 70)
+[node name="MedicineLabel" type="Label" parent="ScrollContainer/Sections/CostsGrid"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-placeholder_text = "$10"
-alignment = 1
-
-[node name="MedicineColumn" type="VBoxContainer" parent="CostColumns"]
-layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="MedicineLabel" type="Label" parent="CostColumns/MedicineColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 22
 text = "Medicine Cost"
 horizontal_alignment = 1
 
-[node name="MedicineInput" type="LineEdit" parent="CostColumns/MedicineColumn"]
-custom_minimum_size = Vector2(180, 70)
+[node name="FoodInput" type="LineEdit" parent="ScrollContainer/Sections/CostsGrid"]
+custom_minimum_size = Vector2(220, 56)
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$20"
+alignment = 1
+
+[node name="WaterInput" type="LineEdit" parent="ScrollContainer/Sections/CostsGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$10"
+alignment = 1
+
+[node name="MedicineInput" type="LineEdit" parent="ScrollContainer/Sections/CostsGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
 placeholder_text = "$40"
 alignment = 1
 
-[node name="VetColumn" type="VBoxContainer" parent="CostColumns"]
+[node name="VetLabel" type="Label" parent="ScrollContainer/Sections/CostsGrid"]
 layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="VetLabel" type="Label" parent="CostColumns/VetColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 22
 text = "Vet Fee"
 horizontal_alignment = 1
 
-[node name="VetInput" type="LineEdit" parent="CostColumns/VetColumn"]
-custom_minimum_size = Vector2(180, 70)
+[node name="TaxiLabel" type="Label" parent="ScrollContainer/Sections/CostsGrid"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-placeholder_text = "$50"
-alignment = 1
-
-[node name="TaxiColumn" type="VBoxContainer" parent="CostColumns"]
-layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="TaxiLabel" type="Label" parent="CostColumns/TaxiColumn"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 22
 text = "Taxi Fare"
 horizontal_alignment = 1
 
-[node name="TaxiInput" type="LineEdit" parent="CostColumns/TaxiColumn"]
-custom_minimum_size = Vector2(180, 70)
+[node name="BallLabel" type="Label" parent="ScrollContainer/Sections/CostsGrid"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 22
+text = "Ball Catch Reward"
+horizontal_alignment = 1
+
+[node name="VetInput" type="LineEdit" parent="ScrollContainer/Sections/CostsGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$50"
+alignment = 1
+
+[node name="TaxiInput" type="LineEdit" parent="ScrollContainer/Sections/CostsGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
 placeholder_text = "$10"
+alignment = 1
+
+[node name="BallInput" type="LineEdit" parent="ScrollContainer/Sections/CostsGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$2"
+alignment = 1
+
+[node name="Sep2" type="HSeparator" parent="ScrollContainer/Sections"]
+layout_mode = 2
+
+[node name="BudgetHeader" type="Label" parent="ScrollContainer/Sections"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.53, 0.85, 0.98, 1)
+text = "Weekly Budget Limits"
+
+[node name="BudgetGrid" type="GridContainer" parent="ScrollContainer/Sections"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="FoodBudgetLabel" type="Label" parent="ScrollContainer/Sections/BudgetGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Food Budget"
+horizontal_alignment = 1
+
+[node name="VetBudgetLabel" type="Label" parent="ScrollContainer/Sections/BudgetGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Vet Budget"
+horizontal_alignment = 1
+
+[node name="TravelBudgetLabel" type="Label" parent="ScrollContainer/Sections/BudgetGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Travel Budget"
+horizontal_alignment = 1
+
+[node name="FoodBudgetInput" type="LineEdit" parent="ScrollContainer/Sections/BudgetGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$50"
+alignment = 1
+
+[node name="VetBudgetInput" type="LineEdit" parent="ScrollContainer/Sections/BudgetGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$50"
+alignment = 1
+
+[node name="TravelBudgetInput" type="LineEdit" parent="ScrollContainer/Sections/BudgetGrid"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$50"
+alignment = 1
+
+[node name="Sep3" type="HSeparator" parent="ScrollContainer/Sections"]
+layout_mode = 2
+
+[node name="ModifiersHeader" type="Label" parent="ScrollContainer/Sections"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.53, 0.85, 0.98, 1)
+text = "Banking & Loan Modifiers"
+
+[node name="ModifiersGrid" type="GridContainer" parent="ScrollContainer/Sections"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 12
+columns = 4
+
+[node name="InterestLabel" type="Label" parent="ScrollContainer/Sections/ModifiersGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Savings Interest % / day"
+horizontal_alignment = 1
+
+[node name="PenaltyLabel" type="Label" parent="ScrollContainer/Sections/ModifiersGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Withdrawal Penalty %"
+horizontal_alignment = 1
+
+[node name="LoanRateLabel" type="Label" parent="ScrollContainer/Sections/ModifiersGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Loan Interest % / week"
+horizontal_alignment = 1
+
+[node name="MaxLoanLabel" type="Label" parent="ScrollContainer/Sections/ModifiersGrid"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Max Loan Amount"
+horizontal_alignment = 1
+
+[node name="InterestInput" type="LineEdit" parent="ScrollContainer/Sections/ModifiersGrid"]
+custom_minimum_size = Vector2(180, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "5"
+alignment = 1
+
+[node name="PenaltyInput" type="LineEdit" parent="ScrollContainer/Sections/ModifiersGrid"]
+custom_minimum_size = Vector2(180, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "15"
+alignment = 1
+
+[node name="LoanRateInput" type="LineEdit" parent="ScrollContainer/Sections/ModifiersGrid"]
+custom_minimum_size = Vector2(180, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "10"
+alignment = 1
+
+[node name="MaxLoanInput" type="LineEdit" parent="ScrollContainer/Sections/ModifiersGrid"]
+custom_minimum_size = Vector2(180, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "$500"
 alignment = 1
 
 [node name="ButtonContainer" type="HBoxContainer" parent="."]
@@ -191,5 +357,3 @@ custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Continue"
-
-; COMMIT: Achievements and Catch Minigame Update

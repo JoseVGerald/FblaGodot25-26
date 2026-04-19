@@ -44,6 +44,16 @@ const CLR_CAT_TRAVEL := Color("#FFA726")   # Orange
 @onready var report_text    = $Panel/VBox/Content/TabContainer/WeeklyReport/ReportLabel
 @onready var close_btn      = $Panel/VBox/Header/CloseBtn
 
+# Loans tab
+@onready var loan_balance_label  = $Panel/VBox/Content/TabContainer/Loans/LoanBalanceLabel
+@onready var loan_limit_label    = $Panel/VBox/Content/TabContainer/Loans/LoanLimitLabel
+@onready var loan_rate_label     = $Panel/VBox/Content/TabContainer/Loans/LoanRateLabel
+@onready var loan_accrued_label  = $Panel/VBox/Content/TabContainer/Loans/LoanAccruedLabel
+@onready var loan_impact_label   = $Panel/VBox/Content/TabContainer/Loans/ImpactLabel
+@onready var loan_input          = $Panel/VBox/Content/TabContainer/Loans/LoanInput
+@onready var borrow_btn          = $Panel/VBox/Content/TabContainer/Loans/BorrowBtn
+@onready var repay_btn           = $Panel/VBox/Content/TabContainer/Loans/RepayBtn
+
 # ── Pie chart state ────────────────────────────────────────────────────────────
 
 var _pie_canvas      : Control = null   # Canvas that we draw the pie on
@@ -64,7 +74,9 @@ func _ready() -> void:
 	_grow_tab_fonts()
 	GameState.budget_updated.connect(update_ui)
 	GameState.savings_updated.connect(update_ui)
+	GameState.loan_updated.connect(update_ui)
 	GameState.history_updated.connect(update_history)
+	_style_loan_buttons()
 	update_ui()
 
 # ── Public API ─────────────────────────────────────────────────────────────────
@@ -82,6 +94,7 @@ func update_ui() -> void:
 	update_overview()
 	update_budget_inputs()
 	update_report()
+	update_loans()
 	update_history_header()
 
 # ── Overview tab ──────────────────────────────────────────────────────────────
@@ -391,6 +404,7 @@ func _category_color(category: String) -> Color:
 		"Vet":    return CLR_CAT_VET
 		"Travel": return CLR_CAT_TRAVEL
 		"Income": return CLR_GREEN
+		"Loan":   return CLR_ORANGE
 		_:        return CLR_CYAN
 
 # ── Root panel styling ────────────────────────────────────────────────────────
@@ -486,6 +500,30 @@ func _style_deposit_withdraw_buttons() -> void:
 	if withdraw_btn:
 		UITheme.style_button(withdraw_btn, CLR_ORANGE)
 
+# ── Loans tab ─────────────────────────────────────────────────────────────────
+
+func update_loans() -> void:
+	if not loan_balance_label:
+		return
+	var owed := GameState.loan_balance
+	var cap  := GameState.max_loan_amount
+	var avail: int = int(max(0, cap - owed))
+	var weekly_pct := int(round(GameState.loan_interest_rate * 100.0))
+	var next_charge := int(ceil(float(owed) * GameState.loan_interest_rate))
+
+	loan_balance_label.text = "Owed: $%d" % owed
+	loan_balance_label.add_theme_color_override("font_color", CLR_RED if owed > 0 else CLR_GREEN)
+	loan_limit_label.text   = "Credit Limit: $%d  •  Available: $%d" % [cap, avail]
+	loan_rate_label.text    = "Weekly Interest: %d%%" % weekly_pct
+	loan_accrued_label.text = "Interest Paid So Far: $%d" % GameState.loan_interest_accrued
+	loan_impact_label.text  = "Next week's interest charge: $%d" % next_charge
+
+func _style_loan_buttons() -> void:
+	if borrow_btn:
+		UITheme.style_button(borrow_btn, CLR_GREEN)
+	if repay_btn:
+		UITheme.style_button(repay_btn, CLR_ORANGE)
+
 # ── Signal handlers ──────────────────────────────────────────────────────────
 
 func _on_close_btn_pressed() -> void:
@@ -533,3 +571,18 @@ func _on_graphs_btn_pressed() -> void:
 	breakdown_view.visible       = false
 	graph_view.visible           = true
 	graph_canvas.build_graph_data(GameState.transaction_history)
+
+func _on_borrow_btn_pressed() -> void:
+	var amount := int(loan_input.text)
+	if amount > 0:
+		if GameState.take_loan(amount):
+			loan_input.text = ""
+			update_ui()
+
+func _on_repay_btn_pressed() -> void:
+	var amount := int(loan_input.text)
+	if amount > 0:
+		var paid := GameState.repay_loan(amount)
+		if paid > 0:
+			loan_input.text = ""
+			update_ui()

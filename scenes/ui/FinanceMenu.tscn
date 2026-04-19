@@ -297,11 +297,87 @@ theme_override_font_sizes/normal_font_size = 36
 bbcode_enabled = true
 text = "No report available yet."
 
+[node name="Loans" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 20
+metadata/_tab_index = 3
+
+[node name="LoanTitle" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Loan Desk"
+horizontal_alignment = 1
+
+[node name="LoanBalanceLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.2, 1)
+theme_override_font_sizes/font_size = 44
+text = "Owed: $0"
+horizontal_alignment = 1
+
+[node name="LoanLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 28
+text = "Credit Limit: $500  •  Available: $500"
+horizontal_alignment = 1
+
+[node name="LoanRateLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.15, 1)
+theme_override_font_sizes/font_size = 28
+text = "Weekly Interest: 10%"
+horizontal_alignment = 1
+
+[node name="LoanAccruedLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 28
+text = "Interest Paid So Far: $0"
+horizontal_alignment = 1
+
+[node name="ImpactLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 24
+text = "Next week's interest charge: $0"
+horizontal_alignment = 1
+
+[node name="LoanInput" type="LineEdit" parent="Panel/VBox/Content/TabContainer/Loans"]
+custom_minimum_size = Vector2(340, 58)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 32
+placeholder_text = "Amount"
+alignment = 1
+
+[node name="BorrowBtn" type="Button" parent="Panel/VBox/Content/TabContainer/Loans"]
+custom_minimum_size = Vector2(240, 72)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+text = "Borrow"
+
+[node name="RepayBtn" type="Button" parent="Panel/VBox/Content/TabContainer/Loans"]
+custom_minimum_size = Vector2(240, 72)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 36
+text = "Repay"
+
+[node name="LoanWarning" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.2, 1)
+theme_override_font_sizes/font_size = 22
+text = "⚠ Unpaid loans compound every 7 days. Interest is withdrawn from next week's allowance."
+horizontal_alignment = 1
+
 [node name="AllTimeHistory" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer"]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 15
-metadata/_tab_index = 3
+metadata/_tab_index = 4
 
 [node name="CashHeader" type="Label" parent="Panel/VBox/Content/TabContainer/AllTimeHistory"]
 layout_mode = 2
@@ -384,4 +460,6 @@ vertical_alignment = 1
 [connection signal="value_changed" from="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelSlider" to="." method="_on_travel_slider_value_changed"]
 [connection signal="pressed" from="Panel/VBox/Content/TabContainer/AllTimeHistory/ViewToggleContainer/BreakdownBtn" to="." method="_on_breakdown_btn_pressed"]
 [connection signal="pressed" from="Panel/VBox/Content/TabContainer/AllTimeHistory/ViewToggleContainer/GraphsBtn" to="." method="_on_graphs_btn_pressed"]
+[connection signal="pressed" from="Panel/VBox/Content/TabContainer/Loans/BorrowBtn" to="." method="_on_borrow_btn_pressed"]
+[connection signal="pressed" from="Panel/VBox/Content/TabContainer/Loans/RepayBtn" to="." method="_on_repay_btn_pressed"]
 ; COMMIT: Achievements and Catch Minigame Update
