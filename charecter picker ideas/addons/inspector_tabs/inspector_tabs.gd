@@ -569,3 +569,5 @@ class InspectorTabBar extends Control:
 	func change_vertical_side(side: int) -> void:
 		vertical_side = side
 		_update_tabbar()
+
+# Updated on 2026-04-19

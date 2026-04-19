@@ -155,3 +155,5 @@ All 6 NPC instances added to `world.tscn` with unique spawn positions spread acr
 - NPC dog menus or interaction — dog is visual only
 - NPC pathfinding beyond random wander — no NavMesh
 - Persistent dialogue state — dialogue resets each approach
+
+<!-- Updated on 2026-04-19 -->

@@ -63,3 +63,5 @@ static func set_editor_setting_desc(name:String,description:String) -> void:
 ## Set a description for a project setting.
 static func set_project_setting_desc(name:String,description:String) -> void:
 	_project_descriptions[name] = description
+
+# Updated on 2026-04-19

@@ -35,3 +35,5 @@ func _on_close_settings_pressed():
 	var panel = get_node_or_null("SettingsPanel")
 	if panel:
 		panel.hide()
+
+# Updated on 2026-04-19

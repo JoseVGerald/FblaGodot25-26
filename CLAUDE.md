@@ -32,3 +32,5 @@
 ## 📝 Learned Knowledge Base
 *This section is for Claude to auto-populate as you work.*
 - [Added on 2026-03-28]: User approved `@google/gemini-cli` checks.t
+
+<!-- Updated on 2026-04-19 -->

@@ -60,3 +60,5 @@ func _on_submit():
 	else:
 		result_label.text = "Wrong! Try again."
 		result_label.add_theme_color_override("font_color", CLR_RED)
+
+# Updated on 2026-04-19

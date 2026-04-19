@@ -246,3 +246,5 @@ func _input(event: InputEvent) -> void:
 func _close_popup() -> void:
 	get_tree().paused = was_paused
 	queue_free()
+
+# Updated on 2026-04-19

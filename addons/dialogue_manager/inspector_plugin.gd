@@ -20,3 +20,5 @@ func _parse_property(object: Object, type, name: String, hint_type, hint_string:
 		return true
 
 	return false
+
+# Updated on 2026-04-19

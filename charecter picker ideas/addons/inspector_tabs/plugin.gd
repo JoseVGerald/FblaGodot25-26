@@ -94,3 +94,5 @@ func _load_setting(setting_path:String, description:String, type:int, hint, hint
 	settings.add_property_info(property_info)
 
 	EditorSettingsDescription.set_editor_setting_desc(setting_path,description)
+
+# Updated on 2026-04-19

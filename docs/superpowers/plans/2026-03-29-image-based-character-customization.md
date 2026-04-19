@@ -680,3 +680,5 @@ Before marking complete:
 - Tooltips show filename only - could show prettier names
 
 These are out of scope for this phase.
+
+<!-- Updated on 2026-04-19 -->

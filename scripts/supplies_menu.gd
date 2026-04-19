@@ -60,3 +60,5 @@ func update_ui():
 
 func get_menu_visible() -> bool:
 	return panel.visible
+
+# Updated on 2026-04-19

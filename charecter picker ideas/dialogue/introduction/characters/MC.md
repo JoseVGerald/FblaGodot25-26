@@ -19,3 +19,5 @@
 **Idle Animation / Body Language:** Shifts weight from foot to foot, occasionally glancing around curiously. Stands with hands tucked into hoodie pocket when not interacting.
 
 **Voice Tone:** Warm and slightly hesitant — speaks like a kid who's genuinely trying to be helpful but is still figuring things out. Internal monologue lines are more confident and observational.
+
+<!-- Updated on 2026-04-19 -->

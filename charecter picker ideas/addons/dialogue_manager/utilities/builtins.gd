@@ -506,3 +506,5 @@ static func resolve_vector4_property(vector: Vector4, property: String):
 			return Vector4.INF
 
 	return vector[property]
+
+# Updated on 2026-04-19

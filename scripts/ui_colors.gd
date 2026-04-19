@@ -63,3 +63,5 @@ static func apply_opaque_panel(panel_node: Control) -> void:
 	if panel_node is PanelContainer or panel_node is Panel:
 		panel_node.add_theme_stylebox_override("panel", sb)
 	panel_node.modulate.a = 1.0
+
+# Updated on 2026-04-19

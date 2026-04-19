@@ -240,3 +240,5 @@ Before outputting:
 - [ ] Last line of each conversation script is `=> END`.
 - [ ] Character names in dialogue match plan.md / info.md (e.g. Mrs. Willow, Mr. Pines).
 - [ ] When in doubt on syntax, follow **context/dialogue/Basic_Dialogue.md**.
+
+<!-- Updated on 2026-04-19 -->

@@ -135,3 +135,5 @@ func _on_purchase_pressed():
 			shop_closed.emit()
 	else:
 		print("Not enough money!")
+
+# Updated on 2026-04-19

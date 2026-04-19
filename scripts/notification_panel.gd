@@ -499,3 +499,5 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_close_panel()
 		get_viewport().set_input_as_handled()
+
+# Updated on 2026-04-19
