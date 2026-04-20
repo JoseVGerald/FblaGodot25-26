@@ -84,6 +84,8 @@ func _ready() -> void:
 		pixel_font = load(PIXEL_FONT_PATH)
 	_build_ui()
 	_apply_saved()
+	_refresh_tab_styles()
+	_refresh_grid()
 	_sync_all_previews()
 	_update_continue()
 
@@ -348,121 +350,6 @@ void fragment() {
 	return rect
 
 
-func _create_dropdown(category: String) -> OptionButton:
-	var opt := OptionButton.new()
-	opt.custom_minimum_size = Vector2(440, 64)
-	opt.fit_to_longest_item = false
-	opt.add_theme_font_size_override("font_size", 26)
-	opt.add_theme_color_override("font_color", Color.WHITE)
-	opt.add_theme_color_override("font_hover_color", Color.WHITE)
-	opt.add_theme_color_override("font_pressed_color", Color.WHITE)
-	if pixel_font:
-		opt.add_theme_font_override("font", pixel_font)
-
-	# Grey metallic style matching the screenshot
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.42, 0.48, 0.54)
-	sb.border_color = Color(0.32, 0.36, 0.40)
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(6)
-	sb.content_margin_left = 16
-	sb.content_margin_right = 16
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
-	opt.add_theme_stylebox_override("normal", sb)
-
-	var sb_hover: StyleBoxFlat = sb.duplicate()
-	sb_hover.bg_color = Color(0.48, 0.54, 0.60)
-	opt.add_theme_stylebox_override("hover", sb_hover)
-
-	var sb_pressed: StyleBoxFlat = sb.duplicate()
-	sb_pressed.bg_color = Color(0.38, 0.42, 0.48)
-	opt.add_theme_stylebox_override("pressed", sb_pressed)
-
-	var sb_focus: StyleBoxFlat = sb.duplicate()
-	sb_focus.border_color = Color(0.8, 0.8, 0.2)
-	opt.add_theme_stylebox_override("focus", sb_focus)
-
-	# Populate items
-	var textures: Array = PREVIEW_TEXTURES.get(category, [])
-	for i in range(textures.size()):
-		var label := _get_option_label(category, textures[i])
-		opt.add_item(label.to_upper(), i)
-
-	opt.item_selected.connect(_on_dropdown_changed.bind(category))
-	return opt
-
-
-func _get_option_label(category: String, path: String) -> String:
-	var filename := path.get_file().get_basename()
-	match category:
-		"Body":
-			return filename.replace("Body_", "Body ")
-		"Eyes":
-			return filename.replace("Eyes_", "Eyes ")
-		"Hairstyle":
-			var s := filename.replace("Hairstyle_", "Hair ")
-			return s.replace("_", " ")
-		"Outfit":
-			var s := filename.replace("Outfit_", "Outfit ")
-			return s.replace("_", " ")
-		"Accessory":
-			var s := filename.replace("Accessory_", "")
-			return s.replace("_", " ")
-	return filename
-
-
-func _create_preview_column(direction: String) -> VBoxContainer:
-	var col := VBoxContainer.new()
-	col.alignment = BoxContainer.ALIGNMENT_END
-	col.add_theme_constant_override("separation", 4)
-
-	# Direction label
-	var dir_label := Label.new()
-	var dir_names := {"left": "LEFT", "down": "FRONT", "up": "BACK", "right": "RIGHT"}
-	dir_label.text = dir_names.get(direction, direction.to_upper())
-	dir_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	dir_label.add_theme_font_size_override("font_size", 22)
-	dir_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
-	if pixel_font:
-		dir_label.add_theme_font_override("font", pixel_font)
-	col.add_child(dir_label)
-
-	# Sprite container (Control that holds layered Sprite2D nodes)
-	var sprite_w := int(48 * SPRITE_SCALE)
-	var sprite_h := int(96 * SPRITE_SCALE)
-	var container := Control.new()
-	container.custom_minimum_size = Vector2(sprite_w, sprite_h)
-	container.clip_contents = true
-	col.add_child(container)
-
-	preview_sprites[direction] = {}
-
-	# Layer order: Body (back) → Eyes → Outfit → Hairstyle → Accessory (front)
-	var layer_order := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
-	for i in range(layer_order.size()):
-		var cat: String = layer_order[i]
-		var sprite := Sprite2D.new()
-		sprite.name = cat
-		sprite.centered = false
-		sprite.scale = Vector2(SPRITE_SCALE, SPRITE_SCALE)
-		sprite.z_index = i
-		container.add_child(sprite)
-		preview_sprites[direction][cat] = sprite
-
-	# Shadow ellipse under the sprite
-	var shadow_panel := Panel.new()
-	shadow_panel.custom_minimum_size = Vector2(sprite_w * 0.7, 16)
-	shadow_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var shadow_sb := StyleBoxFlat.new()
-	shadow_sb.bg_color = Color(0, 0, 0, 0.2)
-	shadow_sb.set_corner_radius_all(8)
-	shadow_panel.add_theme_stylebox_override("panel", shadow_sb)
-	col.add_child(shadow_panel)
-
-	return col
-
-
 func _create_bottom_bar() -> PanelContainer:
 	var bar := PanelContainer.new()
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -614,37 +501,183 @@ func _apply_saved() -> void:
 	var saved := GameState.get_character_components()
 	for cat in CATEGORIES:
 		var option: int = saved.get(cat.to_lower(), 1)
-		selections[cat] = option
-		if dropdowns.has(cat):
-			var idx := clampi(option - 1, 0, dropdowns[cat].item_count - 1)
-			dropdowns[cat].selected = idx
+		var max_count: int = PREVIEW_TEXTURES.get(cat, []).size()
+		selections[cat] = clampi(option, 1, max(1, max_count))
 	name_input.text = GameState.player_name
 
 
-func _sync_all_previews() -> void:
-	for cat in CATEGORIES:
-		_update_preview_for_category(cat)
+# ═══════════════════════════════════════════════════════════════════
+#  PREVIEW REFRESH
+# ═══════════════════════════════════════════════════════════════════
 
-
-func _update_preview_for_category(category: String) -> void:
+func _atlas_for(category: String, direction: String) -> Texture2D:
 	var textures: Array = PREVIEW_TEXTURES.get(category, [])
 	if textures.is_empty():
-		return
+		return null
 	var idx := clampi(selections[category] - 1, 0, textures.size() - 1)
 	var tex_path: String = textures[idx]
 	var full_tex: Texture2D = load(tex_path)
 	if not full_tex:
-		return
+		return null
+	var atlas := AtlasTexture.new()
+	atlas.atlas = full_tex
+	atlas.region = DIR_ATLAS[direction]
+	return atlas
 
-	for dir in DIRECTIONS:
-		if not preview_sprites.has(dir) or not preview_sprites[dir].has(category):
+
+func _sync_all_previews() -> void:
+	_refresh_main_preview()
+	_refresh_mini_previews()
+
+
+func _refresh_main_preview() -> void:
+	for cat in CATEGORIES:
+		if not main_preview_sprites.has(cat):
 			continue
-		var sprite: Sprite2D = preview_sprites[dir][category]
-		var atlas := AtlasTexture.new()
-		atlas.atlas = full_tex
-		atlas.region = DIR_ATLAS[dir]
-		sprite.texture = atlas
-		sprite.visible = visibility[category]
+		var sp: Sprite2D = main_preview_sprites[cat]
+		var tex := _atlas_for(cat, active_direction)
+		sp.texture = tex
+		sp.visible = visibility[cat] and tex != null
+
+
+func _refresh_mini_previews() -> void:
+	var mini_row: HBoxContainer = _find_mini_row()
+	if mini_row == null:
+		return
+	for mini in mini_row.get_children():
+		if not (mini is Control):
+			continue
+		var dir: String = mini.get_meta("direction", "")
+		if dir == "":
+			continue
+		var i := 0
+		var layer_order := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
+		for child in mini.get_children():
+			if not (child is Sprite2D):
+				continue
+			if i >= layer_order.size():
+				break
+			var cat: String = layer_order[i]
+			child.texture = _atlas_for(cat, dir)
+			child.visible = visibility[cat] and child.texture != null
+			i += 1
+		var hp: Panel = mini.get_meta("highlight_panel", null)
+		if hp:
+			var sb: StyleBoxFlat = hp.get_theme_stylebox("panel").duplicate()
+			sb.border_color = Color(0.92, 0.78, 0.12) if dir == active_direction else Color(0, 0, 0, 0)
+			hp.add_theme_stylebox_override("panel", sb)
+
+
+func _find_mini_row() -> HBoxContainer:
+	if main_preview_root == null:
+		return null
+	var parent: Node = main_preview_root.get_parent()
+	if parent == null:
+		return null
+	for child in parent.get_children():
+		if child is HBoxContainer:
+			var has_label := false
+			for c in child.get_children():
+				if c is Label:
+					has_label = true
+					break
+			if not has_label:
+				return child
+	return null
+
+
+func _refresh_tab_styles() -> void:
+	for cat in CATEGORIES:
+		if not tab_buttons.has(cat):
+			continue
+		var b: Button = tab_buttons[cat]
+		var sb: StyleBoxFlat = b.get_meta("active_stylebox") if cat == active_category else b.get_meta("inactive_stylebox")
+		b.add_theme_stylebox_override("normal", sb)
+
+
+func _refresh_grid() -> void:
+	for c in grid_container.get_children():
+		c.queue_free()
+	tile_buttons.clear()
+
+	var textures: Array = PREVIEW_TEXTURES.get(active_category, [])
+	for i in range(textures.size()):
+		var tile := _build_tile(active_category, i, textures[i])
+		grid_container.add_child(tile)
+		tile_buttons.append(tile)
+
+
+func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.toggle_mode = false
+	btn.clip_contents = true
+
+	var is_selected := (index_0 + 1) == selections[category]
+
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.18, 0.20, 0.24) if is_selected else Color(0.60, 0.65, 0.70)
+	sb.border_color = Color(0.92, 0.78, 0.12) if is_selected else Color(0.40, 0.44, 0.48)
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(4)
+	btn.add_theme_stylebox_override("normal", sb)
+
+	var sb_hover: StyleBoxFlat = sb.duplicate()
+	if not is_selected:
+		sb_hover.bg_color = Color(0.70, 0.75, 0.80)
+	btn.add_theme_stylebox_override("hover", sb_hover)
+	btn.add_theme_stylebox_override("pressed", sb_hover)
+
+	var thumb := TextureRect.new()
+	thumb.texture = _thumbnail_texture_for(category, tex_path)
+	thumb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	thumb.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	thumb.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	thumb.offset_top = 6
+	thumb.offset_bottom = -22 if is_selected else -6
+	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(thumb)
+
+	if is_selected:
+		var label := Label.new()
+		label.text = "%s %02d" % [TAB_LABELS[category], index_0 + 1]
+		label.add_theme_font_size_override("font_size", 14)
+		label.add_theme_color_override("font_color", Color.WHITE)
+		if pixel_font:
+			label.add_theme_font_override("font", pixel_font)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		label.offset_top = -20
+		label.offset_bottom = -2
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(label)
+
+	btn.pressed.connect(_on_tile_pressed.bind(category, index_0))
+	return btn
+
+
+func _thumbnail_texture_for(category: String, tex_path: String) -> Texture2D:
+	var folder_map := {
+		"Body": "Bodies",
+		"Hairstyle": "Hairstyles",
+		"Accessory": "Accessories",
+		"Outfit": "Outfits",
+		"Eyes": "Eyes",
+	}
+	var base := tex_path.get_file().get_basename()
+	var thumb_path := "res://Parts/%s/48x48/%s.png" % [folder_map[category], base]
+	if ResourceLoader.exists(thumb_path):
+		return load(thumb_path)
+	var full: Texture2D = load(tex_path)
+	if full == null:
+		return null
+	var atlas := AtlasTexture.new()
+	atlas.atlas = full
+	atlas.region = DIR_ATLAS["down"]
+	return atlas
 
 
 # ═══════════════════════════════════════════════════════════════════
