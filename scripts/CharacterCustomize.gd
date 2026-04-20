@@ -610,7 +610,7 @@ func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
 	btn.toggle_mode = false
 	btn.clip_contents = true
 
-	var is_selected := (index_0 + 1) == selections[category]
+	var is_selected: bool = (index_0 + 1) == int(selections[category])
 
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.18, 0.20, 0.24) if is_selected else Color(0.60, 0.65, 0.70)
