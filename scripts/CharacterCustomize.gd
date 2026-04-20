@@ -94,19 +94,18 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	# ── Background (blue checker) ──
-	var checker := _create_checker_bg()
-	add_child(checker)
+	add_child(_create_checker_bg())
 
-	# ── Main vertical layout ──
-	var main := VBoxContainer.new()
-	main.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	main.add_theme_constant_override("separation", 0)
-	add_child(main)
+	# ── Root vertical: title, middle split, bottom bar ──
+	var root := VBoxContainer.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_theme_constant_override("separation", 0)
+	add_child(root)
 
-	# Top padding
+	# top padding
 	var top_pad := Control.new()
-	top_pad.custom_minimum_size.y = 40
-	main.add_child(top_pad)
+	top_pad.custom_minimum_size.y = 30
+	root.add_child(top_pad)
 
 	# ── Title ──
 	var title := Label.new()
@@ -119,56 +118,211 @@ func _build_ui() -> void:
 	title.add_theme_constant_override("shadow_offset_y", 3)
 	if pixel_font:
 		title.add_theme_font_override("font", pixel_font)
-	main.add_child(title)
+	root.add_child(title)
 
-	# Small gap
-	var gap1 := Control.new()
-	gap1.custom_minimum_size.y = 20
-	main.add_child(gap1)
+	# gap under title
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 18
+	root.add_child(gap)
 
-	# ── Dropdown panel (centered 2-column grid) ──
-	var dd_center := CenterContainer.new()
-	dd_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main.add_child(dd_center)
+	# ── Middle split: preview (left) | tabs+grid (right) ──
+	var split := HBoxContainer.new()
+	split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	split.add_theme_constant_override("separation", 40)
+	split.alignment = BoxContainer.ALIGNMENT_CENTER
+	root.add_child(split)
 
-	var dd_grid := GridContainer.new()
-	dd_grid.columns = 3
-	dd_grid.add_theme_constant_override("h_separation", 24)
-	dd_grid.add_theme_constant_override("v_separation", 14)
-	dd_center.add_child(dd_grid)
+	# left side
+	var left := _build_left_panel()
+	split.add_child(left)
 
+	# right side
+	var right := _build_right_panel()
+	split.add_child(right)
+
+	# ── Bottom bar (unchanged) ──
+	root.add_child(_create_bottom_bar())
+
+
+# ── Left panel: main preview + direction carousel ──
+func _build_left_panel() -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_theme_constant_override("separation", 12)
+
+	# ── Big composited preview (one direction) ──
+	var preview_w := int(48 * SPRITE_SCALE)
+	var preview_h := int(96 * SPRITE_SCALE)
+	main_preview_root = Control.new()
+	main_preview_root.custom_minimum_size = Vector2(preview_w, preview_h)
+	main_preview_root.clip_contents = true
+	col.add_child(main_preview_root)
+
+	var layer_order := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
+	for i in range(layer_order.size()):
+		var cat: String = layer_order[i]
+		var sp := Sprite2D.new()
+		sp.name = cat
+		sp.centered = false
+		sp.scale = Vector2(SPRITE_SCALE, SPRITE_SCALE)
+		sp.z_index = i
+		main_preview_root.add_child(sp)
+		main_preview_sprites[cat] = sp
+
+	# shadow ellipse
+	var shadow := Panel.new()
+	shadow.custom_minimum_size = Vector2(preview_w * 0.7, 14)
+	shadow.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var shadow_sb := StyleBoxFlat.new()
+	shadow_sb.bg_color = Color(0, 0, 0, 0.25)
+	shadow_sb.set_corner_radius_all(8)
+	shadow.add_theme_stylebox_override("panel", shadow_sb)
+	col.add_child(shadow)
+
+	# ── Row of 4 tiny direction thumbnails (decorative — no click) ──
+	var mini_row := HBoxContainer.new()
+	mini_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	mini_row.add_theme_constant_override("separation", 6)
+	col.add_child(mini_row)
+	for d in DIRECTION_ORDER:
+		var mini := _build_mini_direction_preview(d)
+		mini_row.add_child(mini)
+
+	# ── Direction carousel: ◀ FRONT ▶ ──
+	var carousel := HBoxContainer.new()
+	carousel.alignment = BoxContainer.ALIGNMENT_CENTER
+	carousel.add_theme_constant_override("separation", 18)
+	col.add_child(carousel)
+
+	var prev_dir := _create_styled_button("<", Color(0.42, 0.48, 0.54))
+	prev_dir.custom_minimum_size = Vector2(52, 52)
+	prev_dir.add_theme_font_size_override("font_size", 28)
+	prev_dir.pressed.connect(_on_direction_step.bind(-1))
+	carousel.add_child(prev_dir)
+
+	direction_label = Label.new()
+	direction_label.text = DIRECTION_LABELS[active_direction]
+	direction_label.add_theme_font_size_override("font_size", 28)
+	direction_label.add_theme_color_override("font_color", Color.WHITE)
+	direction_label.custom_minimum_size.x = 140
+	direction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if pixel_font:
+		direction_label.add_theme_font_override("font", pixel_font)
+	carousel.add_child(direction_label)
+
+	var next_dir := _create_styled_button(">", Color(0.42, 0.48, 0.54))
+	next_dir.custom_minimum_size = Vector2(52, 52)
+	next_dir.add_theme_font_size_override("font_size", 28)
+	next_dir.pressed.connect(_on_direction_step.bind(1))
+	carousel.add_child(next_dir)
+
+	return col
+
+
+# ── 4 small non-interactive direction thumbnails under the big preview ──
+func _build_mini_direction_preview(direction: String) -> Control:
+	var mini := Control.new()
+	mini.custom_minimum_size = Vector2(48, 96)  # 1× scale
+
+	var layer_order := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
+	for i in range(layer_order.size()):
+		var cat: String = layer_order[i]
+		var sp := Sprite2D.new()
+		sp.centered = false
+		sp.z_index = i
+		var tex: Texture2D = _atlas_for(cat, direction)
+		if tex:
+			sp.texture = tex
+		mini.add_child(sp)
+	# yellow highlight box around current direction
+	var highlight := Panel.new()
+	highlight.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hsb := StyleBoxFlat.new()
+	hsb.bg_color = Color(0, 0, 0, 0)
+	hsb.border_color = Color(0.92, 0.78, 0.12) if direction == active_direction else Color(0, 0, 0, 0)
+	hsb.set_border_width_all(2)
+	highlight.add_theme_stylebox_override("panel", hsb)
+	mini.add_child(highlight)
+	mini.set_meta("highlight_panel", highlight)
+	mini.set_meta("direction", direction)
+	return mini
+
+
+# ── Right panel: tab bar + scrollable thumbnail grid ──
+func _build_right_panel() -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	col.custom_minimum_size.x = (TILE_SIZE + TILE_SPACING) * GRID_COLUMNS + 40
+	col.add_theme_constant_override("separation", 12)
+
+	# ── Tab strip ──
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 6)
+	col.add_child(tabs)
 	for cat in CATEGORIES:
-		var opt := _create_dropdown(cat)
-		dd_grid.add_child(opt)
-		dropdowns[cat] = opt
+		var tab := _create_tab_button(cat)
+		tabs.add_child(tab)
+		tab_buttons[cat] = tab
 
-	# ── Flexible spacer before preview ──
-	var flex1 := Control.new()
-	flex1.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main.add_child(flex1)
+	# ── Scrollable grid ──
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	col.add_child(scroll)
 
-	# ── 4-direction preview area ──
-	var preview_center := CenterContainer.new()
-	preview_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main.add_child(preview_center)
+	grid_container = GridContainer.new()
+	grid_container.columns = GRID_COLUMNS
+	grid_container.add_theme_constant_override("h_separation", TILE_SPACING)
+	grid_container.add_theme_constant_override("v_separation", TILE_SPACING)
+	grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(grid_container)
 
-	var preview_hbox := HBoxContainer.new()
-	preview_hbox.add_theme_constant_override("separation", 60)
-	preview_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	preview_center.add_child(preview_hbox)
+	return col
 
-	for dir in DIRECTIONS:
-		var col := _create_preview_column(dir)
-		preview_hbox.add_child(col)
 
-	# ── Flexible spacer after preview ──
-	var flex2 := Control.new()
-	flex2.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main.add_child(flex2)
+func _create_tab_button(category: String) -> Button:
+	var btn := Button.new()
+	btn.text = TAB_LABELS[category]
+	btn.custom_minimum_size = Vector2(0, 48)
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+	if pixel_font:
+		btn.add_theme_font_override("font", pixel_font)
 
-	# ── Bottom bar ──
-	var bar := _create_bottom_bar()
-	main.add_child(bar)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.42, 0.48, 0.54)
+	sb.border_color = Color(0.32, 0.36, 0.40)
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(4)
+	sb.content_margin_left = 10
+	sb.content_margin_right = 10
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	btn.add_theme_stylebox_override("normal", sb)
+
+	var sb_hover: StyleBoxFlat = sb.duplicate()
+	sb_hover.bg_color = Color(0.50, 0.56, 0.62)
+	btn.add_theme_stylebox_override("hover", sb_hover)
+
+	# store a pre-built "active" stylebox as meta so _refresh_tab_styles can swap it in
+	var sb_active: StyleBoxFlat = sb.duplicate()
+	sb_active.bg_color = Color(0.92, 0.62, 0.08)
+	sb_active.border_color = Color(0.70, 0.45, 0.05)
+	btn.set_meta("active_stylebox", sb_active)
+	btn.set_meta("inactive_stylebox", sb)
+	btn.set_meta("category", category)
+
+	btn.pressed.connect(_on_tab_pressed.bind(category))
+	return btn
 
 
 func _create_checker_bg() -> ColorRect:
