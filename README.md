@@ -144,3 +144,4 @@ This project operates on Godot Engine v4.5 and integrates open-source dependenci
 | **SimpleTODO** | KoBeWi | MIT | In-editor project task tracking and management overlay. |
 
 *Note: Visual game assets (app sprites, environments, audio) are governed by original purchase agreements and remain excluded from generalized open-source redistribution.*
+

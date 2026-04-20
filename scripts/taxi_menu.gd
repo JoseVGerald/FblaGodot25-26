@@ -103,7 +103,7 @@ func _travel_to(destination: String):
 	
 	var dog = get_tree().get_first_node_in_group("dog")
 	
-	var taxi_scene = load("res://taxi.tscn")
+	var taxi_scene = load("res://assets/taxi.tscn")
 	var taxi_instance = null
 	if taxi_scene:
 		taxi_instance = taxi_scene.instantiate()

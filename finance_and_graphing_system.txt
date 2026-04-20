@@ -47,3 +47,4 @@ Handles specialized graphic representation drawing custom polylines on a Canvas.
 2.  **Automatic Deductions**: Random night events or license duties.
 
 Every movement logs using `GameState.record_transaction()` storing `{day, description, amount, category}` keeping everything fully synchronized flawlessly!
+
