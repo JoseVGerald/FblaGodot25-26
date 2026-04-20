@@ -24,7 +24,7 @@ const DIRECTION_ORDER := ["left", "down", "up", "right"]
 const DIRECTION_LABELS := {"left": "LEFT", "down": "FRONT", "up": "BACK", "right": "RIGHT"}
 
 # Grid sizing
-const GRID_COLUMNS := 2
+const GRID_COLUMNS := 4
 const TILE_SIZE := 440           # tile width in px — scaled 4x from prior 110
 const TILE_HEIGHT := 640         # tile height in px — scaled 4x from prior 160
 const TILE_SPACING := 10
@@ -262,7 +262,6 @@ func _build_right_panel() -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	col.custom_minimum_size.x = (TILE_SIZE + TILE_SPACING) * GRID_COLUMNS + 40
 	col.add_theme_constant_override("separation", 12)
 
 	# ── Tab strip ──
@@ -278,7 +277,7 @@ func _build_right_panel() -> VBoxContainer:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	col.add_child(scroll)
 
 	grid_container = GridContainer.new()
