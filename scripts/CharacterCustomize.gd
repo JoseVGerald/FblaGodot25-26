@@ -7,8 +7,26 @@ extends Control
 
 const CharacterAssets = preload("res://scripts/CharacterAssets.gd")
 
-# Categories in display order (maps to PREVIEW_TEXTURES keys)
-const CATEGORIES := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
+# Categories in TAB display order (left→right, matches design)
+const CATEGORIES := ["Body", "Hairstyle", "Accessory", "Outfit", "Eyes"]
+
+# User-facing labels per category (for tab buttons + selected-tile footer)
+const TAB_LABELS := {
+	"Body": "BODY",
+	"Hairstyle": "HAIR",
+	"Accessory": "ACCESSORIES",
+	"Outfit": "OUTFIT",
+	"Eyes": "EYES",
+}
+
+# Direction carousel order — left→front→back→right cycles with the arrows
+const DIRECTION_ORDER := ["left", "down", "up", "right"]
+const DIRECTION_LABELS := {"left": "LEFT", "down": "FRONT", "up": "BACK", "right": "RIGHT"}
+
+# Grid sizing
+const GRID_COLUMNS := 4
+const TILE_SIZE := 120           # px per thumbnail tile
+const TILE_SPACING := 10
 
 # The 4 preview directions (matches the screenshot layout: left, front, back, right)
 const DIRECTIONS := ["left", "down", "up", "right"]
@@ -40,9 +58,19 @@ var visibility := {
 	"Body": true, "Eyes": true, "Outfit": true, "Hairstyle": true, "Accessory": true,
 }
 
+# NEW — which tab & direction are currently showing
+var active_category: String = "Body"
+var active_direction: String = "down"
+
 # ─── UI references (populated in _build_ui) ───
-var dropdowns := {} # String(category) → OptionButton
-var preview_sprites := {} # String(direction) → { String(category) → Sprite2D }
+# NEW UI refs
+var tab_buttons := {}          # String(category) → Button
+var grid_container: GridContainer  # holds tile buttons; rebuilt per category
+var tile_buttons := []         # Array[Button] for the currently-displayed tiles
+var main_preview_sprites := {} # String(category) → Sprite2D (single composited preview)
+var main_preview_root: Control # parent of main_preview_sprites, for resizing
+var direction_label: Label     # carousel label
+var selected_tile_label: Label # shown under grid or overlayed — see Task 3
 var vis_checks := {} # String(category) → CheckBox
 var name_input: LineEdit
 var continue_btn: Button
