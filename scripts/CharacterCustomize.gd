@@ -360,33 +360,51 @@ func _create_bottom_bar() -> PanelContainer:
 	sb.border_width_top = 4
 	sb.content_margin_left = 30
 	sb.content_margin_right = 30
-	sb.content_margin_top = 18
-	sb.content_margin_bottom = 18
+	sb.content_margin_top = 16
+	sb.content_margin_bottom = 16
 	bar.add_theme_stylebox_override("panel", sb)
 
-	var bar_vbox := VBoxContainer.new()
-	bar_vbox.add_theme_constant_override("separation", 14)
-	bar.add_child(bar_vbox)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.add_child(row)
 
-	# ── Row 1: Name input ──
-	var name_row := HBoxContainer.new()
-	name_row.add_theme_constant_override("separation", 14)
-	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	bar_vbox.add_child(name_row)
+	# ── LEFT CLUSTER: BACK + RANDOMIZE ──
+	var left_cluster := HBoxContainer.new()
+	left_cluster.add_theme_constant_override("separation", 12)
+	left_cluster.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	row.add_child(left_cluster)
+
+	back_btn = _create_styled_button("BACK", Color(0.45, 0.48, 0.52))
+	back_btn.pressed.connect(_on_back_pressed)
+	left_cluster.add_child(back_btn)
+
+	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
+	randomize_btn.pressed.connect(_on_randomize_pressed)
+	left_cluster.add_child(randomize_btn)
+
+	# ── CENTER CLUSTER: NAME label + input ──
+	var center_wrap := CenterContainer.new()
+	center_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(center_wrap)
+
+	var name_box := HBoxContainer.new()
+	name_box.add_theme_constant_override("separation", 12)
+	center_wrap.add_child(name_box)
 
 	var name_label := Label.new()
 	name_label.text = "NAME:"
-	name_label.add_theme_font_size_override("font_size", 30)
+	name_label.add_theme_font_size_override("font_size", 28)
 	name_label.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
 	if pixel_font:
 		name_label.add_theme_font_override("font", pixel_font)
-	name_row.add_child(name_label)
+	name_box.add_child(name_label)
 
 	name_input = LineEdit.new()
-	name_input.custom_minimum_size = Vector2(350, 50)
+	name_input.custom_minimum_size = Vector2(340, 48)
 	name_input.placeholder_text = "Enter Name"
 	name_input.max_length = 25
-	name_input.add_theme_font_size_override("font_size", 26)
+	name_input.add_theme_font_size_override("font_size", 24)
 	name_input.add_theme_color_override("font_color", Color.BLACK)
 	name_input.add_theme_color_override("font_placeholder_color", Color(0.45, 0.45, 0.45))
 	if pixel_font:
@@ -406,51 +424,29 @@ func _create_bottom_bar() -> PanelContainer:
 	input_sb_focus.border_width_bottom = 4
 	name_input.add_theme_stylebox_override("focus", input_sb_focus)
 	name_input.text_changed.connect(_on_name_changed)
-	name_row.add_child(name_input)
+	name_box.add_child(name_input)
 
-	# ── Row 2: Buttons + visibility toggles ──
-	var btn_row := HBoxContainer.new()
-	btn_row.add_theme_constant_override("separation", 16)
-	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	bar_vbox.add_child(btn_row)
+	# ── RIGHT CLUSTER: visibility checkboxes + CONTINUE ──
+	var right_cluster := HBoxContainer.new()
+	right_cluster.add_theme_constant_override("separation", 10)
+	right_cluster.size_flags_horizontal = Control.SIZE_SHRINK_END
+	row.add_child(right_cluster)
 
-	# Back button (dark grey)
-	back_btn = _create_styled_button("BACK", Color(0.45, 0.48, 0.52))
-	back_btn.pressed.connect(_on_back_pressed)
-	btn_row.add_child(back_btn)
-
-	# Randomize button (orange — prominent like in the screenshot)
-	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
-	randomize_btn.pressed.connect(_on_randomize_pressed)
-	btn_row.add_child(randomize_btn)
-
-	# Separator
-	var sep1 := VSeparator.new()
-	sep1.custom_minimum_size.x = 10
-	btn_row.add_child(sep1)
-
-	# Visibility toggles for each component
 	for cat in CATEGORIES:
 		var check := CheckBox.new()
-		check.text = cat.to_upper()
+		check.text = TAB_LABELS[cat]
 		check.button_pressed = true
-		check.add_theme_font_size_override("font_size", 22)
+		check.add_theme_font_size_override("font_size", 18)
 		check.add_theme_color_override("font_color", Color(0.25, 0.25, 0.25))
 		if pixel_font:
 			check.add_theme_font_override("font", pixel_font)
 		check.toggled.connect(_on_visibility_toggled.bind(cat))
-		btn_row.add_child(check)
+		right_cluster.add_child(check)
 		vis_checks[cat] = check
 
-	# Separator
-	var sep2 := VSeparator.new()
-	sep2.custom_minimum_size.x = 10
-	btn_row.add_child(sep2)
-
-	# Continue button (green)
 	continue_btn = _create_styled_button("CONTINUE", Color(0.30, 0.68, 0.38))
 	continue_btn.pressed.connect(_on_continue_pressed)
-	btn_row.add_child(continue_btn)
+	right_cluster.add_child(continue_btn)
 
 	return bar
 
