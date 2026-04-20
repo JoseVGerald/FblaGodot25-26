@@ -655,24 +655,14 @@ func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
 	return btn
 
 
-func _thumbnail_texture_for(category: String, tex_path: String) -> Texture2D:
-	var folder_map := {
-		"Body": "Bodies",
-		"Hairstyle": "Hairstyles",
-		"Accessory": "Accessories",
-		"Outfit": "Outfits",
-		"Eyes": "Eyes",
-	}
-	var base := tex_path.get_file().get_basename()
-	var thumb_path := "res://Parts/%s/48x48/%s.png" % [folder_map[category], base]
-	if ResourceLoader.exists(thumb_path):
-		return load(thumb_path)
+func _thumbnail_texture_for(_category: String, tex_path: String) -> Texture2D:
 	var full: Texture2D = load(tex_path)
 	if full == null:
 		return null
 	var atlas := AtlasTexture.new()
 	atlas.atlas = full
 	atlas.region = DIR_ATLAS["down"]
+	atlas.filter_clip = true
 	return atlas
 
 
