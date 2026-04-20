@@ -684,16 +684,37 @@ func _thumbnail_texture_for(category: String, tex_path: String) -> Texture2D:
 #  SIGNAL HANDLERS
 # ═══════════════════════════════════════════════════════════════════
 
-func _on_dropdown_changed(index: int, category: String) -> void:
-	selections[category] = index + 1
-	_update_preview_for_category(category)
+func _on_tab_pressed(category: String) -> void:
+	if category == active_category:
+		return
+	active_category = category
+	_refresh_tab_styles()
+	_refresh_grid()
+
+
+func _on_tile_pressed(category: String, index_0: int) -> void:
+	var max_count: int = PREVIEW_TEXTURES.get(category, []).size()
+	selections[category] = clampi(index_0 + 1, 1, max(1, max_count))
+	_refresh_grid()
+	_refresh_main_preview()
+	_refresh_mini_previews()
+
+
+func _on_direction_step(step: int) -> void:
+	var idx := DIRECTION_ORDER.find(active_direction)
+	if idx < 0:
+		idx = 0
+	idx = (idx + step + DIRECTION_ORDER.size()) % DIRECTION_ORDER.size()
+	active_direction = DIRECTION_ORDER[idx]
+	direction_label.text = DIRECTION_LABELS[active_direction]
+	_refresh_main_preview()
+	_refresh_mini_previews()
 
 
 func _on_visibility_toggled(toggled: bool, category: String) -> void:
 	visibility[category] = toggled
-	for dir in DIRECTIONS:
-		if preview_sprites.has(dir) and preview_sprites[dir].has(category):
-			preview_sprites[dir][category].visible = toggled
+	_refresh_main_preview()
+	_refresh_mini_previews()
 
 
 func _on_name_changed(_new_text: String) -> void:
@@ -747,10 +768,10 @@ func _on_randomize_pressed() -> void:
 	for cat in CATEGORIES:
 		var textures: Array = PREVIEW_TEXTURES.get(cat, [])
 		var max_opts := maxi(1, textures.size())
-		var random_opt := randi_range(1, max_opts)
-		selections[cat] = random_opt
-		if dropdowns.has(cat):
-			dropdowns[cat].selected = random_opt - 1
-		_update_preview_for_category(cat)
+		selections[cat] = randi_range(1, max_opts)
+	_refresh_tab_styles()
+	_refresh_grid()
+	_refresh_main_preview()
+	_refresh_mini_previews()
 
 # Updated on 2026-04-19
