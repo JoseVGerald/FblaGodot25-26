@@ -24,12 +24,12 @@ const DIRECTION_ORDER := ["left", "down", "up", "right"]
 const DIRECTION_LABELS := {"left": "LEFT", "down": "FRONT", "up": "BACK", "right": "RIGHT"}
 
 # Grid sizing
-const GRID_COLUMNS := 4
-const TILE_SIZE := 110           # tile width in px (kept as TILE_SIZE for other callers)
-const TILE_HEIGHT := 160         # tile height in px — portrait, matches HTML mockup
+const GRID_COLUMNS := 2
+const TILE_SIZE := 440           # tile width in px — scaled 4x from prior 110
+const TILE_HEIGHT := 640         # tile height in px — scaled 4x from prior 160
 const TILE_SPACING := 10
-const TILE_LABEL_H := 22         # bottom label strip height when selected
-const TILE_PAD := 4              # inner padding around the thumbnail
+const TILE_LABEL_H := 88         # bottom label strip height when selected (4x)
+const TILE_PAD := 16             # inner padding around the thumbnail (4x)
 
 # The 4 preview directions (matches the screenshot layout: left, front, back, right)
 const DIRECTIONS := ["left", "down", "up", "right"]
@@ -644,15 +644,15 @@ func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
 	if is_selected:
 		var label := Label.new()
 		label.text = "%s %02d" % [TAB_LABELS[category], index_0 + 1]
-		label.add_theme_font_size_override("font_size", 14)
+		label.add_theme_font_size_override("font_size", 40)
 		label.add_theme_color_override("font_color", Color.WHITE)
 		if pixel_font:
 			label.add_theme_font_override("font", pixel_font)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-		label.offset_top = -20
-		label.offset_bottom = -2
+		label.offset_top = -TILE_LABEL_H
+		label.offset_bottom = -8
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		btn.add_child(label)
 
