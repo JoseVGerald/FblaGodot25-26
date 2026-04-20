@@ -25,8 +25,11 @@ const DIRECTION_LABELS := {"left": "LEFT", "down": "FRONT", "up": "BACK", "right
 
 # Grid sizing
 const GRID_COLUMNS := 4
-const TILE_SIZE := 120           # px per thumbnail tile
+const TILE_SIZE := 110           # tile width in px (kept as TILE_SIZE for other callers)
+const TILE_HEIGHT := 160         # tile height in px — portrait, matches HTML mockup
 const TILE_SPACING := 10
+const TILE_LABEL_H := 22         # bottom label strip height when selected
+const TILE_PAD := 4              # inner padding around the thumbnail
 
 # The 4 preview directions (matches the screenshot layout: left, front, back, right)
 const DIRECTIONS := ["left", "down", "up", "right"]
@@ -605,7 +608,7 @@ func _refresh_grid() -> void:
 
 func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(TILE_SIZE, TILE_SIZE)
+	btn.custom_minimum_size = Vector2(TILE_SIZE, TILE_HEIGHT)
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.toggle_mode = false
 	btn.clip_contents = true
@@ -631,8 +634,10 @@ func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
 	thumb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	thumb.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	thumb.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	thumb.offset_top = 6
-	thumb.offset_bottom = -22 if is_selected else -6
+	thumb.offset_left = TILE_PAD
+	thumb.offset_right = -TILE_PAD
+	thumb.offset_top = TILE_PAD
+	thumb.offset_bottom = -(TILE_LABEL_H if is_selected else TILE_PAD)
 	thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(thumb)
 
