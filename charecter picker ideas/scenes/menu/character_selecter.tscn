@@ -386,9 +386,9 @@ metadata/_edit_use_anchors_ = true
 [node name="CustomizationOptions" type="TabContainer" parent="." unique_id=1854839497]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.13854167
+anchor_left = 0.14604167
 anchor_top = 0.19074073
-anchor_right = 0.5286458
+anchor_right = 0.5361458
 anchor_bottom = 0.6074074
 grow_horizontal = 2
 grow_vertical = 2
@@ -589,9 +589,9 @@ text = "Option 5"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1319092021]
 layout_mode = 0
-anchor_left = 0.13854167
+anchor_left = 0.14604167
 anchor_top = 0.712963
-anchor_right = 0.5286458
+anchor_right = 0.5361458
 anchor_bottom = 0.78333336
 offset_right = 6.1035156e-05
 theme_override_constants/separation = 22
@@ -609,19 +609,52 @@ theme = ExtResource("2_1t7mc")
 max_length = 25
 caret_blink = true
 
+[node name="CarouselContainer" type="HBoxContainer" parent="." unique_id=1920481002]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.7609375
+anchor_top = 0.2
+anchor_right = 0.95
+anchor_bottom = 0.35
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+theme_override_constants/separation = 10
+metadata/_edit_use_anchors_ = true
+
+[node name="FrontButton" type="Button" parent="CarouselContainer" unique_id=1920481003]
+layout_mode = 2
+text = "Front"
+theme = ExtResource("2_1t7mc")
+
+[node name="RightButton" type="Button" parent="CarouselContainer" unique_id=1920481004]
+layout_mode = 2
+text = "Right"
+theme = ExtResource("2_1t7mc")
+
+[node name="BackButton" type="Button" parent="CarouselContainer" unique_id=1920481005]
+layout_mode = 2
+text = "Back"
+theme = ExtResource("2_1t7mc")
+
+[node name="LeftButton" type="Button" parent="CarouselContainer" unique_id=1920481006]
+layout_mode = 2
+text = "Left"
+theme = ExtResource("2_1t7mc")
+
 [node name="CharacterPivot" type="Control" parent="." unique_id=1845707437]
 layout_mode = 1
-anchor_left = 0.7609375
+anchor_left = 0.7709375
 anchor_top = 0.51203704
-anchor_right = 0.7609375
+anchor_right = 0.7709375
 anchor_bottom = 0.51203704
 metadata/_edit_use_anchors_ = true
 
 [node name="Components" type="Control" parent="." unique_id=307748654]
 layout_mode = 1
-anchor_left = 0.7609375
+anchor_left = 0.7709375
 anchor_top = 0.38796297
-anchor_right = 0.7817708
+anchor_right = 0.7917708
 anchor_bottom = 0.425
 scale = Vector2(7.5, 7.5)
 metadata/_edit_use_anchors_ = true
