@@ -25,14 +25,11 @@ color = Color(0, 0, 0, 0.3)
 
 [node name="Panel" type="PanelContainer" parent="."]
 custom_minimum_size = Vector2(700, 650)
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -740.0
+anchors_preset = 0
+offset_left = 40.0
 offset_top = 40.0
-offset_right = -40.0
+offset_right = 740.0
 offset_bottom = 690.0
-grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]

@@ -169,6 +169,75 @@ static func style_check_box(cb: CheckBox) -> void:
 	cb.add_theme_color_override("font_pressed_color", Color.WHITE)
 
 
+## Style a PanelContainer as a "card" — navy card bg with colored accent border.
+## `accent_side`: "all" | "left" applies accent as the full border or just the left edge.
+static func style_card(panel: PanelContainer, accent_color: Color = Color("#4A90D9"), accent_side: String = "all") -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = Color("#162240")
+	var dim_accent := Color(accent_color.r, accent_color.g, accent_color.b, 0.3)
+	sb.border_color = dim_accent
+	sb.set_border_width_all(2)
+	if accent_side == "left":
+		sb.border_color_left = accent_color
+		sb.border_width_left = 6
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(16)
+	panel.add_theme_stylebox_override("panel", sb)
+
+
+## Style a translucent inline warning strip. `variant` ∈ {"orange","green","red","cyan"}.
+static func style_warning_strip(panel: PanelContainer, variant: String = "orange") -> void:
+	var palette := {
+		"orange": [Color("#FFA726", 0.12), Color("#FFA726", 0.45)],
+		"green":  [Color("#4CAF50", 0.12), Color("#4CAF50", 0.45)],
+		"red":    [Color("#EF5350", 0.12), Color("#EF5350", 0.45)],
+		"cyan":   [Color("#53d8fb", 0.12), Color("#53d8fb", 0.45)],
+	}
+	var c: Array = palette.get(variant, palette["orange"])
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = c[0]
+	sb.border_color = c[1]
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(7)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	panel.add_theme_stylebox_override("panel", sb)
+
+
+## Build a small category pill (PanelContainer + Label) matching the finance palette.
+static func make_cat_pill(category: String, font_size: int = 20) -> PanelContainer:
+	var colors := {
+		"Food":   Color("#4CAF50"),
+		"Vet":    Color("#4A90D9"),
+		"Travel": Color("#FFA726"),
+		"Income": Color("#53d8fb"),
+		"Loan":   Color("#EF5350"),
+	}
+	var cat_color: Color = colors.get(category, Color.WHITE)
+	var pill := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(cat_color.r, cat_color.g, cat_color.b, 0.18)
+	sb.set_border_width_all(0)
+	sb.set_corner_radius_all(20)
+	sb.content_margin_left   = 14
+	sb.content_margin_right  = 14
+	sb.content_margin_top    = 4
+	sb.content_margin_bottom = 4
+	pill.add_theme_stylebox_override("panel", sb)
+
+	var lbl := Label.new()
+	lbl.text = category
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", font_size)
+	lbl.add_theme_color_override("font_color", cat_color)
+	var font := get_pixel_font()
+	if font: lbl.add_theme_font_override("font", font)
+	pill.add_child(lbl)
+	return pill
+
+
 # ═══════════════════════════════════════════════════════════════════
 #  INTERNALS
 # ═══════════════════════════════════════════════════════════════════

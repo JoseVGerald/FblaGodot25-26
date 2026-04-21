@@ -16,6 +16,10 @@ func _ready():
 
 func _process(_delta):
 	if player_in_range and Input.is_action_just_pressed("interact"):
+		# Only one conversation at a time — if a balloon is already open, the
+		# player must close it (press E on the line) before starting another.
+		if GameState.is_dialogue_active:
+			return
 		if not finished:
 			GameState.npcs_talked += 1
 			GameState.check_achievements()

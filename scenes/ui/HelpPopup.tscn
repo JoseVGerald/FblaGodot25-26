@@ -135,9 +135,56 @@ theme_override_constants/separation = 10
 layout_mode = 2
 theme_override_font_sizes/font_size = 33
 theme_override_colors/font_color = Color(0.6, 0.7, 0.9, 1)
-text = "Ask me anything about the game!
-Examples: 'How do I move?', 'What is my dog's hunger?'"
+text = "Ask me anything about the game — or tap an FAQ below."
 autowrap_mode = 2
+
+[node name="FaqLabel" type="Label" parent="Panel/MainHBox/RightSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.8, 0.85, 1, 1)
+text = "FAQ — quick questions:"
+
+[node name="FaqBox" type="GridContainer" parent="Panel/MainHBox/RightSection"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+
+[node name="FaqCash" type="Button" parent="Panel/MainHBox/RightSection/FaqBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "How do I check my cash?"
+
+[node name="FaqBudgets" type="Button" parent="Panel/MainHBox/RightSection/FaqBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "How do I change budgets?"
+
+[node name="FaqFeed" type="Button" parent="Panel/MainHBox/RightSection/FaqBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "How do I feed my dog?"
+
+[node name="FaqSim" type="Button" parent="Panel/MainHBox/RightSection/FaqBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "How do I sim days?"
+
+[node name="FaqStuck" type="Button" parent="Panel/MainHBox/RightSection/FaqBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "My dog seems stuck"
+
+[node name="FaqTravel" type="Button" parent="Panel/MainHBox/RightSection/FaqBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "How do I travel?"
 
 [node name="StatusLabel" type="Label" parent="Panel/MainHBox/RightSection"]
 layout_mode = 2

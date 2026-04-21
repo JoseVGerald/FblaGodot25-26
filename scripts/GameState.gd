@@ -66,6 +66,10 @@ var is_day_one: bool = true
 var tutorial_blocks_movement: bool = false # When true, blocks movement but allows menu inputs
 var is_dog_sleeping: bool = false # Freeze needs when dog sleeps
 
+# Location + conversation flags (set by Area2D + DialogueManager signals)
+var is_in_house: bool = false
+var is_dialogue_active: bool = false
+
 # Signal emitted when a new day starts
 signal day_started(day_number: int)
 
@@ -175,6 +179,25 @@ signal open_shop_requested
 
 func _ready():
 	apply_volume()
+	# Defer so the DialogueManager autoload (registered later) is guaranteed
+	# to be in the tree before we connect to its signals.
+	_connect_dialogue_tracking.call_deferred()
+
+# Track whether a DialogueManager balloon is currently open so NPCs can refuse
+# to spawn a second one on top of an active conversation.
+func _connect_dialogue_tracking() -> void:
+	if DialogueManager == null:
+		return
+	if not DialogueManager.dialogue_started.is_connected(_on_dialogue_started):
+		DialogueManager.dialogue_started.connect(_on_dialogue_started)
+	if not DialogueManager.dialogue_ended.is_connected(_on_dialogue_ended):
+		DialogueManager.dialogue_ended.connect(_on_dialogue_ended)
+
+func _on_dialogue_started(_res) -> void:
+	is_dialogue_active = true
+
+func _on_dialogue_ended(_res) -> void:
+	is_dialogue_active = false
 
 func apply_volume():
 	var db = linear_to_db(master_volume / 100.0)
@@ -498,6 +521,7 @@ func reset_all() -> void:
 	current_day = 0; day_timer = 0.0
 	is_day_one = true; is_tutorial_complete = false
 	tutorial_blocks_movement = false; is_dog_sleeping = false
+	is_in_house = false; is_dialogue_active = false
 	# Catch minigame
 	catch_played_today = false; catch_last_played_day = -1; catch_total_earnings = 0
 	# Achievement trackers

@@ -6,9 +6,65 @@ extends CanvasLayer
 @onready var question_input = $Panel/MainHBox/RightSection/InputContainer/QuestionInput
 @onready var send_btn = $Panel/MainHBox/RightSection/InputContainer/SendBtn
 @onready var status_label = $Panel/MainHBox/RightSection/StatusLabel
+@onready var faq_box = $Panel/MainHBox/RightSection/FaqBox
 
 var llm_assistant: LLMAssistant = null
 var is_waiting_for_response: bool = false
+
+# FAQ pools: each key maps to { "question": ..., "answers": [variants] }.
+# When an FAQ button is clicked we show the question as a user message and
+# pick a random answer variant. All variants convey the same info so the
+# reply feels dynamic even though it's canned.
+const FAQ_DATA := {
+	"FaqCash": {
+		"question": "How do I check my cash?",
+		"answers": [
+			"Your cash is shown on the bottom HUD next to the $ icon on the left side — it updates live whenever you spend or earn.",
+			"Look at the bottom-left of the screen: the number next to the $ icon is your current cash on hand.",
+			"Open the Finance menu (F) to see cash, savings, budgets, and loans all in one place — cash is the top line.",
+		],
+	},
+	"FaqBudgets": {
+		"question": "How do I change budgets?",
+		"answers": [
+			"Open the Finance menu (F), switch to the Budgets tab, and adjust the weekly limit for Food, Vet, or Travel.",
+			"Click the Finance button in the top-right HUD, then use the +/- controls in the Budgets panel to raise or lower each category's weekly cap.",
+			"Budgets live in the Finance panel. Set a weekly $ limit per category; they reset automatically every 7 in-game days.",
+		],
+	},
+	"FaqFeed": {
+		"question": "How do I feed my dog?",
+		"answers": [
+			"Press 1 while your dog is following you — it'll run to the food bowl. You need at least 1 food in inventory (buy from the shop).",
+			"Make sure you have food, then hit the 1 key. The dog walks to the bowl, eats, and hunger goes up.",
+			"Click on your dog to open the needs menu, or press 1 to send it straight to the food bowl. Food comes from the shop.",
+		],
+	},
+	"FaqSim": {
+		"question": "How do I sim days?",
+		"answers": [
+			"Press B anywhere — or click the date label in the HUD. It fast-forwards up to 7 days in a single transition.",
+			"Tap B to sim a week. It'll stop early if you run out of food/water or your dog gets sick.",
+			"Use B (or click the date text on the HUD) to simulate a week. Supplies are consumed per day, so stock up first.",
+		],
+	},
+	"FaqStuck": {
+		"question": "My dog seems stuck — what do I do?",
+		"answers": [
+			"If the dog is more than ~250px away it teleports back to you automatically. Try walking a bit — that usually unsticks it.",
+			"Walk a few steps away from the dog's current spot; it will warp to catch up once the distance is big enough.",
+			"Move your player around. The dog re-targets your position every frame and will teleport back if it falls too far behind.",
+		],
+	},
+	"FaqTravel": {
+		"question": "How do I travel?",
+		"answers": [
+			"Press the home/taxi button on the bottom HUD and pick a destination — Home, Store, Vet, or Park. Each ride costs $10.",
+			"Tap the home icon in the bottom HUD to open the taxi menu. Pick where to go; the fare is deducted from cash.",
+			"Use the taxi menu (home icon, bottom HUD). Choose Store for supplies, Vet for care, Park for catch, or Home to return.",
+		],
+	},
+}
 
 func _ready():
 	UITheme.apply_overlay_theme(self )
@@ -16,11 +72,36 @@ func _ready():
 	# Create LLM Assistant instance
 	llm_assistant = LLMAssistant.new()
 	add_child(llm_assistant)
-	
+
 	# Connect signals
 	llm_assistant.response_received.connect(_on_response_received)
 	llm_assistant.request_started.connect(_on_request_started)
 	llm_assistant.request_failed.connect(_on_request_failed)
+
+	_wire_faq_buttons()
+
+func _wire_faq_buttons() -> void:
+	# Connect each FAQ button to _on_faq_pressed(key) so we can look up the
+	# matching question/answer pool in FAQ_DATA.
+	if not faq_box:
+		return
+	for child in faq_box.get_children():
+		if child is Button and FAQ_DATA.has(child.name):
+			var key: String = child.name
+			child.pressed.connect(func(): _on_faq_pressed(key))
+
+func _on_faq_pressed(key: String) -> void:
+	# Don't let the player spam FAQs while the real LLM is mid-request.
+	if is_waiting_for_response:
+		return
+	var entry: Dictionary = FAQ_DATA.get(key, {})
+	if entry.is_empty():
+		return
+	var question: String = entry["question"]
+	var answers: Array = entry["answers"]
+	add_chat_message(question, true)
+	var pick: String = answers[randi() % answers.size()]
+	add_chat_message(pick, false)
 
 func _input(event):
 	# ESC closes the help popup without toggling the pause menu

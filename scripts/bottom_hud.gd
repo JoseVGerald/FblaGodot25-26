@@ -94,27 +94,21 @@ func _ready():
 	# ── Notification button setup ─────────────────────────────────────────────
 	_setup_notif_button()
 
-	# Wire GameState signals → NotificationCenter for permanent history log
-	GameState.event_triggered.connect(func(msg: String):
-		NotificationCenter.add_notification(
-				NotificationCenter.NotifType.EVENT, msg))
+	# Wire GameState signals → NotificationCenter + transient HUD popups.
+	# IMPORTANT: every connection uses a named method + is_connected() guard so
+	# re-entering _ready (scene reload, re-instance) can't stack duplicates.
+	# (We previously used anonymous lambdas here, which can't be deduped and
+	# caused every notification to fire 4× after a few scene transitions.)
+	if not GameState.event_triggered.is_connected(_on_event_to_center):
+		GameState.event_triggered.connect(_on_event_to_center)
+	if not GameState.achievement_unlocked.is_connected(_on_achievement_to_center):
+		GameState.achievement_unlocked.connect(_on_achievement_to_center)
+	if not GameState.emergency_fund_used.is_connected(_on_emergency_to_center):
+		GameState.emergency_fund_used.connect(_on_emergency_to_center)
+	if not GameState.budget_warning.is_connected(_on_budget_to_center):
+		GameState.budget_warning.connect(_on_budget_to_center)
 
-	GameState.achievement_unlocked.connect(func(ach_name: String):
-		NotificationCenter.add_notification(
-				NotificationCenter.NotifType.ACHIEVEMENT,
-				"Achievement Unlocked: " + ach_name))
-
-	GameState.emergency_fund_used.connect(func(item: String):
-		NotificationCenter.add_notification(
-				NotificationCenter.NotifType.WARNING,
-				"Emergency fund used for: " + item))
-
-	GameState.budget_warning.connect(func(cat: String, msg: String):
-		NotificationCenter.add_notification(
-				NotificationCenter.NotifType.WARNING,
-				cat + ": " + msg))
-
-	# Also connect the transient HUD handlers — existing behavior is preserved
+	# Transient HUD popup handlers (the toast messages).
 	if not GameState.emergency_fund_used.is_connected(_on_emergency_fund_used):
 		GameState.emergency_fund_used.connect(_on_emergency_fund_used)
 	if not GameState.budget_warning.is_connected(_on_budget_warning):
@@ -208,15 +202,21 @@ func _on_time_label_clicked(event: InputEvent) -> void:
 		if not _is_simulating:
 			_start_week_simulation()
 
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  WEEK SIMULATION — Simulate up to 7 days with interruption checks
 # ══════════════════════════════════════════════════════════════════════════════
 
-## Main entry point: plays curtain transitions and ticks through days.
-## Hunger, thirst, energy stay at 100. Only health changes (±1-30/day).
+## Main entry point: plays ONE curtain transition, ticks through days behind it,
+## then fades back in. Hunger, thirst, energy stay at 100. Only health changes.
+## On interruption (out of food/water, vet needed), we stop at that day and
+## the single transition still wraps only that shortened span.
 func _start_week_simulation() -> void:
 	_is_simulating = true
-	_create_sim_overlay()
+
+	# Close the curtain once for the whole simulation.
+	await SceneManager.fade_out({"pattern": "curtains"})
 
 	var dog = get_tree().get_first_node_in_group("dog")
 
@@ -226,10 +226,11 @@ func _start_week_simulation() -> void:
 		dog.thirst = 100.0
 		dog.energy = 100.0
 
-	for day_offset in range(1, 8):
-		if _sim_day_label:
-			_sim_day_label.text = "Day %d / 7..." % day_offset
+	var aborted := false
+	var abort_reason := ""
+	var abort_day := 0
 
+	for day_offset in range(1, 8):
 		# --- Food supply: just decrement the count ---
 		if GameState.food > 0:
 			GameState.food -= 1
@@ -261,30 +262,33 @@ func _start_week_simulation() -> void:
 		# --- Interruption checks ---
 		var fail_day := GameState.current_day + 1
 		if GameState.food <= 0:
-			_abort_week_simulation("out_of_food", fail_day)
-			return
+			abort_reason = "out_of_food"; abort_day = fail_day; aborted = true
+			break
 		if GameState.water <= 0:
-			_abort_week_simulation("out_of_water", fail_day)
-			return
+			abort_reason = "out_of_water"; abort_day = fail_day; aborted = true
+			break
 		if dog and dog.health < 50.0:
-			_abort_week_simulation("vet_needed", fail_day)
-			return
+			abort_reason = "vet_needed"; abort_day = fail_day; aborted = true
+			break
 
 		GameState.advance_day_after_simulation_supply()
 		if dog:
 			dog.health = GameState.dog_health
 
-		# Play curtain close → open transition for each sim day
-		_remove_sim_overlay()
-		await SceneManager.fade_in_place({"pattern": "curtains"})
-		_create_sim_overlay()
+	if aborted:
+		_reset_pet_needs_after_sim_interrupt()
 
-	_remove_sim_overlay()
+	# Single fade-in at the end — one transition for the whole span.
+	await SceneManager.fade_in({"pattern": "curtains"})
+
 	_is_simulating = false
-	show_notification(
-		"Week simulated! 7 days passed successfully.",
-		CLR_GREEN
-	)
+	if aborted:
+		_trigger_simulation_warning(abort_reason, abort_day)
+	else:
+		show_notification(
+			"Week simulated! 7 days passed successfully.",
+			CLR_GREEN
+		)
 
 
 ## When simulation stops early: top up hunger/thirst/energy to 100; leave health unchanged.
@@ -295,13 +299,6 @@ func _reset_pet_needs_after_sim_interrupt() -> void:
 		d.thirst = 100.0
 		d.energy = 100.0
 		GameState.dog_health = d.health
-
-
-func _abort_week_simulation(reason: String, fail_day: int) -> void:
-	_remove_sim_overlay()
-	_is_simulating = false
-	_reset_pet_needs_after_sim_interrupt()
-	_trigger_simulation_warning(reason, fail_day)
 
 
 ## Trigger the game's existing notification/warning system with context.
@@ -478,17 +475,6 @@ func _on_pause_btn_pressed():
 		get_tree().root.add_child(settings_menu)
 	)
 
-	# Signals are now connected in _ready() so this block is no longer needed here,
-	# but we guard against any duplicate connections just in case.
-	if not GameState.emergency_fund_used.is_connected(_on_emergency_fund_used):
-		GameState.emergency_fund_used.connect(_on_emergency_fund_used)
-	if not GameState.budget_warning.is_connected(_on_budget_warning):
-		GameState.budget_warning.connect(_on_budget_warning)
-	if not GameState.event_triggered.is_connected(_on_event_triggered):
-		GameState.event_triggered.connect(_on_event_triggered)
-	if not GameState.achievement_unlocked.is_connected(_on_achievement_unlocked):
-		GameState.achievement_unlocked.connect(_on_achievement_unlocked)
-
 # ── Event / notification handlers ────────────────────────────────────────────
 
 func _on_event_triggered(msg: String):
@@ -496,6 +482,29 @@ func _on_event_triggered(msg: String):
 
 func _on_achievement_unlocked(_achievement_name: String):
 	show_notification("🏆 Achievement Unlocked: Check the achievements tab to see it!", Color(1, 0.8, 0.2))
+
+# ── NotificationCenter mirror handlers (named so they can be deduped) ─────────
+
+func _on_event_to_center(msg: String) -> void:
+	NotificationCenter.add_notification(NotificationCenter.NotifType.EVENT, msg)
+
+func _on_achievement_to_center(ach_name: String) -> void:
+	NotificationCenter.add_notification(
+		NotificationCenter.NotifType.ACHIEVEMENT,
+		"Achievement Unlocked: " + ach_name,
+	)
+
+func _on_emergency_to_center(item: String) -> void:
+	NotificationCenter.add_notification(
+		NotificationCenter.NotifType.WARNING,
+		"Emergency fund used for: " + item,
+	)
+
+func _on_budget_to_center(cat: String, msg: String) -> void:
+	NotificationCenter.add_notification(
+		NotificationCenter.NotifType.WARNING,
+		cat + ": " + msg,
+	)
 
 ## Returns true if any overlay/submenu is currently visible.
 func _is_any_overlay_open() -> bool:
@@ -511,6 +520,14 @@ func _is_any_overlay_open() -> bool:
 	return false
 
 func _input(event):
+	# B triggers a week sim from anywhere (same behavior as clicking the
+	# date label). Only guard against stacking a second sim on top of one
+	# that's already running.
+	if event.is_action_pressed("sim_day"):
+		if not _is_simulating:
+			_start_week_simulation()
+		return
+
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		get_viewport().set_input_as_handled()
 		if _is_any_overlay_open():

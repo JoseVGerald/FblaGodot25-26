@@ -16,10 +16,16 @@ var current_state: DogState = DogState.FOLLOWING_PLAYER
 var path: Array[Vector2] = []
 var needs_menu_instance: CanvasLayer
 
-# Path following for actions
-var action_path: Array = []
+# Direct-coordinate action movement (food/water/sleep)
+var action_target: Vector2 = Vector2.ZERO
+var action_has_target: bool = false
 var action_callback: Callable
 var action_speed: float = 250.0
+
+# Hard-coded destinations for the three dog actions (1/2/3 keys).
+const FOOD_TARGET: Vector2 = Vector2(450, -585)
+const WATER_TARGET: Vector2 = Vector2(410, -580)
+const SLEEP_TARGET: Vector2 = Vector2(310, -590)
 
 var hunger: float = 80.0
 var thirst: float = 70.0
@@ -134,29 +140,19 @@ func _input(event: InputEvent) -> void:
 	# Dog action keys (only when following player)
 	if current_state == DogState.FOLLOWING_PLAYER and event is InputEventKey and event.pressed:
 		if event.keycode == KEY_1:
-			start_action("food path", DogState.GOING_TO_FOOD, _on_food_complete)
+			start_action(FOOD_TARGET, DogState.GOING_TO_FOOD, _on_food_complete)
 		elif event.keycode == KEY_2:
-			start_action("water path", DogState.GOING_TO_WATER, _on_water_complete)
+			start_action(WATER_TARGET, DogState.GOING_TO_WATER, _on_water_complete)
 		elif event.keycode == KEY_3:
-			start_action("Sleep path", DogState.GOING_TO_SLEEP, _on_sleep_complete)
+			start_action(SLEEP_TARGET, DogState.GOING_TO_SLEEP, _on_sleep_complete)
 
-func start_action(path_name: String, state: DogState, callback: Callable):
-	var main_game = get_tree().current_scene
-	var path_node = main_game.get_node_or_null(path_name)
-	if not path_node or not path_node is Path2D:
-		print("Path not found: ", path_name)
-		return
-	
-	# Get baked points and convert to GLOBAL coordinates
-	var local_points = path_node.curve.get_baked_points()
-	action_path.clear()
-	for point in local_points:
-		action_path.append(path_node.to_global(point))
-	
+func start_action(target: Vector2, state: DogState, callback: Callable):
+	action_target = target
+	action_has_target = true
 	action_callback = callback
 	current_state = state
 	path.clear()
-	print("Started action: ", path_name, " with ", action_path.size(), " points")
+	print("Started action → target: ", target)
 
 func _on_food_complete():
 	if GameState.food <= 0:
@@ -274,28 +270,28 @@ func _apply_dynamic_appearance(delta: float) -> void:
 		animated_sprite_2d.position = Vector2.ZERO
 
 func _process_action_path():
-	if action_path.is_empty():
-		# Reached destination
+	if not action_has_target:
 		velocity = Vector2.ZERO
 		_play_animation("idle")
-		
+		return
+
+	var distance = global_position.distance_to(action_target)
+	if distance < 10.0:
+		# Reached destination — snap, stop, fire callback.
+		global_position = action_target
+		velocity = Vector2.ZERO
+		_play_animation("idle")
+		action_has_target = false
 		if action_callback.is_valid():
 			var cb = action_callback
 			action_callback = Callable()
 			cb.call()
 		return
-	
-	var target = action_path[0]
-	var direction = (target - global_position).normalized()
-	var distance = global_position.distance_to(target)
-	
-	if distance < 10.0:
-		action_path.remove_at(0)
-		return
-	
+
+	var direction = (action_target - global_position).normalized()
 	velocity = direction * action_speed
 	move_and_slide()
-	
+
 	_play_animation("run")
 	if direction.x < 0:
 		animated_sprite_2d.flip_h = true
@@ -327,8 +323,12 @@ func _process_following_player(delta: float):
 	if not player:
 		return
 
-	# Teleport if stuck (more than 250px away - target_distance is 67)
-	if global_position.distance_to(player.global_position) > 250:
+	# Teleport if far from player — but NEVER while sleeping (don't want the
+	# dog yanked outside during a nap) and only if the player is in the house
+	# when the dog is already there (prevents teleporting out through walls).
+	if current_state != DogState.SLEEPING \
+			and not GameState.is_dog_sleeping \
+			and global_position.distance_to(player.global_position) > 250:
 		global_position = player.global_position + Vector2(-10, 0)
 		path.clear()
 	

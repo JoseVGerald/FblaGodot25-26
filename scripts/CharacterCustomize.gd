@@ -23,13 +23,14 @@ const TAB_LABELS := {
 const DIRECTION_ORDER := ["left", "down", "up", "right"]
 const DIRECTION_LABELS := {"left": "LEFT", "down": "FRONT", "up": "BACK", "right": "RIGHT"}
 
-# Grid sizing
+# Grid sizing — picking tiles shrunk ~0.667× so the 1.5× preview + 1.5×
+# bottom bar have room without pushing the grid off-screen.
 const GRID_COLUMNS := 4
-const TILE_SIZE := 440           # tile width in px — scaled 4x from prior 110
-const TILE_HEIGHT := 640         # tile height in px — scaled 4x from prior 160
+const TILE_SIZE := 293           # tile width  (was 440 before preview upscale)
+const TILE_HEIGHT := 427         # tile height (was 640)
 const TILE_SPACING := 10
-const TILE_LABEL_H := 88         # bottom label strip height when selected (4x)
-const TILE_PAD := 16             # inner padding around the thumbnail (4x)
+const TILE_LABEL_H := 59         # bottom label strip height when selected
+const TILE_PAD := 11             # inner padding around the thumbnail
 
 # The 4 preview directions (matches the screenshot layout: left, front, back, right)
 const DIRECTIONS := ["left", "down", "up", "right"]
@@ -46,8 +47,9 @@ const DIR_ATLAS := {
 	"right": Rect2(0, 96, 48, 96),
 }
 
-# Scale factor for the 48×96 sprites (makes them ~240×480 at scale 5)
-const SPRITE_SCALE := 7.5
+# Scale factor for the 48×96 sprites (~540×1080 at scale 11.25 — 1.5× the
+# previous 7.5 scale so the preview reads bigger on the left panel).
+const SPRITE_SCALE := 11.25
 
 var PREVIEW_TEXTURES: Dictionary = CharacterAssets.PREVIEW_TEXTURES
 
@@ -142,9 +144,16 @@ func _build_ui() -> void:
 	var left := _build_left_panel()
 	split.add_child(left)
 
-	# right side
+	# right side (tabs + grid — grid is centered inside)
 	var right := _build_right_panel()
 	split.add_child(right)
+
+	# Right spacer mirrors the left preview column width so the tab/grid
+	# block in the middle sits in the true horizontal center of the screen.
+	var right_spacer := Control.new()
+	right_spacer.custom_minimum_size = Vector2(540, 0)
+	right_spacer.size_flags_horizontal = Control.SIZE_SHRINK_END
+	split.add_child(right_spacer)
 
 	# ── Bottom bar (unchanged) ──
 	root.add_child(_create_bottom_bar())
@@ -264,27 +273,29 @@ func _build_right_panel() -> VBoxContainer:
 	col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 12)
 
-	# ── Tab strip ──
+	# ── Tab strip (centered above the grid) ──
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
+	tabs.alignment = BoxContainer.ALIGNMENT_CENTER
+	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_child(tabs)
 	for cat in CATEGORIES:
 		var tab := _create_tab_button(cat)
 		tabs.add_child(tab)
 		tab_buttons[cat] = tab
 
-	# ── Scrollable grid ──
+	# ── Scrollable grid (grid itself is shrink-centered inside the scroll) ──
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	col.add_child(scroll)
 
 	grid_container = GridContainer.new()
 	grid_container.columns = GRID_COLUMNS
 	grid_container.add_theme_constant_override("h_separation", TILE_SPACING)
 	grid_container.add_theme_constant_override("v_separation", TILE_SPACING)
-	grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	scroll.add_child(grid_container)
 
 	return col
@@ -356,32 +367,36 @@ func _create_bottom_bar() -> PanelContainer:
 	var bar := PanelContainer.new()
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+	# Bottom-bar chrome + interior are scaled 1.5× (border/padding/fonts/btns)
+	# so the name row reads larger relative to the rest of the screen.
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.75, 0.75, 0.75)
 	sb.border_color = Color(0.55, 0.55, 0.55)
-	sb.border_width_top = 4
-	sb.content_margin_left = 30
-	sb.content_margin_right = 30
-	sb.content_margin_top = 16
-	sb.content_margin_bottom = 16
+	sb.border_width_top = 6       # was 4
+	sb.content_margin_left = 45   # was 30
+	sb.content_margin_right = 45  # was 30
+	sb.content_margin_top = 24    # was 16
+	sb.content_margin_bottom = 24 # was 16
 	bar.add_theme_stylebox_override("panel", sb)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
+	row.add_theme_constant_override("separation", 24)  # was 16
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(row)
 
 	# ── LEFT CLUSTER: BACK + RANDOMIZE ──
 	var left_cluster := HBoxContainer.new()
-	left_cluster.add_theme_constant_override("separation", 12)
+	left_cluster.add_theme_constant_override("separation", 18)  # was 12
 	left_cluster.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	row.add_child(left_cluster)
 
 	back_btn = _create_styled_button("BACK", Color(0.45, 0.48, 0.52))
+	_scale_bottom_button(back_btn)
 	back_btn.pressed.connect(_on_back_pressed)
 	left_cluster.add_child(back_btn)
 
 	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
+	_scale_bottom_button(randomize_btn)
 	randomize_btn.pressed.connect(_on_randomize_pressed)
 	left_cluster.add_child(randomize_btn)
 
@@ -391,22 +406,22 @@ func _create_bottom_bar() -> PanelContainer:
 	row.add_child(center_wrap)
 
 	var name_box := HBoxContainer.new()
-	name_box.add_theme_constant_override("separation", 12)
+	name_box.add_theme_constant_override("separation", 18)  # was 12
 	center_wrap.add_child(name_box)
 
 	var name_label := Label.new()
 	name_label.text = "NAME:"
-	name_label.add_theme_font_size_override("font_size", 28)
+	name_label.add_theme_font_size_override("font_size", 42)  # was 28
 	name_label.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
 	if pixel_font:
 		name_label.add_theme_font_override("font", pixel_font)
 	name_box.add_child(name_label)
 
 	name_input = LineEdit.new()
-	name_input.custom_minimum_size = Vector2(340, 48)
+	name_input.custom_minimum_size = Vector2(510, 72)  # was (340, 48)
 	name_input.placeholder_text = "Enter Name"
 	name_input.max_length = 25
-	name_input.add_theme_font_size_override("font_size", 24)
+	name_input.add_theme_font_size_override("font_size", 36)  # was 24
 	name_input.add_theme_color_override("font_color", Color.BLACK)
 	name_input.add_theme_color_override("font_placeholder_color", Color(0.45, 0.45, 0.45))
 	if pixel_font:
@@ -414,23 +429,23 @@ func _create_bottom_bar() -> PanelContainer:
 	var input_sb := StyleBoxFlat.new()
 	input_sb.bg_color = Color.WHITE
 	input_sb.border_color = Color(0.4, 0.45, 0.5)
-	input_sb.set_border_width_all(3)
-	input_sb.set_corner_radius_all(4)
-	input_sb.content_margin_left = 12
-	input_sb.content_margin_right = 12
-	input_sb.content_margin_top = 6
-	input_sb.content_margin_bottom = 6
+	input_sb.set_border_width_all(5)     # was 3
+	input_sb.set_corner_radius_all(6)    # was 4
+	input_sb.content_margin_left = 18    # was 12
+	input_sb.content_margin_right = 18   # was 12
+	input_sb.content_margin_top = 9      # was 6
+	input_sb.content_margin_bottom = 9   # was 6
 	name_input.add_theme_stylebox_override("normal", input_sb)
 	var input_sb_focus: StyleBoxFlat = input_sb.duplicate()
 	input_sb_focus.border_color = Color(0.85, 0.80, 0.2)
-	input_sb_focus.border_width_bottom = 4
+	input_sb_focus.border_width_bottom = 6  # was 4
 	name_input.add_theme_stylebox_override("focus", input_sb_focus)
 	name_input.text_changed.connect(_on_name_changed)
 	name_box.add_child(name_input)
 
 	# ── RIGHT CLUSTER: visibility checkboxes + CONTINUE ──
 	var right_cluster := HBoxContainer.new()
-	right_cluster.add_theme_constant_override("separation", 10)
+	right_cluster.add_theme_constant_override("separation", 15)  # was 10
 	right_cluster.size_flags_horizontal = Control.SIZE_SHRINK_END
 	row.add_child(right_cluster)
 
@@ -438,7 +453,7 @@ func _create_bottom_bar() -> PanelContainer:
 		var check := CheckBox.new()
 		check.text = TAB_LABELS[cat]
 		check.button_pressed = true
-		check.add_theme_font_size_override("font_size", 18)
+		check.add_theme_font_size_override("font_size", 27)  # was 18
 		check.add_theme_color_override("font_color", Color(0.25, 0.25, 0.25))
 		if pixel_font:
 			check.add_theme_font_override("font", pixel_font)
@@ -447,10 +462,18 @@ func _create_bottom_bar() -> PanelContainer:
 		vis_checks[cat] = check
 
 	continue_btn = _create_styled_button("CONTINUE", Color(0.30, 0.68, 0.38))
+	_scale_bottom_button(continue_btn)
 	continue_btn.pressed.connect(_on_continue_pressed)
 	right_cluster.add_child(continue_btn)
 
 	return bar
+
+
+# Scale the 3 bottom-bar buttons (back / randomize / continue) to ~1.5× without
+# touching _create_styled_button (which is also used by direction arrows).
+func _scale_bottom_button(btn: Button) -> void:
+	btn.custom_minimum_size = Vector2(300, 82)  # was (200, 55)
+	btn.add_theme_font_size_override("font_size", 42)  # was 28
 
 
 func _create_styled_button(label_text: String, bg_color: Color) -> Button:

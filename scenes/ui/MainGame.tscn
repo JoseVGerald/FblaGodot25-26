@@ -742,49 +742,37 @@ script = ExtResource("catch_area_script")
 position = Vector2(1609, 577)
 shape = SubResource("RectangleShape2D_catch")
 
-[node name="Taxi call horizantal" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1545817761]
-collision_mask = 1
-monitoring = true
+[node name="Taxi call horizantal" type="Area2D" parent="Interaction areas" unique_id=1545817761 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal" unique_id=1124766675]
 position = Vector2(585.5, 425.5)
 shape = SubResource("RectangleShape2D_2ha63")
 
-[node name="Taxi call horizantal2" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1530531656]
-collision_mask = 1
-monitoring = true
+[node name="Taxi call horizantal2" type="Area2D" parent="Interaction areas" unique_id=1530531656 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal2" unique_id=2021195486]
 position = Vector2(423.25, 1182)
 shape = SubResource("RectangleShape2D_6o2a8")
 
-[node name="Taxi call horizantal3" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1855460194]
-collision_mask = 1
-monitoring = true
+[node name="Taxi call horizantal3" type="Area2D" parent="Interaction areas" unique_id=1855460194 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal3" unique_id=463850496]
 position = Vector2(2156.875, 1408.25)
 shape = SubResource("RectangleShape2D_h6vey")
 
-[node name="Taxi call horizantal4" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=260315488]
-collision_mask = 1
-monitoring = true
+[node name="Taxi call horizantal4" type="Area2D" parent="Interaction areas" unique_id=260315488 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal4" unique_id=216199341]
 position = Vector2(1568.0625, 1173.5)
 shape = SubResource("RectangleShape2D_de2tl")
 
-[node name="Taxi call vertical" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=1323903949]
-collision_mask = 1
-monitoring = true
+[node name="Taxi call vertical" type="Area2D" parent="Interaction areas" unique_id=1323903949 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call vertical" unique_id=1337698868]
 position = Vector2(1122.9688, 1073.25)
 shape = SubResource("RectangleShape2D_o1h1t")
 
-[node name="Taxi call vertical2" type="Area2D" parent="Interaction areas" groups=["taxi_call_area"] unique_id=48909009]
-collision_mask = 1
-monitoring = true
+[node name="Taxi call vertical2" type="Area2D" parent="Interaction areas" unique_id=48909009 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call vertical2" unique_id=1674782223]
 position = Vector2(1121, 2407.625)
