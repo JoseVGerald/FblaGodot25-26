@@ -12,6 +12,17 @@ func _ready():
 	
 	update_preview()
 	pet_name_input.grab_focus()
+	pet_name_input.text_changed.connect(_on_pet_name_changed)
+
+func _on_pet_name_changed(new_text: String) -> void:
+	var filtered := ""
+	for c in new_text:
+		if (c >= "A" and c <= "Z") or (c >= "a" and c <= "z") or c == " ":
+			filtered += c
+	if filtered != new_text:
+		var caret: int = pet_name_input.caret_column - (new_text.length() - filtered.length())
+		pet_name_input.text = filtered
+		pet_name_input.caret_column = max(0, min(caret, filtered.length()))
 
 func _input(event):
 	if event is InputEventKey and event.pressed and (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER):

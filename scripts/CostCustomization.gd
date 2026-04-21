@@ -27,6 +27,9 @@ extends Control
 @onready var continue_button: Button = $ButtonContainer/ContinueButton
 @onready var back_button:     Button = $ButtonContainer/BackButton
 
+var _status_label: Label = null
+var _status_tween: Tween = null
+
 func _ready() -> void:
 	UITheme.apply_theme(self)
 
@@ -57,7 +60,69 @@ func _ready() -> void:
 	continue_button.pressed.connect(_on_continue_pressed)
 	back_button.pressed.connect(_on_back_pressed)
 
+	_wire_numeric_validation()
+	_setup_status_label()
+
 	starting_cash_input.grab_focus()
+
+func _all_money_inputs() -> Array:
+	return [starting_cash_input, starting_savings_input, weekly_allowance_input,
+		food_input, water_input, medicine_input, vet_input, taxi_input, ball_input,
+		food_budget_input, vet_budget_input, travel_budget_input,
+		interest_input, penalty_input, loan_rate_input, max_loan_input]
+
+func _wire_numeric_validation() -> void:
+	for inp in _all_money_inputs():
+		if inp:
+			inp.text_changed.connect(_on_money_text_changed.bind(inp))
+
+func _on_money_text_changed(new_text: String, inp: LineEdit) -> void:
+	if new_text.strip_edges() == "":
+		return
+	if not _is_valid_money(new_text):
+		inp.text = ""
+		inp.caret_column = 0
+		_show_status("Only numbers and decimals allowed")
+
+func _is_valid_money(s: String) -> bool:
+	var t := s.strip_edges().lstrip("$").rstrip("%").strip_edges()
+	if t == "":
+		return true
+	var dots := 0
+	for c in t:
+		if c == ".":
+			dots += 1
+			if dots > 1: return false
+		elif c < "0" or c > "9":
+			return false
+	return true
+
+func _setup_status_label() -> void:
+	_status_label = Label.new()
+	_status_label.add_theme_font_size_override("font_size", 28)
+	_status_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+	_status_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	_status_label.add_theme_constant_override("shadow_offset_x", 2)
+	_status_label.add_theme_constant_override("shadow_offset_y", 2)
+	var font := UITheme.get_pixel_font()
+	if font: _status_label.add_theme_font_override("font", font)
+	_status_label.modulate.a = 0.0
+	_status_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_status_label.offset_left = 24
+	_status_label.offset_bottom = -24
+	_status_label.offset_top = -70
+	_status_label.offset_right = 800
+	add_child(_status_label)
+
+func _show_status(text: String) -> void:
+	if not _status_label: return
+	_status_label.text = text
+	if _status_tween and _status_tween.is_valid():
+		_status_tween.kill()
+	_status_label.modulate.a = 1.0
+	_status_tween = create_tween()
+	_status_tween.tween_interval(2.5)
+	_status_tween.tween_property(_status_label, "modulate:a", 0.0, 0.5)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:

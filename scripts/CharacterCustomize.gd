@@ -730,7 +730,15 @@ func _on_visibility_toggled(toggled: bool, category: String) -> void:
 	_refresh_mini_previews()
 
 
-func _on_name_changed(_new_text: String) -> void:
+func _on_name_changed(new_text: String) -> void:
+	var filtered := ""
+	for c in new_text:
+		if (c >= "A" and c <= "Z") or (c >= "a" and c <= "z") or c == " ":
+			filtered += c
+	if filtered != new_text:
+		var caret: int = name_input.caret_column - (new_text.length() - filtered.length())
+		name_input.text = filtered
+		name_input.caret_column = max(0, min(caret, filtered.length()))
 	_update_continue()
 
 

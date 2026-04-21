@@ -47,9 +47,9 @@ const CLR_CAT_LOAN   := Color("#EF5350")
 @onready var vet_limit_label    = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/HeaderRow/VetLimitLabel
 @onready var travel_limit_label = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/HeaderRow/TravelLimitLabel
 
-@onready var food_progress_bar   = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/FoodProgressBar
-@onready var vet_progress_bar    = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/VetProgressBar
-@onready var travel_progress_bar = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/TravelProgressBar
+@onready var food_progress_bar: Control   = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/FoodProgressBar
+@onready var vet_progress_bar: Control    = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/VetProgressBar
+@onready var travel_progress_bar: Control = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/TravelProgressBar
 
 @onready var food_spent_label    = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/MetaRow/SpentLabel
 @onready var food_limit_meta     = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/MetaRow/LimitLabel
@@ -90,7 +90,7 @@ const CLR_CAT_LOAN   := Color("#EF5350")
 @onready var loan_rate_label     = $Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/RateStat/LoanRateLabel
 @onready var loan_accrued_label  = $Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/AccruedStat/LoanAccruedLabel
 @onready var loan_impact_label   = $Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/NextStat/ImpactLabel
-@onready var credit_bar          = $Panel/VBox/Content/TabContainer/Loans/CreditBarSection/CreditBar
+@onready var credit_bar: Control = $Panel/VBox/Content/TabContainer/Loans/CreditBarSection/CreditBar
 @onready var action_card         = $Panel/VBox/Content/TabContainer/Loans/ActionCard
 @onready var loan_input          = $Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow/LoanInput
 @onready var borrow_btn          = $Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow/BorrowBtn
@@ -137,7 +137,37 @@ func _ready() -> void:
 	if GameState.has_signal("day_started"):
 		GameState.day_started.connect(func(_d): _update_day_label())
 	_style_loan_buttons()
+	_wire_numeric_validation()
 	update_ui()
+
+func _wire_numeric_validation() -> void:
+	if deposit_input:
+		deposit_input.text_changed.connect(_on_money_text_changed.bind(deposit_input))
+	if loan_input:
+		loan_input.text_changed.connect(_on_money_text_changed.bind(loan_input))
+
+func _on_money_text_changed(new_text: String, inp: LineEdit) -> void:
+	if new_text.strip_edges() == "":
+		return
+	if not _is_valid_money(new_text):
+		inp.text = ""
+		inp.caret_column = 0
+		var hud := get_tree().get_first_node_in_group("hud")
+		if hud and hud.has_method("show_notification"):
+			hud.show_notification("Only numbers and decimals allowed", CLR_RED)
+
+func _is_valid_money(s: String) -> bool:
+	var t := s.strip_edges().lstrip("$").strip_edges()
+	if t == "":
+		return true
+	var dots := 0
+	for c in t:
+		if c == ".":
+			dots += 1
+			if dots > 1: return false
+		elif c < "0" or c > "9":
+			return false
+	return true
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -377,14 +407,9 @@ func _hook_progress_canvases() -> void:
 
 func _draw_progress_bar(ctrl: Control, category: String) -> void:
 	var sz := ctrl.size
-	var radius := min(8.0, sz.y * 0.5)
-	# Track
-	var track_color := Color(CLR_SKY.r, CLR_SKY.g, CLR_SKY.b, 0.15)
-	ctrl.draw_rect(Rect2(Vector2.ZERO, sz), track_color, true)
-	# Rounded corners via overlaying: simplest approach — draw full rounded rect
-	# via a StyleBoxFlat by using draw_style_box.
+	var radius: float = min(8.0, sz.y * 0.5)
 	var track_sb := StyleBoxFlat.new()
-	track_sb.bg_color = track_color
+	track_sb.bg_color = Color(CLR_SKY.r, CLR_SKY.g, CLR_SKY.b, 0.15)
 	track_sb.set_corner_radius_all(int(radius))
 	ctrl.draw_style_box(track_sb, Rect2(Vector2.ZERO, sz))
 
@@ -480,7 +505,7 @@ func _populate_breakdown_grid(r: Dictionary) -> void:
 		var remaining: int = limit - spent
 
 		# Pill cell
-		var pill := UITheme.make_cat_pill(cat, 22)
+		var pill := UITheme.make_cat_pill(cat, 33)
 		pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		breakdown_grid.add_child(pill)
 
@@ -539,7 +564,7 @@ func _add_grid_header(grid: GridContainer, text: String) -> void:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", CLR_DIM)
-	lbl.add_theme_font_size_override("font_size", 20)
+	lbl.add_theme_font_size_override("font_size", 30)
 	var font := UITheme.get_pixel_font()
 	if font: lbl.add_theme_font_override("font", font)
 	grid.add_child(lbl)
@@ -548,7 +573,7 @@ func _make_cell(text: String, color: Color) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", color)
-	lbl.add_theme_font_size_override("font_size", 24)
+	lbl.add_theme_font_size_override("font_size", 36)
 	var font := UITheme.get_pixel_font()
 	if font: lbl.add_theme_font_override("font", font)
 	return lbl
@@ -797,7 +822,7 @@ func _hook_credit_bar_canvas() -> void:
 
 func _draw_credit_bar() -> void:
 	var sz := credit_bar.size
-	var radius := min(8.0, sz.y * 0.5)
+	var radius: float = min(8.0, sz.y * 0.5)
 	var track_sb := StyleBoxFlat.new()
 	track_sb.bg_color = Color(CLR_GREEN.r, CLR_GREEN.g, CLR_GREEN.b, 0.18)
 	track_sb.set_corner_radius_all(int(radius))
@@ -816,7 +841,6 @@ func update_loans() -> void:
 		return
 	var owed := GameState.loan_balance
 	var cap  := GameState.max_loan_amount
-	var avail: int = int(max(0, cap - owed))
 	var weekly_pct := int(round(GameState.loan_interest_rate * 100.0))
 	var next_charge := int(ceil(float(owed) * GameState.loan_interest_rate))
 

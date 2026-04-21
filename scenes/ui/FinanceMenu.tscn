@@ -49,11 +49,21 @@ alignment = 1
 layout_mode = 2
 custom_minimum_size = Vector2(52, 46)
 
-[node name="Title" type="Label" parent="Panel/VBox/Header"]
+[node name="TitleBlock" type="VBoxContainer" parent="Panel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
+alignment = 1
+
+[node name="Title" type="Label" parent="Panel/VBox/Header/TitleBlock"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "Financial Hub"
+horizontal_alignment = 1
+
+[node name="DayLabel" type="Label" parent="Panel/VBox/Header/TitleBlock"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "DAY 1 · WEEK 1"
 horizontal_alignment = 1
 
 [node name="CloseBtn" type="Button" parent="Panel/VBox/Header"]
@@ -194,184 +204,536 @@ show_percentage = false
 [node name="BudgetPlanner" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 21
 metadata/_tab_index = 1
 
 [node name="Info" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "Set your weekly spending limits. 
-(Resets every 7 days)"
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.6)
+theme_override_font_sizes/font_size = 39
+text = "Set your weekly spending limits. Budgets reset every 7 days."
 horizontal_alignment = 1
+autowrap_mode = 2
 
-[node name="FoodBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="FoodCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
 layout_mode = 2
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodBox"]
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard"]
 layout_mode = 2
-alignment = 1
+theme_override_constants/separation = 12
 
-[node name="Label" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodBox/Header"]
+[node name="HeaderRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Food & Water Limit"
 
-[node name="FoodLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="CatName" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/HeaderRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 40
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.298, 0.686, 0.314, 1)
+theme_override_font_sizes/font_size = 51
+text = "Food & Water"
+
+[node name="FoodLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.298, 0.686, 0.314, 1)
+theme_override_font_sizes/font_size = 60
 text = "$50"
-horizontal_alignment = 1
+horizontal_alignment = 2
 
-[node name="FoodSlider" type="HSlider" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
-custom_minimum_size = Vector2(0, 40)
+[node name="FoodProgressBar" type="Control" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+
+[node name="MetaRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox"]
+layout_mode = 2
+
+[node name="SpentLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/MetaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "Spent: $0"
+
+[node name="LimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/MetaRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "Limit: $50"
+horizontal_alignment = 2
+
+[node name="FoodSlider" type="HSlider" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox"]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 max_value = 200.0
 step = 5.0
 value = 50.0
 
-[node name="HSeparator" type="HSeparator" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="RangeRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox"]
 layout_mode = 2
 
-[node name="VetBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="Min" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/RangeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "$0"
+
+[node name="Max" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/RangeRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "$200"
+horizontal_alignment = 2
+
+[node name="VetCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
 layout_mode = 2
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetBox"]
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard"]
 layout_mode = 2
-alignment = 1
+theme_override_constants/separation = 12
 
-[node name="Label" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetBox/Header"]
+[node name="HeaderRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Vet & Meds Limit"
 
-[node name="VetLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="CatName" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/HeaderRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 40
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.29, 0.565, 0.851, 1)
+theme_override_font_sizes/font_size = 51
+text = "Vet & Medicine"
+
+[node name="VetLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.565, 0.851, 1)
+theme_override_font_sizes/font_size = 60
 text = "$50"
-horizontal_alignment = 1
+horizontal_alignment = 2
 
-[node name="VetSlider" type="HSlider" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
-custom_minimum_size = Vector2(0, 40)
+[node name="VetProgressBar" type="Control" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+
+[node name="MetaRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox"]
+layout_mode = 2
+
+[node name="SpentLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/MetaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "Spent: $0"
+
+[node name="LimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/MetaRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "Limit: $50"
+horizontal_alignment = 2
+
+[node name="VetSlider" type="HSlider" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox"]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 max_value = 200.0
 step = 5.0
 value = 50.0
 
-[node name="HSeparator2" type="HSeparator" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="RangeRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox"]
 layout_mode = 2
 
-[node name="TravelBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="Min" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/RangeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "$0"
+
+[node name="Max" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/RangeRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "$200"
+horizontal_alignment = 2
+
+[node name="TravelCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
 layout_mode = 2
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelBox"]
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard"]
 layout_mode = 2
-alignment = 1
+theme_override_constants/separation = 12
 
-[node name="Label" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelBox/Header"]
+[node name="HeaderRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "Travel Limit"
 
-[node name="TravelLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+[node name="CatName" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/HeaderRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 40
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.655, 0.149, 1)
+theme_override_font_sizes/font_size = 51
+text = "Travel & Transport"
+
+[node name="TravelLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.655, 0.149, 1)
+theme_override_font_sizes/font_size = 60
 text = "$50"
-horizontal_alignment = 1
+horizontal_alignment = 2
 
-[node name="TravelSlider" type="HSlider" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
-custom_minimum_size = Vector2(0, 40)
+[node name="TravelProgressBar" type="Control" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+
+[node name="MetaRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox"]
+layout_mode = 2
+
+[node name="SpentLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/MetaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "Spent: $0"
+
+[node name="LimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/MetaRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "Limit: $50"
+horizontal_alignment = 2
+
+[node name="TravelSlider" type="HSlider" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox"]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 max_value = 200.0
 step = 5.0
 value = 50.0
+
+[node name="RangeRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox"]
+layout_mode = 2
+
+[node name="Min" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/RangeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "$0"
+
+[node name="Max" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/RangeRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "$200"
+horizontal_alignment = 2
+
+[node name="WarningStrip" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/BudgetPlanner"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/WarningStrip"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.655, 0.149, 1)
+theme_override_font_sizes/font_size = 33
+text = "⚠ If Food or Vet budgets run out, costs are auto-covered from your Emergency Savings."
+horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="WeeklyReport" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer"]
 visible = false
 layout_mode = 2
+theme_override_constants/separation = 27
 metadata/_tab_index = 2
 
-[node name="ReportLabel" type="RichTextLabel" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
+[node name="WeekStrip" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 36
-bbcode_enabled = true
-text = "No report available yet."
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="WeekLabel" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.325, 0.847, 0.984, 1)
+theme_override_font_sizes/font_size = 51
+text = "WEEK 1"
+vertical_alignment = 1
+
+[node name="IncomeStat" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Value" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/IncomeStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.298, 0.686, 0.314, 1)
+theme_override_font_sizes/font_size = 48
+text = "+$0"
+horizontal_alignment = 1
+
+[node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/IncomeStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "Income"
+horizontal_alignment = 1
+
+[node name="SpentStat" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Value" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/SpentStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.937, 0.325, 0.314, 1)
+theme_override_font_sizes/font_size = 48
+text = "-$0"
+horizontal_alignment = 1
+
+[node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/SpentStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "Spent"
+horizontal_alignment = 1
+
+[node name="NetStat" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Value" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/NetStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.325, 0.847, 0.984, 1)
+theme_override_font_sizes/font_size = 48
+text = "$0"
+horizontal_alignment = 1
+
+[node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/NetStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "Net Change"
+horizontal_alignment = 1
+
+[node name="EmergencyStat" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Value" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/EmergencyStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.655, 0.149, 1)
+theme_override_font_sizes/font_size = 48
+text = "$0"
+horizontal_alignment = 1
+
+[node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/EmergencyStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "Emergency Used"
+horizontal_alignment = 1
+
+[node name="BreakdownTitle" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.565, 0.851, 1)
+theme_override_font_sizes/font_size = 39
+text = "CATEGORY BREAKDOWN"
+
+[node name="BreakdownCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
+layout_mode = 2
+
+[node name="BreakdownGrid" type="GridContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport/BreakdownCard"]
+layout_mode = 2
+theme_override_constants/h_separation = 27
+theme_override_constants/v_separation = 15
+columns = 5
+
+[node name="EventsTitle" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.565, 0.851, 1)
+theme_override_font_sizes/font_size = 39
+text = "INFLATION & EVENTS"
+
+[node name="EventsCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
+layout_mode = 2
+
+[node name="EventsGrid" type="GridContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport/EventsCard"]
+layout_mode = 2
+theme_override_constants/h_separation = 27
+theme_override_constants/v_separation = 15
+columns = 2
 
 [node name="Loans" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 24
 metadata/_tab_index = 3
 
-[node name="LoanTitle" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+[node name="CreditCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/Loans"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 40
-text = "Loan Desk"
-horizontal_alignment = 1
 
-[node name="LoanBalanceLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.4, 0.2, 1)
-theme_override_font_sizes/font_size = 44
-text = "Owed: $0"
-horizontal_alignment = 1
+theme_override_constants/separation = 15
 
-[node name="LoanLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+[node name="TopRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 28
-text = "Credit Limit: $500  •  Available: $500"
-horizontal_alignment = 1
 
-[node name="LoanRateLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+[node name="Chip" type="ColorRect" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/TopRow"]
+custom_minimum_size = Vector2(84, 60)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.72, 0.15, 1)
-theme_override_font_sizes/font_size = 28
-text = "Weekly Interest: 10%"
-horizontal_alignment = 1
+color = Color(0.784, 0.663, 0.431, 1)
 
-[node name="LoanAccruedLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+[node name="Spacer" type="Control" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/TopRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 28
-text = "Interest Paid So Far: $0"
-horizontal_alignment = 1
+size_flags_horizontal = 3
 
-[node name="ImpactLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+[node name="BankLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/TopRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.9, 0.5, 1)
-theme_override_font_sizes/font_size = 24
-text = "Next week's interest charge: $0"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.937, 0.325, 0.314, 0.75)
+theme_override_font_sizes/font_size = 33
+text = "BUDDY BANK™"
+vertical_alignment = 1
 
-[node name="LoanInput" type="LineEdit" parent="Panel/VBox/Content/TabContainer/Loans"]
-custom_minimum_size = Vector2(340, 58)
+[node name="OwedLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "CURRENT BALANCE OWED"
+
+[node name="LoanBalanceLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.937, 0.325, 0.314, 1)
+theme_override_font_sizes/font_size = 102
+text = "$0"
+
+[node name="HSep" type="ColorRect" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.937, 0.325, 0.314, 0.2)
+
+[node name="FooterRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 21
+
+[node name="RateStat" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LoanRateLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/RateStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.655, 0.149, 1)
+theme_override_font_sizes/font_size = 42
+text = "10%"
+
+[node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/RateStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "Weekly interest"
+
+[node name="NextStat" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ImpactLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/NextStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 42
+text = "$0"
+
+[node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/NextStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "Next charge"
+
+[node name="AccruedStat" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LoanAccruedLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/AccruedStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.937, 0.325, 0.314, 1)
+theme_override_font_sizes/font_size = 42
+text = "$0"
+
+[node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/AccruedStat"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_font_sizes/font_size = 30
+text = "Interest paid"
+
+[node name="CreditBarSection" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="BarHeader" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/CreditBarSection"]
+layout_mode = 2
+
+[node name="LeftLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditBarSection/BarHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.55)
+theme_override_font_sizes/font_size = 33
+text = "Credit used"
+
+[node name="LoanLimitLabel" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditBarSection/BarHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.325, 0.847, 0.984, 1)
+theme_override_font_sizes/font_size = 33
+text = "$0 / $500 available"
+horizontal_alignment = 2
+
+[node name="CreditBar" type="Control" parent="Panel/VBox/Content/TabContainer/Loans/CreditBarSection"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+
+[node name="ActionCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Info" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.6)
+theme_override_font_sizes/font_size = 33
+text = "Borrow up to $500 total. Unpaid loans compound every 7 days — interest is withdrawn from your next weekly allowance."
+autowrap_mode = 2
+
+[node name="ActionRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="LoanInput" type="LineEdit" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow"]
+custom_minimum_size = Vector2(360, 96)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 48
 placeholder_text = "Amount"
 alignment = 1
 
-[node name="BorrowBtn" type="Button" parent="Panel/VBox/Content/TabContainer/Loans"]
-custom_minimum_size = Vector2(240, 72)
+[node name="BorrowBtn" type="Button" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow"]
+custom_minimum_size = Vector2(300, 108)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 48
 text = "Borrow"
 
-[node name="RepayBtn" type="Button" parent="Panel/VBox/Content/TabContainer/Loans"]
-custom_minimum_size = Vector2(240, 72)
+[node name="RepayBtn" type="Button" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow"]
+custom_minimum_size = Vector2(300, 108)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 48
 text = "Repay"
 
-[node name="LoanWarning" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+[node name="LoanWarning" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/Loans"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.4, 0.2, 1)
-theme_override_font_sizes/font_size = 22
-text = "⚠ Unpaid loans compound every 7 days. Interest is withdrawn from next week's allowance."
+
+[node name="Label" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/LoanWarning"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.937, 0.325, 0.314, 1)
+theme_override_font_sizes/font_size = 33
+text = "⚠ Unpaid loans compound weekly. Interest is auto-deducted from your allowance — borrow responsibly!"
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="AllTimeHistory" type="VBoxContainer" parent="Panel/VBox/Content/TabContainer"]
 visible = false
@@ -455,11 +817,11 @@ vertical_alignment = 1
 [connection signal="pressed" from="Panel/VBox/Header/CloseBtn" to="." method="_on_close_btn_pressed"]
 [connection signal="pressed" from="Panel/VBox/Content/TabContainer/Overview/DepositBtn" to="." method="_on_deposit_btn_pressed"]
 [connection signal="pressed" from="Panel/VBox/Content/TabContainer/Overview/WithdrawBtn" to="." method="_on_withdraw_btn_pressed"]
-[connection signal="value_changed" from="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodSlider" to="." method="_on_food_slider_value_changed"]
-[connection signal="value_changed" from="Panel/VBox/Content/TabContainer/BudgetPlanner/VetSlider" to="." method="_on_vet_slider_value_changed"]
-[connection signal="value_changed" from="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelSlider" to="." method="_on_travel_slider_value_changed"]
+[connection signal="value_changed" from="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/FoodSlider" to="." method="_on_food_slider_value_changed"]
+[connection signal="value_changed" from="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/VetSlider" to="." method="_on_vet_slider_value_changed"]
+[connection signal="value_changed" from="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/TravelSlider" to="." method="_on_travel_slider_value_changed"]
 [connection signal="pressed" from="Panel/VBox/Content/TabContainer/AllTimeHistory/ViewToggleContainer/BreakdownBtn" to="." method="_on_breakdown_btn_pressed"]
 [connection signal="pressed" from="Panel/VBox/Content/TabContainer/AllTimeHistory/ViewToggleContainer/GraphsBtn" to="." method="_on_graphs_btn_pressed"]
-[connection signal="pressed" from="Panel/VBox/Content/TabContainer/Loans/BorrowBtn" to="." method="_on_borrow_btn_pressed"]
-[connection signal="pressed" from="Panel/VBox/Content/TabContainer/Loans/RepayBtn" to="." method="_on_repay_btn_pressed"]
+[connection signal="pressed" from="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow/BorrowBtn" to="." method="_on_borrow_btn_pressed"]
+[connection signal="pressed" from="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow/RepayBtn" to="." method="_on_repay_btn_pressed"]
 ; COMMIT: Achievements and Catch Minigame Update

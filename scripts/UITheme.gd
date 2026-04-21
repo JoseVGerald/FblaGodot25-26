@@ -175,11 +175,16 @@ static func style_card(panel: PanelContainer, accent_color: Color = Color("#4A90
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = Color("#162240")
 	var dim_accent := Color(accent_color.r, accent_color.g, accent_color.b, 0.3)
-	sb.border_color = dim_accent
-	sb.set_border_width_all(2)
 	if accent_side == "left":
-		sb.border_color_left = accent_color
+		# Godot 4 StyleBoxFlat has one border color; use it for the left stripe.
+		sb.border_color = accent_color
 		sb.border_width_left = 6
+		sb.border_width_top = 0
+		sb.border_width_right = 0
+		sb.border_width_bottom = 0
+	else:
+		sb.border_color = dim_accent
+		sb.set_border_width_all(2)
 	sb.set_corner_radius_all(10)
 	sb.set_content_margin_all(16)
 	panel.add_theme_stylebox_override("panel", sb)
