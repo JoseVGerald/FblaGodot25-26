@@ -143,14 +143,14 @@ text = "Withdraw"
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.2, 1)
 theme_override_font_sizes/font_size = 24
-text = "⚠ Withdrawals incur a 15% early penalty!"
+text = "Withdrawals incur a 15% early penalty!"
 horizontal_alignment = 1
 
 [node name="InterestInfo" type="Label" parent="Panel/VBox/Content/TabContainer/Overview"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.85, 0.5, 1)
 theme_override_font_sizes/font_size = 24
-text = "💰 Savings earn 5% interest every day!"
+text = "Savings earn 5% interest every day!"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="Panel/VBox/Content/TabContainer/Overview"]
@@ -429,7 +429,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.655, 0.149, 1)
 theme_override_font_sizes/font_size = 33
-text = "⚠ If Food or Vet budgets run out, costs are auto-covered from your Emergency Savings."
+text = "If Food or Vet budgets run out, costs are auto-covered from your Emergency Savings."
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -731,7 +731,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.937, 0.325, 0.314, 1)
 theme_override_font_sizes/font_size = 33
-text = "⚠ Unpaid loans compound weekly. Interest is auto-deducted from your allowance — borrow responsibly!"
+text = "Unpaid loans compound weekly. Interest is auto-deducted from your allowance — borrow responsibly!"
 horizontal_alignment = 1
 autowrap_mode = 2
 

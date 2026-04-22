@@ -56,6 +56,8 @@ func _ready() -> void:
 	_style_header_strip()
 	# Apply global UITheme fonts to children
 	UITheme.apply_overlay_theme(self)
+	# Restyle the title + close button per the redesign spec
+	_style_title_bar()
 	# Start hidden — show_menu() is called by the world script / HUD
 	panel.hide()
 	# Enforce minimum bar height (≥24px for visibility)
@@ -66,6 +68,25 @@ func _ready() -> void:
 	$PanelContainer/VBoxContainer/TitleHBox/CloseButton.pressed.connect(
 		func() -> void: panel.hide()
 	)
+
+## Restyle "Needs" title as cyan, stat labels uppercase + dim, close button red compact.
+func _style_title_bar() -> void:
+	var title := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/Title")
+	if title is Label:
+		title.text = "Pet Needs"
+		title.add_theme_color_override("font_color", Color("#53d8fb"))
+		title.add_theme_font_size_override("font_size", 52)
+	var close_btn := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/CloseButton")
+	if close_btn is Button:
+		close_btn.text = "X"
+		close_btn.custom_minimum_size = Vector2(64, 64)
+		UITheme.style_button(close_btn, UITheme.CLR_RED)
+	# Dim + uppercase the four stat labels
+	for stat in ["Hunger", "Thirst", "Energy", "Health"]:
+		var l := get_node_or_null("PanelContainer/VBoxContainer/GridContainer/" + stat + "/Label")
+		if l is Label:
+			l.text = stat.to_upper()
+			l.add_theme_color_override("font_color", Color(0.94, 0.96, 1.0, 0.65))
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -123,22 +144,25 @@ func _update_stat_row(
 		name_label : Label) -> void:
 	if not bar or not val_label:
 		return
-	# Set the bar value and text display
+	# Set the bar value and text display — spec format "75/100" (no spaces)
 	bar.value = stat_value
-	val_label.text = "%d / 100" % int(round(stat_value))
-	# Determine fill colour — flash red if critically low
-	var fill_color := base_color
+	val_label.text = "%d/100" % int(round(stat_value))
+	val_label.add_theme_color_override("font_color", Color("#53d8fb"))
+	# Threshold-based bar colour (spec _bar_color): <30 red, <50 orange, else base.
+	# Keeps the existing flash behaviour on top so critical stats still pulse.
+	var fill_color := _bar_color(stat_value, base_color)
 	if stat_value < LOW_THRESHOLD and _flash_state:
 		fill_color = CLR_DANGER
-	# Apply fill style
 	var fill_sb := StyleBoxFlat.new()
 	fill_sb.bg_color = fill_color
+	fill_sb.set_corner_radius_all(6)
 	bar.add_theme_stylebox_override("fill", fill_sb)
-	# Apply track (background) style — deep navy with sky-blue border
+	# Translucent track per spec (white@7% bg, dim-sky@16% border)
 	var track_sb := StyleBoxFlat.new()
-	track_sb.bg_color     = CLR_NAVY_DEEP
-	track_sb.border_color = CLR_SKY
+	track_sb.bg_color     = Color(1, 1, 1, 0.07)
+	track_sb.border_color = Color("#2d6aad", 0.16)
 	track_sb.set_border_width_all(1)
+	track_sb.set_corner_radius_all(6)
 	bar.add_theme_stylebox_override("background", track_sb)
 	# Warning "!" indicator next to stat name when critical
 	if name_label:
@@ -151,6 +175,12 @@ func _update_stat_row(
 			name_label.text = name_label.text.rstrip(" !")
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
+## Threshold-based fill colour per spec: <30 red, <50 orange, else base.
+func _bar_color(value: float, base: Color) -> Color:
+	if value < 30.0: return Color("#EF5350")
+	if value < 50.0: return Color("#FFA726")
+	return base
 
 ## Check if the mouse cursor is within the panel bounds.
 func is_mouse_over_panel() -> bool:

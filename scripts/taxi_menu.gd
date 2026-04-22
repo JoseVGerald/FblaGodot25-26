@@ -114,7 +114,9 @@ func _travel_to(destination: String):
 	
 	if player:
 		player.hide()
-	if dog:
+	# Leave the dog behind if it's sleeping — taxi shouldn't drag it along.
+	var dog_travels: bool = dog != null and not GameState.is_dog_sleeping
+	if dog_travels:
 		dog.hide()
 	
 	var timer = Timer.new()
@@ -139,7 +141,7 @@ func _travel_to(destination: String):
 			if player:
 				player.show()
 				player.global_position = pos
-			if dog:
+			if dog_travels:
 				dog.show()
 				dog.global_position = pos + Vector2(50, 0)
 	})

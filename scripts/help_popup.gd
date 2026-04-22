@@ -110,6 +110,7 @@ const FAQ_DATA := {
 
 func _ready():
 	UITheme.apply_overlay_theme(self )
+	_apply_redesign_styling()
 
 	# Create LLM Assistant instance
 	llm_assistant = LLMAssistant.new()
@@ -121,6 +122,149 @@ func _ready():
 	llm_assistant.request_failed.connect(_on_request_failed)
 
 	_wire_faq_buttons()
+	_style_faq_buttons()
+
+## Runtime redesign pass: replace the RichTextLabel body with spec'd rule cards,
+## restyle panels/inputs/buttons to match the April 2026 design tokens.
+func _apply_redesign_styling() -> void:
+	# Outer panel — navy shell.
+	var panel := get_node_or_null("Panel")
+	if panel is PanelContainer:
+		UITheme.style_panel(panel)
+
+	# Left header — cyan accent.
+	var left_header := get_node_or_null("Panel/MainHBox/LeftSection/Header")
+	if left_header is Label:
+		left_header.text = "Game Rules"
+		left_header.add_theme_color_override("font_color", Color("#4A90D9"))
+
+	# Replace the existing RichTextLabel body with proper rule cards.
+	var body := get_node_or_null("Panel/MainHBox/LeftSection/Body")
+	if body is RichTextLabel:
+		var parent := body.get_parent()
+		var rules_list := VBoxContainer.new()
+		rules_list.name = "RulesList"
+		rules_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		rules_list.add_theme_constant_override("separation", 14)
+		for card in _build_rule_cards():
+			rules_list.add_child(card)
+		parent.add_child(rules_list)
+		parent.move_child(rules_list, body.get_index())
+		body.queue_free()
+
+	# Left "Got it!" button — bold green.
+	var got_it := get_node_or_null("Panel/MainHBox/LeftSection/CloseBtn")
+	if got_it is Button:
+		UITheme.style_button(got_it, UITheme.CLR_GREEN)
+
+	# Right-column chat header + welcome.
+	var chat_hdr := get_node_or_null("Panel/MainHBox/RightSection/ChatHeader")
+	if chat_hdr is Label:
+		chat_hdr.add_theme_color_override("font_color", Color("#53d8fb"))
+	var welcome := get_node_or_null("Panel/MainHBox/RightSection/ChatContainer/ChatScroll/ChatHistory/WelcomeLabel")
+	if welcome is Label:
+		welcome.add_theme_color_override("font_color", Color("#f0f4ff"))
+
+	# FAQ label + inline input/send button.
+	var faq_label := get_node_or_null("Panel/MainHBox/RightSection/FaqLabel")
+	if faq_label is Label:
+		faq_label.text = "QUICK QUESTIONS"
+		faq_label.add_theme_color_override("font_color", Color(0.94, 0.96, 1.0, 0.55))
+		faq_label.add_theme_font_size_override("font_size", 20)
+	_style_input()
+	_style_send_btn()
+
+func _build_rule_cards() -> Array:
+	var specs := [
+		["Weekly Income",     "You receive $150 every 7 in-game days automatically."],
+		["Budgets",           "Set weekly limits for Food, Vet & Travel. Budgets reset every 7 days."],
+		["Emergency Savings", "Start with $200. Auto-pays essential costs if wallet runs dry. Earns 5% daily interest."],
+		["Simulate Week",     "Press B or click the date in the HUD to skip up to 7 days. Stock supplies first."],
+		["Dog Needs",         "Check Hunger, Thirst, Energy & Health in the Needs panel. Below 30 = critical."],
+	]
+	var cards: Array = []
+	for s in specs:
+		cards.append(_make_rule_card(s[0], s[1]))
+	return cards
+
+func _make_rule_card(title: String, body_text: String) -> PanelContainer:
+	var card := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = Color("#162240")
+	sb.border_color = Color("#4A90D9", 0.35)
+	sb.set_border_width_all(2)
+	sb.border_width_left = 5
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(14)
+	card.add_theme_stylebox_override("panel", sb)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	var title_lbl := Label.new()
+	title_lbl.text = title
+	title_lbl.add_theme_color_override("font_color", Color("#53d8fb"))
+	title_lbl.add_theme_font_size_override("font_size", 30)
+	var pf := UITheme.get_pixel_font()
+	if pf: title_lbl.add_theme_font_override("font", pf)
+	vbox.add_child(title_lbl)
+
+	var body_lbl := Label.new()
+	body_lbl.text = body_text
+	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body_lbl.add_theme_color_override("font_color", Color("#f0f4ff"))
+	body_lbl.add_theme_font_size_override("font_size", 24)
+	vbox.add_child(body_lbl)
+
+	card.add_child(vbox)
+	return card
+
+func _style_faq_buttons() -> void:
+	if not faq_box: return
+	for child in faq_box.get_children():
+		if child is Button:
+			_style_faq_btn(child)
+
+func _style_faq_btn(btn: Button) -> void:
+	btn.add_theme_color_override("font_color", Color("#4A90D9"))
+	btn.add_theme_font_size_override("font_size", 22)
+	var pf := UITheme.get_pixel_font()
+	if pf: btn.add_theme_font_override("font", pf)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = Color("#4A90D9", 0.1)
+	sb.border_color = Color("#4A90D9", 0.3)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(20)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 8
+	sb.content_margin_bottom = 8
+	btn.add_theme_stylebox_override("normal", sb)
+	var sb_h: StyleBoxFlat = sb.duplicate()
+	sb_h.bg_color = Color("#4A90D9", 0.2)
+	btn.add_theme_stylebox_override("hover", sb_h)
+
+func _style_input() -> void:
+	if not question_input: return
+	question_input.add_theme_color_override("font_color", Color("#f0f4ff"))
+	question_input.add_theme_color_override("font_placeholder_color", Color(0.94, 0.96, 1.0, 0.3))
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = Color("#0d1b36")
+	sb.border_color = Color("#2d6aad")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(7)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	question_input.add_theme_stylebox_override("normal", sb)
+	var sb_f: StyleBoxFlat = sb.duplicate()
+	sb_f.border_color = Color("#53d8fb")
+	question_input.add_theme_stylebox_override("focus", sb_f)
+
+func _style_send_btn() -> void:
+	if not send_btn: return
+	send_btn.text = "Ask"
+	UITheme.style_button(send_btn, Color("#4A90D9"))
 
 func _wire_faq_buttons() -> void:
 	# Connect each FAQ button to _on_faq_pressed(key) so we can look up the
@@ -204,33 +348,53 @@ func _on_request_failed(error: String):
 	question_input.grab_focus()
 
 func add_chat_message(text: String, is_user: bool, is_error: bool = false):
-	var message_container = HBoxContainer.new()
-	message_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
-	var label = Label.new()
+	# Row that aligns the bubble to left (assistant/error) or right (user).
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.alignment = BoxContainer.ALIGNMENT_END if is_user else BoxContainer.ALIGNMENT_BEGIN
+
+	var bubble := PanelContainer.new()
+	bubble.custom_minimum_size.x = 240
+	bubble.size_flags_horizontal = (
+		Control.SIZE_SHRINK_END if is_user else Control.SIZE_SHRINK_BEGIN
+	)
+
+	var sb := StyleBoxFlat.new()
+	if is_user:
+		sb.bg_color     = Color("#4A90D9", 0.22)
+		sb.border_color = Color("#4A90D9", 0.5)
+	elif is_error:
+		sb.bg_color     = Color("#EF5350", 0.18)
+		sb.border_color = Color("#EF5350", 0.5)
+	else:
+		sb.bg_color     = Color("#162240")
+		sb.border_color = Color("#53d8fb", 0.3)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(12)
+	# Flatten one corner so the bubble "points" toward its speaker.
+	if is_user:
+		sb.corner_radius_bottom_right = 3
+	else:
+		sb.corner_radius_bottom_left = 3
+	sb.set_content_margin_all(12)
+	bubble.add_theme_stylebox_override("panel", sb)
+
+	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 33)
-	var font := UITheme.get_pixel_font()
-	if font:
-		label.add_theme_font_override("font", font)
-	
+	label.custom_minimum_size.x = 220
+	label.add_theme_font_size_override("font_size", 26)
 	if is_user:
-		# User message - right aligned, blue tint
-		label.text = "You: " + text
-		label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))
+		label.add_theme_color_override("font_color", Color("#E6F0FF"))
 	elif is_error:
-		# Error message - red
-		label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		label.add_theme_color_override("font_color", Color("#EF5350"))
 	else:
-		# Assistant message - green tint
-		label.text = "Assistant: " + text
-		label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.7))
-	
-	message_container.add_child(label)
-	chat_history.add_child(message_container)
-	
+		label.add_theme_color_override("font_color", Color("#f0f4ff"))
+	bubble.add_child(label)
+
+	row.add_child(bubble)
+	chat_history.add_child(row)
+
 	# Auto-scroll to bottom after a frame
 	await get_tree().process_frame
 	chat_scroll.scroll_vertical = chat_scroll.get_v_scroll_bar().max_value

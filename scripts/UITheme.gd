@@ -243,6 +243,95 @@ static func make_cat_pill(category: String, font_size: int = 20) -> PanelContain
 	return pill
 
 
+## Colored left-accent card (used in budget, shop, supplies rows).
+## Tighter padding than style_card — 12px vs 16px — and a bold 3px left stripe.
+static func style_accent_card(panel: PanelContainer, accent: Color) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = Color("#162240")
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.22)
+	sb.set_border_width_all(2)
+	sb.border_width_left = 3
+	sb.set_corner_radius_all(8)
+	sb.set_content_margin_all(12)
+	panel.add_theme_stylebox_override("panel", sb)
+
+
+## Small colored icon tile — 32×32 by default — used behind drawn icons / labels.
+static func make_icon_tile(color: Color, size: float = 32.0) -> PanelContainer:
+	var tile := PanelContainer.new()
+	tile.custom_minimum_size = Vector2(size, size)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(color.r, color.g, color.b, 0.18)
+	sb.set_border_width_all(0)
+	sb.set_corner_radius_all(6)
+	tile.add_theme_stylebox_override("panel", sb)
+	return tile
+
+
+## HUD action button (icon + label, colored tint bg + border).
+## Use for the bottom-HUD nav buttons and top-right HUD buttons.
+static func style_hud_btn(btn: Button, accent: Color) -> void:
+	var font := get_pixel_font()
+	if font and not _has_emoji(btn.text):
+		btn.add_theme_font_override("font", font)
+	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = Color(accent.r, accent.g, accent.b, 0.12)
+	sb.border_color = Color(accent.r, accent.g, accent.b, 0.28)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(10)
+	sb.set_content_margin_all(8)
+	btn.add_theme_stylebox_override("normal", sb)
+
+	var sb_h: StyleBoxFlat = sb.duplicate()
+	sb_h.bg_color = Color(accent.r, accent.g, accent.b, 0.22)
+	btn.add_theme_stylebox_override("hover", sb_h)
+
+	var sb_p: StyleBoxFlat = sb.duplicate()
+	sb_p.bg_color = Color(accent.r, accent.g, accent.b, 0.06)
+	btn.add_theme_stylebox_override("pressed", sb_p)
+
+
+## Toggle switch (replaces CheckBox in settings rows).
+## Returns a Button with toggle_mode — connect its `toggled` signal externally.
+static func make_toggle(initial_on: bool = false) -> Button:
+	var btn := Button.new()
+	btn.toggle_mode = true
+	btn.button_pressed = initial_on
+	btn.custom_minimum_size = Vector2(44, 24)
+	btn.focus_mode = Control.FOCUS_NONE
+	_apply_toggle_style(btn)
+	btn.toggled.connect(func(_v): _apply_toggle_style(btn))
+	return btn
+
+
+static func _apply_toggle_style(btn: Button) -> void:
+	var on := btn.button_pressed
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = Color("#4CAF50") if on else Color("#1e3a6e")
+	sb.border_color = Color("#4CAF50") if on else Color("#2d6aad")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(12)
+	btn.add_theme_stylebox_override("normal",  sb)
+	btn.add_theme_stylebox_override("hover",   sb)
+	btn.add_theme_stylebox_override("pressed", sb)
+	btn.text = ""
+	# The thumb is drawn as a child ColorRect; create it once.
+	if btn.get_child_count() == 0:
+		var thumb := ColorRect.new()
+		thumb.color = Color.WHITE
+		thumb.custom_minimum_size = Vector2(14, 14)
+		thumb.name = "Thumb"
+		thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(thumb)
+	var thumb_node := btn.get_node_or_null("Thumb")
+	if thumb_node:
+		thumb_node.position = Vector2(22.0 if on else 4.0, 3.0)
+
+
 # ═══════════════════════════════════════════════════════════════════
 #  INTERNALS
 # ═══════════════════════════════════════════════════════════════════

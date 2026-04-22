@@ -8,12 +8,16 @@ class_name UIColors
 
 # ── Background layers (darkest → lightest) ────────────────────────────────────
 const BG_DARK    := Color("#0d1b36")   # Darkest: input fields, bar tracks, graph bg
+const BG_DEEP    := Color("#0d1b36")   # Alias of BG_DARK (spec naming)
 const BG_NAVY    := Color("#1a2a4a")   # Main panel background
 const BG_PANEL   := Color("#1e3a6e")   # Card / row / header strip background
+const BG_CARD    := Color("#162240")   # Inner card background (accent cards, shop items)
 
 # ── Borders & accents ─────────────────────────────────────────────────────────
-const BORDER_BLUE := Color("#4A90D9")  # Sky-blue borders (matches main-menu checker)
-const ACCENT_CYAN := Color("#53d8fb")  # Highlights, cash values, counters
+const BORDER_BLUE   := Color("#4A90D9")  # Sky-blue borders (matches main-menu checker)
+const BORDER_SKY    := Color("#4A90D9")  # Alias of BORDER_BLUE (spec naming)
+const BORDER_SKYDIM := Color("#2d6aad")  # Dimmer sky border (tab bars, input fields)
+const ACCENT_CYAN   := Color("#53d8fb")  # Highlights, cash values, counters
 
 # ── Buttons ────────────────────────────────────────────────────────────────────
 const BTN_GREEN   := Color("#4CAF50")  # Primary action / income / affordable
@@ -32,6 +36,8 @@ const TEXT_DIM    := Color(1.0, 1.0, 1.0, 0.5)  # Disabled / locked text
 const CAT_FOOD    := Color("#FF8C00")  # Orange — Food & Water
 const CAT_VET     := Color("#EF5350")  # Red — Vet & Medicine
 const CAT_TRAVEL  := Color("#4A90D9")  # Blue — Travel & Transport
+const CAT_INCOME  := Color("#53d8fb")  # Cyan — Income
+const CAT_LOAN    := Color("#EF5350")  # Red — Loans / Debt
 
 # ── Stat bar fills (needs menu) ────────────────────────────────────────────────
 const BAR_HUNGER  := Color("#FF8C00")  # Warm orange

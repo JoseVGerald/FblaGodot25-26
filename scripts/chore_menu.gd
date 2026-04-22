@@ -18,23 +18,35 @@ var num2   : int
 var answer : int
 
 func _ready():
-	# Apply navy panel style
+	# Apply navy panel style via UITheme helper (spec rule)
 	var panel_node = get_node_or_null("Panel")
 	if panel_node:
-		var sb := StyleBoxFlat.new()
-		sb.bg_color     = CLR_NAVY
-		sb.border_color = CLR_SKY
-		sb.set_border_width_all(3)
-		sb.set_corner_radius_all(8)
-		sb.set_content_margin_all(20)
-		if panel_node is PanelContainer or panel_node is Panel:
-			panel_node.add_theme_stylebox_override("panel", sb)
-		panel_node.modulate.a = 1.0
+		UITheme.style_panel(panel_node)
 	UITheme.apply_overlay_theme(self)
+	_apply_redesign_styling()
 	$Panel/VBoxContainer/SubmitButton.pressed.connect(_on_submit)
 	$Panel/VBoxContainer/CloseButton.pressed.connect(queue_free)
 	get_tree().paused = true
 	generate_question()
+
+## Pixel-font headings, big green submit, red close, deeper answer input.
+func _apply_redesign_styling() -> void:
+	var title := get_node_or_null("Panel/VBoxContainer/Label")
+	if title is Label:
+		title.text = "MATH CHORES"
+		title.add_theme_color_override("font_color", UIColors.GOLD)
+		title.add_theme_font_size_override("font_size", 42)
+
+	if question_label:
+		question_label.add_theme_color_override("font_color", UIColors.TEXT_WHITE)
+		question_label.add_theme_font_size_override("font_size", 54)
+
+	var submit_btn := get_node_or_null("Panel/VBoxContainer/SubmitButton")
+	if submit_btn is Button:
+		UITheme.style_button(submit_btn, UITheme.CLR_GREEN)
+	var close_btn := get_node_or_null("Panel/VBoxContainer/CloseButton")
+	if close_btn is Button:
+		UITheme.style_button(close_btn, UITheme.CLR_RED)
 
 func _exit_tree():
 	get_tree().paused = false
@@ -53,12 +65,25 @@ func _on_submit():
 	if user_answer == answer:
 		var reward = int(15 * GameState.inflation_rate)
 		GameState.money += reward
-		result_label.text = "Correct! You earned $" + str(reward) + "!"
-		result_label.add_theme_color_override("font_color", CLR_GREEN)
+		_show_feedback(true, reward)
 		GameState.event_triggered.emit("Completed chores, earned $" + str(reward))
 		generate_question()
 	else:
+		_show_feedback(false, 0)
+
+## Show feedback strip — green for correct (shows $ amount), red for wrong.
+## Writes to result_label. If a FeedbackStrip panel exists (new layout),
+## restyle it with the matching warning variant; otherwise no-op.
+func _show_feedback(correct: bool, amount: int) -> void:
+	if correct:
+		result_label.text = "Correct! You earned $" + str(amount) + "!"
+		result_label.add_theme_color_override("font_color", CLR_GREEN)
+	else:
 		result_label.text = "Wrong! Try again."
 		result_label.add_theme_color_override("font_color", CLR_RED)
+	var strip := get_node_or_null("Panel/VBoxContainer/FeedbackStrip")
+	if strip is PanelContainer:
+		UITheme.style_warning_strip(strip, "green" if correct else "red")
+		strip.visible = true
 
 # Updated on 2026-04-19

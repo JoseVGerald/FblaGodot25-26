@@ -70,6 +70,14 @@ var is_dog_sleeping: bool = false # Freeze needs when dog sleeps
 var is_in_house: bool = false
 var is_dialogue_active: bool = false
 
+# Explicit flag set by the house-enter/exit teleport (E key). Prints on every
+# change so we can verify in the console that the trigger is actually firing.
+var Inside_house: bool = false:
+	set(value):
+		if value != Inside_house:
+			print("[Inside_house] ", Inside_house, " → ", value)
+		Inside_house = value
+
 # Signal emitted when a new day starts
 signal day_started(day_number: int)
 

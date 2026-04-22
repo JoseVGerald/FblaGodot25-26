@@ -9,20 +9,38 @@ const CLR_CYAN := Color("#53d8fb")
 
 func _ready():
 	visible = false
-	# Apply navy panel style
+	# Apply navy panel style via UITheme helper (spec rule)
 	var panel_node = get_node_or_null("Panel")
 	if panel_node:
-		var sb := StyleBoxFlat.new()
-		sb.bg_color     = CLR_NAVY
-		sb.border_color = CLR_SKY
-		sb.set_border_width_all(3)
-		sb.set_corner_radius_all(8)
-		sb.set_content_margin_all(20)
-		if panel_node is PanelContainer or panel_node is Panel:
-			panel_node.add_theme_stylebox_override("panel", sb)
-		panel_node.modulate.a = 1.0
+		UITheme.style_panel(panel_node)
 	UITheme.apply_overlay_theme(self)
 	_style_headers()
+	_apply_redesign_styling()
+
+## Colour-code the row buttons per the redesign spec.
+func _apply_redesign_styling() -> void:
+	var title := get_node_or_null("Panel/VBox/Header/Title")
+	if title is Label:
+		title.text = "Paused"
+		title.add_theme_color_override("font_color", UIColors.TEXT_WHITE)
+	var close_btn := get_node_or_null("Panel/VBox/Header/CloseBtn")
+	if close_btn is Button:
+		close_btn.text = "X"
+		close_btn.custom_minimum_size = Vector2(64, 64)
+		UITheme.style_button(close_btn, UITheme.CLR_RED)
+
+	var row_colors := {
+		"SettingsBtn":     UIColors.BORDER_BLUE,
+		"HelpBtn":         UIColors.ACCENT_CYAN,
+		"AchievementsBtn": UIColors.GOLD,
+		"ResumeBtn":       UIColors.BTN_GREEN,
+		"QuitBtn":         UIColors.BTN_RED,
+	}
+	for node_name in row_colors.keys():
+		var b := get_node_or_null("Panel/VBox/" + node_name)
+		if b is Button:
+			UITheme.style_hud_btn(b, row_colors[node_name])
+			b.add_theme_font_size_override("font_size", 36)
 
 ## Find labels that look like section headers and colour them cyan.
 func _style_headers() -> void:

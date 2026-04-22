@@ -6,6 +6,9 @@ extends Area2D
 @export var is_exit: bool = false
 @export var post_teleport_hint: String = ""
 @export var is_sleep: bool = false
+# Mark this area as the house entry/exit teleporter. When the player triggers
+# it, we flip GameState.Inside_house so the dog can react immediately.
+@export var is_house: bool = false
 
 var tutorial_hint_scene = preload("res://scenes/ui/tutorial_hint.tscn")
 var hint_instance: CanvasLayer = null
@@ -52,12 +55,19 @@ func trigger_sleep():
 func teleport():
 	var player = get_tree().get_first_node_in_group("player")
 	var dog = get_tree().get_first_node_in_group("dog")
-	
+
+	# Flip the house flag BEFORE teleporting so listeners (dog routine) see
+	# the change as soon as the player commits to entering/exiting.
+	if is_house:
+		GameState.Inside_house = not is_exit
+
 	if player:
 		if player is CharacterBody2D:
 			player.velocity = Vector2.ZERO
 		player.global_position = target_position
-	if dog:
+	# Leave the dog alone while it's sleeping — the player entering/exiting
+	# the house shouldn't drag the dog off its sleep spot.
+	if dog and not GameState.is_dog_sleeping:
 		if dog is CharacterBody2D:
 			dog.velocity = Vector2.ZERO
 		dog.global_position = target_position + Vector2(40, 0)

@@ -67,6 +67,7 @@ func _ready():
 	# Ensure HUD processes while paused so escape can unpause
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	UITheme.apply_overlay_theme(self)
+	_apply_redesign_styling()
 
 	supplies_btn.pressed.connect(_on_supplies_btn_pressed)
 	needs_btn.pressed.connect(_on_needs_btn_pressed)
@@ -130,8 +131,58 @@ func _process(_delta):
 
 ## Update the money and time labels every frame.
 func update_ui():
-	money_label.text = "$ " + str(GameState.money)
+	money_label.text = "$" + str(GameState.money)
 	_apply_time_label_text()
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  VISUAL REDESIGN (applied at _ready)
+# ══════════════════════════════════════════════════════════════════════════════
+
+## Restyle HUD nodes to match the April 2026 redesign spec.
+## Runs once at _ready — all existing node paths are preserved.
+func _apply_redesign_styling() -> void:
+	# Background bar — deep navy with a subtle sky top border.
+	var bg := get_node_or_null("Background")
+	if bg is Panel:
+		var bg_sb := StyleBoxFlat.new()
+		bg_sb.bg_color = UIColors.BG_NAVY
+		bg_sb.border_color = Color("#4A90D9", 0.35)
+		bg_sb.border_width_top = 2
+		bg.add_theme_stylebox_override("panel", bg_sb)
+		bg.self_modulate.a = 1.0
+
+	# Money label — pixel font, green, big.
+	money_label.text = "$" + str(GameState.money)
+	money_label.add_theme_color_override("font_color", UIColors.BTN_GREEN)
+	money_label.add_theme_font_size_override("font_size", 58)
+	var pf := UITheme.get_pixel_font()
+	if pf: money_label.add_theme_font_override("font", pf)
+
+	# Nav buttons — text-only labels per spec (no emoji) + tinted style.
+	supplies_btn.text = "Supplies"
+	needs_btn.text    = "Needs"
+	home_btn.text     = "Taxi"
+	for b in [supplies_btn, needs_btn, home_btn]:
+		b.add_theme_font_size_override("font_size", 26)
+		b.custom_minimum_size = Vector2(160, 80)
+	UITheme.style_hud_btn(supplies_btn, UIColors.BORDER_BLUE)
+	UITheme.style_hud_btn(needs_btn,    UIColors.BTN_GREEN)
+	UITheme.style_hud_btn(home_btn,     UIColors.WARN_ORANGE)
+
+	# Top-right HUD — Money and Pause both get a light-blue tinted box.
+	finance_btn.text = "Money"
+	pause_btn.text   = "Pause"
+	for b in [finance_btn, pause_btn]:
+		b.add_theme_font_size_override("font_size", 22)
+	# Two shades darker than BORDER_BLUE for money + pause tint.
+	var darker_blue := UIColors.BORDER_BLUE.darkened(0.30)
+	UITheme.style_hud_btn(finance_btn, darker_blue)
+	UITheme.style_hud_btn(pause_btn,   darker_blue)
+	# notif_btn handled separately by _setup_notif_button().
+
+	# Time label — centered with a faint chip look via BBCode already handled
+	# by _apply_time_label_text. Nothing more needed here.
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TIME LABEL — HOVER & CLICK (Week Simulation trigger)

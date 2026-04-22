@@ -22,6 +22,10 @@ var action_has_target: bool = false
 var action_callback: Callable
 var action_speed: float = 250.0
 
+# Auto-routine when player enters the house
+var was_in_house: bool = false
+var is_in_evening_routine: bool = false
+
 # Hard-coded destinations for the three dog actions (1/2/3 keys).
 const FOOD_TARGET: Vector2 = Vector2(450, -585)
 const WATER_TARGET: Vector2 = Vector2(410, -580)
@@ -123,11 +127,9 @@ func _update_emotion_bubble(delta: float) -> void:
 	emotion_label.visible = emotion_timer > 0.0 or is_hovered
 
 func _on_day_started(_day: int):
-	# Wake up from sleep
+	# Full-night rest — wake and restore needs to 100 (health stays as-is).
 	if current_state == DogState.SLEEPING:
-		current_state = DogState.FOLLOWING_PLAYER
-		GameState.is_dog_sleeping = false
-		_play_animation("idle")
+		_wake_up_dog(false)
 
 func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -145,6 +147,11 @@ func _input(event: InputEvent) -> void:
 			start_action(WATER_TARGET, DogState.GOING_TO_WATER, _on_water_complete)
 		elif event.keycode == KEY_3:
 			start_action(SLEEP_TARGET, DogState.GOING_TO_SLEEP, _on_sleep_complete)
+
+	# Wake the dog early by pressing 4 while inside the house.
+	if event is InputEventKey and event.pressed and event.keycode == KEY_4:
+		if GameState.Inside_house and current_state == DogState.SLEEPING:
+			_wake_up_dog(true)
 
 func start_action(target: Vector2, state: DogState, callback: Callable):
 	action_target = target
@@ -201,7 +208,52 @@ func _on_sleep_complete():
 	_play_animation("sleeping")
 	GameState.nap_count += 1
 	GameState.check_achievements()
+	is_in_evening_routine = false
 	print("Dog sleeping! Energy: ", energy)
+
+# Chain: food → water → sleep, started on house entry.
+func _start_evening_routine() -> void:
+	if is_in_evening_routine or current_state == DogState.SLEEPING:
+		return
+	is_in_evening_routine = true
+	start_action(FOOD_TARGET, DogState.GOING_TO_FOOD, _on_routine_food_done)
+
+func _on_routine_food_done() -> void:
+	_on_food_complete()
+	# Hold position during the dwell — otherwise FOLLOWING_PLAYER pulls the
+	# dog back to the player before it can finish its routine.
+	current_state = DogState.GOING_TO_FOOD
+	action_has_target = false
+	await get_tree().create_timer(1.0).timeout
+	if not is_in_evening_routine:
+		return
+	start_action(WATER_TARGET, DogState.GOING_TO_WATER, _on_routine_water_done)
+
+func _on_routine_water_done() -> void:
+	_on_water_complete()
+	current_state = DogState.GOING_TO_WATER
+	action_has_target = false
+	await get_tree().create_timer(1.0).timeout
+	if not is_in_evening_routine:
+		return
+	start_action(SLEEP_TARGET, DogState.GOING_TO_SLEEP, _on_sleep_complete)
+
+# Wake from sleep. `is_early` = woken via KEY_4 (add 40); otherwise full 100 restore.
+# Health is not touched here — it's governed by daily roll / medication.
+func _wake_up_dog(is_early: bool) -> void:
+	if current_state != DogState.SLEEPING:
+		return
+	if is_early:
+		hunger = min(100.0, hunger + 40.0)
+		thirst = min(100.0, thirst + 40.0)
+		energy = min(100.0, energy + 40.0)
+	else:
+		hunger = 100.0
+		thirst = 100.0
+		energy = 100.0
+	current_state = DogState.FOLLOWING_PLAYER
+	GameState.is_dog_sleeping = false
+	_play_animation("idle")
 
 func toggle_menu() -> void:
 	if needs_menu_instance:
@@ -212,6 +264,11 @@ func toggle_menu() -> void:
 
 func _physics_process(delta: float) -> void:
 	GameState.dog_health = health
+
+	# Kick off the food → water → sleep routine the moment the player enters.
+	if GameState.Inside_house and not was_in_house:
+		_start_evening_routine()
+	was_in_house = GameState.Inside_house
 
 	# On the Mend: track if health was critically low then recovered
 	if health < 30.0:
