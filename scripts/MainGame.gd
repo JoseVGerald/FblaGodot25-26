@@ -130,7 +130,7 @@ func setup_hud():
 		add_child(hud)
 		# Store reference for tutorial
 		hud_instance = hud
-		
+
 		# Connect to shop closed signal for home hint
 		if hud.shop_menu_instance:
 			hud.shop_menu_instance.shop_closed.connect(_on_shop_closed)
@@ -279,25 +279,16 @@ func spawn_dog():
 	)
 
 func _make_paths_visible():
-	# Look for Path2D nodes and create Line2D to make them visible
-	# We'll check children of current node and also look for 'path2d' nodes specifically
-	var paths = []
-	for child in get_children():
-		if child is Path2D:
-			paths.append(child)
-	
-	# Also check globally for common names if not found
-	if paths.is_empty():
-		var global_path = get_node_or_null("Path2D")
-		if global_path and global_path is Path2D:
-			paths.append(global_path)
-			
-	for path in paths:
-		var line = Line2D.new()
-		line.points = path.curve.get_baked_points()
-		line.width = 4.0
-		line.default_color = Color(1, 1, 0, 0.5) # Semi-transparent yellow
-		path.add_child(line)
-		print("[MainGame] Made path visible: ", path.name)
+	# Only show tutorial paths (VetPath, ShopPath) — hide dog action paths
+	var tutorial_paths = [original_path, shop_path]
+
+	for path in tutorial_paths:
+		if path and path is Path2D:
+			var line = Line2D.new()
+			line.points = path.curve.get_baked_points()
+			line.width = 4.0
+			line.default_color = Color(1, 1, 0, 0.5) # Semi-transparent yellow
+			path.add_child(line)
+			print("[MainGame] Made path visible: ", path.name)
 
 # Updated on 2026-04-19

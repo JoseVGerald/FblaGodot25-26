@@ -467,6 +467,12 @@ func _show_taxi_dialog(dest: String) -> void:
 	)
 
 	yes_btn.pressed.connect(func():
+		# If the player is hailing a taxi to the Vet straight from a
+		# notification warning, release any lingering tutorial movement block
+		# so they can walk around as soon as the fade completes.
+		if dest == "Vet":
+			GameState.tutorial_blocks_movement = false
+
 		# Cost and transaction log are handled inside taxi_menu.gd's _travel_to().
 		# We just need to trigger it correctly via the HUD's helper method.
 		var hud = get_tree().get_first_node_in_group("hud")

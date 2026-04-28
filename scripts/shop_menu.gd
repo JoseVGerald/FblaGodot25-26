@@ -76,6 +76,10 @@ func _apply_redesign_styling() -> void:
 
 
 func show_shop():
+	# Guard against re-entry — prevents double-counted store_visit_count when
+	# the dialogue's open_shop_requested fires twice (e.g. E pressed rapidly).
+	if visible:
+		return
 	GameState.store_visit_count += 1
 	GameState.check_achievements()
 	food_cart_count  = 0
@@ -93,6 +97,16 @@ func show_shop():
 	update_ui()
 	visible = true
 	get_tree().paused = true
+
+func hide_shop() -> void:
+	# Symmetric counterpart to show_shop() — used by bottom_hud's ESC handler
+	# and any other caller that needs to dismiss the shop without going
+	# through the close button's signal path.
+	if not visible:
+		return
+	visible = false
+	get_tree().paused = false
+	shop_closed.emit()
 
 func update_ui():
 	food_count_label.text  = str(food_cart_count)

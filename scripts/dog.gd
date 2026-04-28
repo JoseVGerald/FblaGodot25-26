@@ -136,7 +136,7 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		toggle_menu()
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_P:
+	if event.is_action_pressed("pet_menu"):
 		toggle_menu()
 	
 	# Dog action keys (only when following player)
@@ -343,6 +343,9 @@ func _process_action_path():
 			var cb = action_callback
 			action_callback = Callable()
 			cb.call()
+		# Open pet needs menu when path action finishes
+		if needs_menu_instance:
+			needs_menu_instance.show_menu(self)
 		return
 
 	var direction = (action_target - global_position).normalized()

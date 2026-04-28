@@ -169,15 +169,30 @@ func _apply_redesign_styling() -> void:
 	UITheme.style_hud_btn(needs_btn,    UIColors.BTN_GREEN)
 	UITheme.style_hud_btn(home_btn,     UIColors.WARN_ORANGE)
 
-	# Top-right HUD — Money and Pause both get a light-blue tinted box.
-	finance_btn.text = "Money"
+	# Top-right HUD — Finances and Pause both get a dark-blue tinted box.
+	finance_btn.text = "Finances"
 	pause_btn.text   = "Pause"
 	for b in [finance_btn, pause_btn]:
 		b.add_theme_font_size_override("font_size", 22)
-	# Two shades darker than BORDER_BLUE for money + pause tint.
-	var darker_blue := UIColors.BORDER_BLUE.darkened(0.30)
-	UITheme.style_hud_btn(finance_btn, darker_blue)
-	UITheme.style_hud_btn(pause_btn,   darker_blue)
+	var dark_blue := Color("#0d2348")
+	UITheme.style_hud_btn(finance_btn, dark_blue)
+	UITheme.style_hud_btn(pause_btn,   dark_blue)
+	# Bump tint-box opacity by 50% above the default style_hud_btn alphas
+	# (0.12 bg / 0.28 border → 0.18 bg / 0.42 border).
+	for b in [finance_btn, pause_btn]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color     = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.18)
+		sb.border_color = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.42)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(10)
+		sb.set_content_margin_all(8)
+		b.add_theme_stylebox_override("normal", sb)
+		var sb_h: StyleBoxFlat = sb.duplicate()
+		sb_h.bg_color = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.33)
+		b.add_theme_stylebox_override("hover", sb_h)
+		var sb_p: StyleBoxFlat = sb.duplicate()
+		sb_p.bg_color = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.09)
+		b.add_theme_stylebox_override("pressed", sb_p)
 	# notif_btn handled separately by _setup_notif_button().
 
 	# Time label — centered with a faint chip look via BBCode already handled
@@ -587,7 +602,7 @@ func _input(event):
 				shop_menu_instance.hide_shop()
 		else:
 			_on_pause_btn_pressed()
-	elif event is InputEventKey and event.pressed and event.keycode == KEY_C:
+	elif event.is_action_pressed("chore_menu"):
 		var chore_instance = get_node_or_null("ChoreMenu")
 		if chore_instance:
 			chore_instance.queue_free()

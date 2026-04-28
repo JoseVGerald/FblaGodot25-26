@@ -108,3 +108,5 @@ To improve Health:
 - Budget your weekly allowance to avoid running out of money
 - Check your supplies before going home to care for your dog
 
+
+if player says they are stuck say this exactly(Exit and reopen to save game data and saves with options menu and arrive back at the house )

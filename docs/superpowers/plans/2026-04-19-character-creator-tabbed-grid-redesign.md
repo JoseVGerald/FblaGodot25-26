@@ -28,7 +28,7 @@ Target (from design PNG):
 │                        └──────┘└──────┘└──────┘└──────┘               │
 │                                                                       │
 │─────────────────────────── Bottom Bar ───────────────────────────────│
-│ NAME: [___]   BACK  RANDOMIZE   □ BODY □ EYES …    CONTINUE          │
+│ NAME: [___]   BACK  RANDOMIZE                       CONTINUE          │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -810,145 +810,7 @@ Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
 
 ---
 
-### Task 5: Rework bottom bar (BACK + RANDOMIZE left, NAME center, CHECKBOXES + CONTINUE right)
-
-**Files:**
-
-- Modify: `scripts/CharacterCustomize.gd` — replace `_create_bottom_bar`.
-
-**Target layout (single row, full bar width):**
-
-```
-[BACK] [RANDOMIZE]         NAME: [________________]         □BODY □HAIR … [CONTINUE]
-←── left cluster ──→       ←── center cluster ──→          ←── right cluster ──→
-```
-
-- [ ] **Step 1: Replace `_create_bottom_bar` with a three-cluster layout**
-
-Find `func _create_bottom_bar() -> PanelContainer:` and replace the whole function body with:
-
-```gdscript
-func _create_bottom_bar() -> PanelContainer:
-    var bar := PanelContainer.new()
-    bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-    var sb := StyleBoxFlat.new()
-    sb.bg_color = Color(0.75, 0.75, 0.75)
-    sb.border_color = Color(0.55, 0.55, 0.55)
-    sb.border_width_top = 4
-    sb.content_margin_left = 30
-    sb.content_margin_right = 30
-    sb.content_margin_top = 16
-    sb.content_margin_bottom = 16
-    bar.add_theme_stylebox_override("panel", sb)
-
-    # Single-row HBox with 3 clusters: [left] [center expand] [right]
-    var row := HBoxContainer.new()
-    row.add_theme_constant_override("separation", 16)
-    row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    bar.add_child(row)
-
-    # ── LEFT CLUSTER: BACK + RANDOMIZE ──
-    var left_cluster := HBoxContainer.new()
-    left_cluster.add_theme_constant_override("separation", 12)
-    left_cluster.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-    row.add_child(left_cluster)
-
-    back_btn = _create_styled_button("BACK", Color(0.45, 0.48, 0.52))
-    back_btn.pressed.connect(_on_back_pressed)
-    left_cluster.add_child(back_btn)
-
-    randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
-    randomize_btn.pressed.connect(_on_randomize_pressed)
-    left_cluster.add_child(randomize_btn)
-
-    # ── CENTER CLUSTER: NAME label + input, horizontally centered ──
-    var center_wrap := CenterContainer.new()
-    center_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    row.add_child(center_wrap)
-
-    var name_box := HBoxContainer.new()
-    name_box.add_theme_constant_override("separation", 12)
-    center_wrap.add_child(name_box)
-
-    var name_label := Label.new()
-    name_label.text = "NAME:"
-    name_label.add_theme_font_size_override("font_size", 28)
-    name_label.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
-    if pixel_font:
-        name_label.add_theme_font_override("font", pixel_font)
-    name_box.add_child(name_label)
-
-    name_input = LineEdit.new()
-    name_input.custom_minimum_size = Vector2(340, 48)
-    name_input.placeholder_text = "Enter Name"
-    name_input.max_length = 25
-    name_input.add_theme_font_size_override("font_size", 24)
-    name_input.add_theme_color_override("font_color", Color.BLACK)
-    name_input.add_theme_color_override("font_placeholder_color", Color(0.45, 0.45, 0.45))
-    if pixel_font:
-        name_input.add_theme_font_override("font", pixel_font)
-    var input_sb := StyleBoxFlat.new()
-    input_sb.bg_color = Color.WHITE
-    input_sb.border_color = Color(0.4, 0.45, 0.5)
-    input_sb.set_border_width_all(3)
-    input_sb.set_corner_radius_all(4)
-    input_sb.content_margin_left = 12
-    input_sb.content_margin_right = 12
-    input_sb.content_margin_top = 6
-    input_sb.content_margin_bottom = 6
-    name_input.add_theme_stylebox_override("normal", input_sb)
-    var input_sb_focus: StyleBoxFlat = input_sb.duplicate()
-    input_sb_focus.border_color = Color(0.85, 0.80, 0.2)
-    input_sb_focus.border_width_bottom = 4
-    name_input.add_theme_stylebox_override("focus", input_sb_focus)
-    name_input.text_changed.connect(_on_name_changed)
-    name_box.add_child(name_input)
-
-    # ── RIGHT CLUSTER: visibility checkboxes + CONTINUE ──
-    var right_cluster := HBoxContainer.new()
-    right_cluster.add_theme_constant_override("separation", 10)
-    right_cluster.size_flags_horizontal = Control.SIZE_SHRINK_END
-    row.add_child(right_cluster)
-
-    for cat in CATEGORIES:
-        var check := CheckBox.new()
-        check.text = TAB_LABELS[cat]
-        check.button_pressed = true
-        check.add_theme_font_size_override("font_size", 18)
-        check.add_theme_color_override("font_color", Color(0.25, 0.25, 0.25))
-        if pixel_font:
-            check.add_theme_font_override("font", pixel_font)
-        check.toggled.connect(_on_visibility_toggled.bind(cat))
-        right_cluster.add_child(check)
-        vis_checks[cat] = check
-
-    continue_btn = _create_styled_button("CONTINUE", Color(0.30, 0.68, 0.38))
-    continue_btn.pressed.connect(_on_continue_pressed)
-    right_cluster.add_child(continue_btn)
-
-    return bar
-```
-
-- [ ] **Step 2: Verify**
-
-Run the game → open character creator. Expected: bar has BACK and RANDOMIZE at the left edge, the `NAME: [input]` group horizontally centered, and checkboxes + green CONTINUE flush-right.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add scripts/CharacterCustomize.gd
-git commit -m "feat(char-creator): three-cluster bottom bar layout
-
-BACK and RANDOMIZE left-aligned, NAME input centered, visibility
-checkboxes and CONTINUE right-aligned.
-
-Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
-```
-
----
-
-### Task 6: Visual verification & polish pass
+### Task 5: Visual verification & polish pass
 
 **Files:** no code changes unless issues surface.
 
@@ -968,7 +830,7 @@ Expected visual checklist — compare against the design PNG:
 - [ ] Below preview: 4 small direction thumbnails, current direction outlined in yellow
 - [ ] Below that: `<  FRONT  >` carousel; arrows cycle through LEFT→FRONT→BACK→RIGHT
 - [ ] Clicking a tile updates ALL five of main preview / 4 minis / tile styles
-- [ ] Bottom bar clusters: BACK + RANDOMIZE on the far left, NAME input horizontally centered, 5 visibility checkboxes + green CONTINUE on the far right
+- [ ] Bottom bar unchanged: NAME input, BACK, RANDOMIZE (orange), 5 checkboxes, CONTINUE
 - [ ] Randomize button shuffles all 5 layers and refreshes everything
 - [ ] Continue button saves and transitions to PetSelect
 - [ ] Back button transitions to IntroCutscene

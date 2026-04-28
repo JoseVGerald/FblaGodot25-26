@@ -147,12 +147,12 @@ size = Vector2(99.3125, 60)
 script = ExtResource("1_maingame")
 
 [node name="Background" type="ColorRect" parent="." unique_id=230480670]
-offset_left = -2193.0
-offset_top = -858.0
-offset_right = 3585.0
-offset_bottom = 3497.0
+offset_left = -7182.0
+offset_top = -3797.0
+offset_right = 7313.0
+offset_bottom = 5869.0
 mouse_filter = 2
-color = Color(0.7019608, 0.84705883, 0.99607843, 1)
+color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
 
 [node name="ManualCollisions" type="Node" parent="." unique_id=850588244]
 
@@ -652,7 +652,7 @@ visible = false
 position = Vector2(-214, 1828.5)
 
 [node name="world" parent="." unique_id=1163188942 instance=ExtResource("2_utfc0")]
-position = Vector2(-721, -320)
+position = Vector2(-733, -298)
 
 [node name="Shop" parent="." unique_id=906636356 instance=ExtResource("3_rl3lx")]
 position = Vector2(-1806, 1048)

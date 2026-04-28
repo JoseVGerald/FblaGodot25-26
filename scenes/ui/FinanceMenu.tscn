@@ -211,7 +211,7 @@ metadata/_tab_index = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.6)
 theme_override_font_sizes/font_size = 39
-text = "Set your weekly spending limits. Budgets reset every 7 days."
+text = "Players can set spending limits across categories, helping them plan their expenses."
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -439,6 +439,14 @@ layout_mode = 2
 theme_override_constants/separation = 27
 metadata/_tab_index = 2
 
+[node name="Info" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.6)
+theme_override_font_sizes/font_size = 39
+text = "Weekly report, which summarizes income, total spending, and category breakdowns."
+horizontal_alignment = 1
+autowrap_mode = 2
+
 [node name="WeekStrip" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/WeeklyReport"]
 layout_mode = 2
 
@@ -565,6 +573,14 @@ visible = false
 layout_mode = 2
 theme_override_constants/separation = 24
 metadata/_tab_index = 3
+
+[node name="Info" type="Label" parent="Panel/VBox/Content/TabContainer/Loans"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.6)
+theme_override_font_sizes/font_size = 39
+text = "Loan system allows players to borrow money, but loans accumulate interest over time and come with penalties for overuse."
+horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="CreditCard" type="PanelContainer" parent="Panel/VBox/Content/TabContainer/Loans"]
 layout_mode = 2
@@ -693,13 +709,6 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Info" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.6)
-theme_override_font_sizes/font_size = 33
-text = "Borrow up to $500 total. Unpaid loans compound every 7 days — interest is withdrawn from your next weekly allowance."
-autowrap_mode = 2
-
 [node name="ActionRow" type="HBoxContainer" parent="Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 18
@@ -740,6 +749,14 @@ visible = false
 layout_mode = 2
 theme_override_constants/separation = 15
 metadata/_tab_index = 4
+
+[node name="Info" type="Label" parent="Panel/VBox/Content/TabContainer/AllTimeHistory"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.6)
+theme_override_font_sizes/font_size = 39
+text = "All-time history provides a full record of spending, which can be viewed in both table and graph form, including weekly and daily breakdowns."
+horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="CashHeader" type="Label" parent="Panel/VBox/Content/TabContainer/AllTimeHistory"]
 layout_mode = 2

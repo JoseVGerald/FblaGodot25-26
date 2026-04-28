@@ -7,6 +7,9 @@ var player_in_area: bool = false
 var dialogue_resource = load("res://dialogues/vet.dialogue")
 var has_talked_to_vet: bool = false
 
+# Tracks the active balloon so double-pressing E won't spawn a duplicate.
+var _active_balloon: CanvasLayer = null
+
 func _ready():
 	monitoring = true
 	body_entered.connect(_on_body_entered)
@@ -40,16 +43,21 @@ func _input(event: InputEvent):
 		start_dialogue()
 
 func start_dialogue():
+	# Bail if a balloon is already up — prevents duplicate dialogues when
+	# the player double-presses E.
+	if is_instance_valid(_active_balloon):
+		return
 	if DialogueManager:
 		has_talked_to_vet = true
 		if hint_instance:
 			hint_instance.hide_hint()
-		
+
 		# Using custom balloon for larger text
 		var balloon_scene = load("res://dialogues/balloon.tscn")
-		var balloon = balloon_scene.instantiate()
-		get_tree().root.add_child(balloon)
-		balloon.start(dialogue_resource, "start")
+		_active_balloon = balloon_scene.instantiate()
+		_active_balloon.tree_exited.connect(func(): _active_balloon = null)
+		get_tree().root.add_child(_active_balloon)
+		_active_balloon.start(dialogue_resource, "start")
 	else:
 		print("[VetNPC] DialogueManager not found!")
 

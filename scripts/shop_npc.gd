@@ -6,6 +6,9 @@ var hint_instance: CanvasLayer = null
 var player_in_area: bool = false
 var dialogue_resource = load("res://dialogues/shop.dialogue")
 
+# Tracks the active balloon so double-pressing E won't spawn a duplicate.
+var _active_balloon: CanvasLayer = null
+
 func _ready():
 	monitoring = true
 	body_entered.connect(_on_body_entered)
@@ -31,12 +34,22 @@ func _input(event: InputEvent):
 		start_dialogue()
 
 func start_dialogue():
+	# Bail if a balloon is already up — prevents duplicate dialogues when
+	# the player double-presses E.
+	if is_instance_valid(_active_balloon):
+		return
+	# Also bail if the shop menu is already open so E-spam after confirming
+	# "I want to buy something" can't re-open the shop on top of itself.
+	var shop_menu = get_tree().root.find_child("ShopMenu", true, false)
+	if shop_menu and shop_menu.visible:
+		return
 	if DialogueManager:
 		# Using custom balloon for larger text
 		var balloon_scene = load("res://dialogues/balloon.tscn")
-		var balloon = balloon_scene.instantiate()
-		get_tree().root.add_child(balloon)
-		balloon.start(dialogue_resource, "start")
+		_active_balloon = balloon_scene.instantiate()
+		_active_balloon.tree_exited.connect(func(): _active_balloon = null)
+		get_tree().root.add_child(_active_balloon)
+		_active_balloon.start(dialogue_resource, "start")
 	else:
 		# Fallback if DialogueManager is not working/installed
 		open_shop()

@@ -29,9 +29,41 @@ extends Control
 
 var _status_label: Label = null
 var _status_tween: Tween = null
+var _preset_buttons: Dictionary = {}
+var _active_preset: String = "medium"
+var _ignore_text_changes: bool = false
+
+const PRESETS := {
+	"easy": {
+		"starting_cash": 300, "starting_savings": 400, "weekly_allowance": 250,
+		"food": 10, "water": 5, "medicine": 20, "vet": 25, "taxi": 5, "ball": 5,
+		"food_budget": 100, "vet_budget": 100, "travel_budget": 100,
+		"interest": 10, "penalty": 5, "loan_rate": 5, "max_loan": 1000,
+	},
+	"medium": {
+		"starting_cash": 150, "starting_savings": 200, "weekly_allowance": 150,
+		"food": 20, "water": 10, "medicine": 40, "vet": 50, "taxi": 10, "ball": 2,
+		"food_budget": 50, "vet_budget": 50, "travel_budget": 50,
+		"interest": 5, "penalty": 15, "loan_rate": 10, "max_loan": 500,
+	},
+	"hard": {
+		"starting_cash": 75, "starting_savings": 100, "weekly_allowance": 75,
+		"food": 35, "water": 15, "medicine": 60, "vet": 80, "taxi": 20, "ball": 1,
+		"food_budget": 30, "vet_budget": 30, "travel_budget": 30,
+		"interest": 2, "penalty": 25, "loan_rate": 20, "max_loan": 250,
+	},
+}
+
+const PRESET_COLORS := {
+	"easy":   Color(0.35, 0.78, 0.35),
+	"medium": Color(0.53, 0.85, 0.98),
+	"hard":   Color(0.95, 0.4, 0.4),
+}
 
 func _ready() -> void:
 	UITheme.apply_theme(self)
+
+	_build_preset_selector()
 
 	# Starting values
 	starting_cash_input.text    = str(GameState.starting_money)
@@ -57,6 +89,8 @@ func _ready() -> void:
 	loan_rate_input.text = str(int(round(GameState.loan_interest_rate * 100.0)))
 	max_loan_input.text  = str(GameState.max_loan_amount)
 
+	_detect_initial_preset()
+
 	continue_button.pressed.connect(_on_continue_pressed)
 	back_button.pressed.connect(_on_back_pressed)
 
@@ -64,6 +98,140 @@ func _ready() -> void:
 	_setup_status_label()
 
 	starting_cash_input.grab_focus()
+
+func _build_preset_selector() -> void:
+	var container := VBoxContainer.new()
+	container.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
+	container.offset_left = -825
+	container.offset_right = -595
+	container.offset_top = 310
+	container.offset_bottom = -245
+	container.add_theme_constant_override("separation", 14)
+
+	var label := Label.new()
+	label.text = "Difficulty"
+	label.add_theme_font_size_override("font_size", 66)
+	var font := UITheme.get_pixel_font()
+	if font: label.add_theme_font_override("font", font)
+	label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	container.add_child(label)
+
+	for key in ["easy", "medium", "hard"]:
+		var btn := Button.new()
+		btn.text = key.capitalize()
+		btn.custom_minimum_size = Vector2(220, 80)
+		btn.add_theme_font_size_override("font_size", 44)
+		if font: btn.add_theme_font_override("font", font)
+		btn.pressed.connect(_on_preset_selected.bind(key))
+		container.add_child(btn)
+		_preset_buttons[key] = btn
+
+	add_child(container)
+	_update_preset_button_styles()
+
+func _on_preset_selected(key: String) -> void:
+	_active_preset = key
+	var p: Dictionary = PRESETS[key]
+	_ignore_text_changes = true
+
+	starting_cash_input.text    = str(p["starting_cash"])
+	starting_savings_input.text = str(p["starting_savings"])
+	weekly_allowance_input.text = str(p["weekly_allowance"])
+
+	food_input.text     = str(p["food"])
+	water_input.text    = str(p["water"])
+	medicine_input.text = str(p["medicine"])
+	vet_input.text      = str(p["vet"])
+	taxi_input.text     = str(p["taxi"])
+	ball_input.text     = str(p["ball"])
+
+	food_budget_input.text   = str(p["food_budget"])
+	vet_budget_input.text    = str(p["vet_budget"])
+	travel_budget_input.text = str(p["travel_budget"])
+
+	interest_input.text  = str(p["interest"])
+	penalty_input.text   = str(p["penalty"])
+	loan_rate_input.text = str(p["loan_rate"])
+	max_loan_input.text  = str(p["max_loan"])
+
+	_ignore_text_changes = false
+	_update_preset_button_styles()
+	_show_status(key.capitalize() + " preset applied")
+
+func _detect_initial_preset() -> void:
+	for key in PRESETS:
+		if _current_values_match(key):
+			_active_preset = key
+			_update_preset_button_styles()
+			return
+	_active_preset = "custom"
+	_update_preset_button_styles()
+
+func _current_values_match(key: String) -> bool:
+	var p: Dictionary = PRESETS[key]
+	return (
+		starting_cash_input.text == str(p["starting_cash"]) and
+		starting_savings_input.text == str(p["starting_savings"]) and
+		weekly_allowance_input.text == str(p["weekly_allowance"]) and
+		food_input.text == str(p["food"]) and
+		water_input.text == str(p["water"]) and
+		medicine_input.text == str(p["medicine"]) and
+		vet_input.text == str(p["vet"]) and
+		taxi_input.text == str(p["taxi"]) and
+		ball_input.text == str(p["ball"]) and
+		food_budget_input.text == str(p["food_budget"]) and
+		vet_budget_input.text == str(p["vet_budget"]) and
+		travel_budget_input.text == str(p["travel_budget"]) and
+		interest_input.text == str(p["interest"]) and
+		penalty_input.text == str(p["penalty"]) and
+		loan_rate_input.text == str(p["loan_rate"]) and
+		max_loan_input.text == str(p["max_loan"])
+	)
+
+func _update_preset_button_styles() -> void:
+	for key in _preset_buttons:
+		var btn: Button = _preset_buttons[key]
+		var is_active: bool = (key == _active_preset)
+		var color: Color = PRESET_COLORS[key]
+		var sb := StyleBoxFlat.new()
+		sb.set_corner_radius_all(12)
+		sb.content_margin_left = 16
+		sb.content_margin_right = 16
+		sb.content_margin_top = 12
+		sb.content_margin_bottom = 12
+		if is_active:
+			sb.bg_color = color
+			btn.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
+		else:
+			sb.bg_color = Color(0.2, 0.22, 0.2)
+			sb.border_width_bottom = 2
+			sb.border_width_top = 2
+			sb.border_width_left = 2
+			sb.border_width_right = 2
+			sb.border_color = color.darkened(0.3)
+			btn.add_theme_color_override("font_color", color.darkened(0.1))
+		btn.add_theme_stylebox_override("normal", sb)
+		var hover_sb := sb.duplicate()
+		if is_active:
+			hover_sb.bg_color = color.lightened(0.1)
+		else:
+			hover_sb.bg_color = Color(0.28, 0.3, 0.28)
+		btn.add_theme_stylebox_override("hover", hover_sb)
+		btn.add_theme_stylebox_override("pressed", sb)
+		btn.add_theme_stylebox_override("focus", sb)
+
+func _check_preset_after_edit() -> void:
+	if _ignore_text_changes:
+		return
+	for key in PRESETS:
+		if _current_values_match(key):
+			_active_preset = key
+			_update_preset_button_styles()
+			return
+	if _active_preset != "custom":
+		_active_preset = "custom"
+		_update_preset_button_styles()
 
 func _all_money_inputs() -> Array:
 	return [starting_cash_input, starting_savings_input, weekly_allowance_input,
@@ -78,11 +246,13 @@ func _wire_numeric_validation() -> void:
 
 func _on_money_text_changed(new_text: String, inp: LineEdit) -> void:
 	if new_text.strip_edges() == "":
+		_check_preset_after_edit()
 		return
 	if not _is_valid_money(new_text):
 		inp.text = ""
 		inp.caret_column = 0
 		_show_status("Only numbers and decimals allowed")
+	_check_preset_after_edit()
 
 func _is_valid_money(s: String) -> bool:
 	var t := s.strip_edges().lstrip("$").rstrip("%").strip_edges()

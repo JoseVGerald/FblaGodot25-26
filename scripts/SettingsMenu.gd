@@ -163,9 +163,6 @@ func _build_expanded_layout() -> void:
 	if not (vbox is VBoxContainer):
 		return
 
-	# Re-order existing children so insertions land in the right spot.
-	var close_idx := close_btn.get_index()
-
 	# AUDIO section continues with SFX + Mute rows.
 	var audio_section := _make_section_label("AUDIO")
 	vbox.add_child(audio_section)
@@ -216,9 +213,27 @@ func _build_expanded_layout() -> void:
 	)
 	vbox.add_child(fs_row.get_parent())
 
+	# CONTROLS section — opens the Keybinds overlay.
+	vbox.add_child(_make_section_label("CONTROLS"))
+	vbox.add_child(_make_keybinds_button())
+
 	# Make sure CloseBtn stays at the bottom of the VBox.
 	vbox.move_child(close_btn, vbox.get_child_count() - 1)
-	_ = close_idx  # (unused — silence warning)
+
+func _make_keybinds_button() -> Button:
+	var btn := Button.new()
+	btn.text = "Keybinds"
+	btn.custom_minimum_size = Vector2(0, 60)
+	btn.add_theme_font_size_override("font_size", 28)
+	var pf := UITheme.get_pixel_font()
+	if pf: btn.add_theme_font_override("font", pf)
+	UITheme.style_button(btn, CLR_BORDER_SKY)
+	btn.pressed.connect(_on_keybinds_pressed)
+	return btn
+
+func _on_keybinds_pressed() -> void:
+	var keybinds_menu = load("res://scenes/ui/KeybindsMenu.tscn").instantiate()
+	get_tree().root.add_child(keybinds_menu)
 
 ## Build a section divider label.
 func _make_section_label(text: String) -> Label:

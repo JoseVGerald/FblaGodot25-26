@@ -187,6 +187,8 @@ signal open_shop_requested
 
 func _ready():
 	apply_volume()
+	# Apply any user-saved keybinds on top of the project.godot defaults.
+	load("res://scripts/KeybindsMenu.gd").load_saved_keybinds()
 	# Defer so the DialogueManager autoload (registered later) is guaranteed
 	# to be in the tree before we connect to its signals.
 	_connect_dialogue_tracking.call_deferred()
