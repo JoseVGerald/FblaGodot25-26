@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=4 uid="uid://btsitfcs250na"]
+
+[ext_resource type="TileSet" uid="uid://bha34kyteah5p" path="res://scenes/maps/map (3) (1)/Map_MAIN_TILESET.tres" id="1_65owa"]
+
+[node name="building_stop" type="StaticBody2D"]
+
+[node name="TileMap" type="TileMap" parent="."]
+position = Vector2(-0.5, 0)
+tile_set = ExtResource("1_65owa")
+collision_animatable = false
+collision_visibility_mode = 1
+format = 2
+layer_0/tile_data = PackedInt32Array(3866687, 5111808, 387, 3932223, 5111808, 388, 3997759, 5111808, 389)
+
+[node name="Visual" type="TileMapLayer" parent="TileMap"]
+use_parent_material = true
+tile_map_data = PackedByteArray("AAD+//7/AACgAKMAAAD+////AACgAKQAAAD+/wAAAACgAKUAAAD///7/AAChAKMAAAD/////AAChAKQAAAD//wAAAAChAKUAAAD//wEAAAChAKYAAAAAAP7/AACiAKMAAAAAAP//AACiAKQAAAAAAAAAAACiAKUAAAD+/wEAAACgAKYAAAD+/wIAAACgAKcAAAD//wIAAAChAKcAAAAAAAEAAACiAKYAAAAAAAIAAACiAKcAAAABAP7/AACjAKMAAAABAP//AACjAKQAAAABAAAAAACjAKUAAAABAAEAAACjAKYAAAABAAIAAACjAKcAAAD5/wIAAACnAKQAAAD6/wEAAACoAKMAAAD6/wIAAACoAKQAAAD7/wEAAACpAKMAAAD7/wIAAACpAKQAAAD8/wEAAACqAKMAAAD8/wIAAACqAKQAAAD9/wEAAACrAKMAAAD9/wIAAACrAKQAAAD1/wIAAACgAKgAAAD1/wMAAACgAKkAAAD2/wIAAAChAKgAAAD2/wMAAAChAKkAAAD3/wMAAACiAKkAAAD4/wMAAACjAKkAAAD5/wMAAACkAKkAAAA=")
+tile_set = ExtResource("1_65owa")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-33, -1, 32, -1, 30, 47, -31, 46)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-107, 35, -37, 36, -37, 47, -53, 47, -53, 39, -106, 38)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-172, 52, -172, 63, -155, 63, -155, 58, -136, 58, -131, 61, -123, 58, -101, 58, -101, 56, -155, 56, -155, 52)

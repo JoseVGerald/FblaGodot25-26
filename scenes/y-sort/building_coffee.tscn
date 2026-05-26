@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=4 uid="uid://cq1a64b5y4fwe"]
+
+[ext_resource type="TileSet" uid="uid://bha34kyteah5p" path="res://scenes/maps/map (3) (1)/Map_MAIN_TILESET.tres" id="1_b3a3f"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vsf3p"]
+radius = 33.06055
+
+[node name="Building_Coffee" type="StaticBody2D"]
+
+[node name="TileMap" type="TileMap" parent="."]
+position = Vector2(-0.5, 0)
+tile_set = ExtResource("1_b3a3f")
+collision_animatable = false
+collision_visibility_mode = 1
+format = 2
+
+[node name="Visual" type="TileMapLayer" parent="TileMap"]
+use_parent_material = true
+tile_map_data = PackedByteArray("AAD+////AACMAHkBAAD9////AACLAHkBAAD9//z/AACLAHYBAAD9//3/AACLAHcBAAD9//7/AACLAHgBAAD9/wAAAACLAHoBAAD9/wEAAACLAHsBAAD+//v/AACMAHUBAAD+//z/AACMAHYBAAD+//3/AACMAHcBAAD+//7/AACMAHgBAAD+/wAAAACMAHoBAAD+/wEAAACMAHsBAAD+/wIAAACMAHwBAAD+/wMAAACMAH0BAAD///v/AACNAHUBAAD///z/AACNAHYBAAD///3/AACNAHcBAAD///7/AACNAHgBAAD/////AACNAHkBAAD//wAAAACNAHoBAAD//wEAAACNAHsBAAD//wIAAACNAHwBAAD//wMAAACNAH0BAAAAAPv/AACOAHUBAAAAAPz/AACOAHYBAAAAAP3/AACOAHcBAAAAAP7/AACOAHgBAAAAAP//AACOAHkBAAAAAAAAAACOAHoBAAAAAAEAAACOAHsBAAAAAAIAAACOAHwBAAAAAAMAAACOAH0BAAABAPv/AACPAHUBAAABAPz/AACPAHYBAAABAP3/AACPAHcBAAABAP7/AACPAHgBAAABAP//AACPAHkBAAABAAAAAACPAHoBAAABAAEAAACPAHsBAAABAAIAAACPAHwBAAABAAMAAACPAH0BAAACAPz/AACQAHYBAAACAP3/AACQAHcBAAACAP7/AACQAHgBAAACAP//AACQAHkBAAACAAAAAACQAHoBAAACAAEAAACQAHsBAAACAAIAAACQAHwBAAACAAMAAACQAH0BAAA=")
+tile_set = ExtResource("1_b3a3f")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 30)
+shape = SubResource("CircleShape2D_vsf3p")

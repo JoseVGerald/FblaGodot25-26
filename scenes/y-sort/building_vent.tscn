@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=4 uid="uid://dnsn4m8bud1jp"]
+
+[ext_resource type="TileSet" uid="uid://bha34kyteah5p" path="res://scenes/maps/map (3) (1)/Map_MAIN_TILESET.tres" id="1_edlh0"]
+
+[node name="building_vent" type="StaticBody2D"]
+
+[node name="TileMap" type="TileMap" parent="."]
+position = Vector2(-0.5, 0)
+tile_set = ExtResource("1_edlh0")
+collision_animatable = false
+collision_visibility_mode = 1
+format = 2
+layer_0/tile_data = PackedInt32Array(3866687, 5111808, 387, 3932223, 5111808, 388, 3997759, 5111808, 389)
+
+[node name="Visual" type="TileMapLayer" parent="TileMap"]
+use_parent_material = true
+tile_map_data = PackedByteArray("AAD+//3/AACfAF8BAAD+//7/AACfAGABAAD+////AACfAGEBAAD+/wAAAACfAGIBAAD///3/AACgAF8BAAD///7/AACgAGABAAD/////AACgAGEBAAD//wAAAACgAGIBAAD//wEAAACgAGMBAAAAAP3/AAChAF8BAAAAAP7/AAChAGABAAAAAP//AAChAGEBAAAAAAAAAAChAGIBAAA=")
+tile_set = ExtResource("1_edlh0")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-27, -13, 5, -13, 4, 15, -4, 15, -4, 24, -11, 24, -11, 15, -25, 15)

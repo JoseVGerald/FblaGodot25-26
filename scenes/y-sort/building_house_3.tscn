@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=4 uid="uid://c427fsb2vyjo8"]
+
+[ext_resource type="TileSet" uid="uid://bha34kyteah5p" path="res://scenes/maps/map (3) (1)/Map_MAIN_TILESET.tres" id="1_exjxp"]
+
+[node name="building_house3" type="StaticBody2D"]
+
+[node name="TileMap" type="TileMap" parent="."]
+position = Vector2(-0.5, 0)
+tile_set = ExtResource("1_exjxp")
+collision_animatable = false
+collision_visibility_mode = 1
+format = 2
+
+[node name="Visual" type="TileMapLayer" parent="TileMap"]
+use_parent_material = true
+tile_map_data = PackedByteArray("AAD+//3/AABFAAAAAAD+//7/AABFAAEAAAD+////AABFAAIAAAD+/wAAAABFAAMAAAD+/wEAAABFAAQAAAD///3/AABGAAAAAAD///7/AABGAAEAAAD/////AABGAAIAAAD//wAAAABGAAMAAAD//wEAAABGAAQAAAAAAP3/AABHAAAAAAAAAP7/AABHAAEAAAAAAP//AABHAAIAAAAAAAAAAABHAAMAAAAAAAEAAABHAAQAAAABAP3/AABIAAAAAAABAP7/AABIAAEAAAABAP//AABIAAIAAAABAAAAAABIAAMAAAABAAEAAABIAAQAAAA=")
+tile_set = ExtResource("1_exjxp")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+position = Vector2(-62, -1025)
+polygon = PackedVector2Array(32, 1007, 92, 1007, 92, 1055, 75, 1055, 32, 1054)
