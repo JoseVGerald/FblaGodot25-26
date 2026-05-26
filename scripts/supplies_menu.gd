@@ -15,6 +15,8 @@ func _ready():
 	panel.hide()
 	_apply_redesign_styling()
 	$PanelContainer/VBoxContainer/TitleHBox/CloseButton.pressed.connect(func():
+		if GameState.is_day_one and not GameState.is_tutorial_complete:
+			return
 		panel.hide()
 	)
 
@@ -61,7 +63,10 @@ func _process(_delta):
 		update_ui()
 	
 	if Input.is_action_just_pressed("ui_cancel") and panel.visible:
-		hide_menu()
+		if GameState.is_day_one and not GameState.is_tutorial_complete:
+			pass
+		else:
+			hide_menu()
 
 func update_ui():
 	# Display supplies from GameState

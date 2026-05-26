@@ -16,9 +16,16 @@ var Day1Tutorial = preload("res://scripts/day1_tutorial.gd")
 @onready var original_path = $VetPath
 
 func _ready():
+	if GameState.is_day_one and not GameState.is_tutorial_complete:
+		if GameState.selected_pathway in ["kid", "teenager"]:
+			player_spawn_pos = Vector2(435, -640)
+			dog_spawn_pos = Vector2(395, -640)
+			GameState.Inside_house = true
+			GameState.is_in_house = true
 	spawn_player()
 	spawn_dog()
 	setup_hud()
+	spawn_mother_npc()
 	# Dressed to the Nines: all 5 layers are non-default
 	if GameState.uses_component_system:
 		var comps := GameState.get_character_components()
@@ -291,4 +298,100 @@ func _make_paths_visible():
 			path.add_child(line)
 			print("[MainGame] Made path visible: ", path.name)
 
-# Updated on 2026-04-19
+func spawn_mother_npc():
+	# Only spawn for Kid and Teenager pathways
+	if GameState.selected_pathway not in ["kid", "teenager"]:
+		return
+	
+	var mother: CharacterBody2D = null
+	
+	if GameState.uses_component_system:
+		mother = CharacterBody2D.new()
+		mother.name = "MotherNPC"
+		mother.global_position = Vector2(565, -640)
+		mother.scale = Vector2(0.75, 0.75)
+		mother.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+		mother.input_pickable = true
+		
+		var components := GameState.get_character_components()
+		var body_opt = components.get("body", 1)
+		var eyes_opt = components.get("eyes", 1)
+		
+		# Dynamic customization matching the player's body and eyes, with mom outfit/hair/accessories
+		var mom_layers = [
+			{"category": "body", "option": body_opt},
+			{"category": "eyes", "option": eyes_opt},
+			{"category": "outfit", "option": 54},
+			{"category": "hairstyle", "option": 23},
+			{"category": "accessory", "option": 8}
+		]
+		
+		for layer in mom_layers:
+			var sf = GameState.get_component_sprite_frames(layer.category, layer.option)
+			if sf:
+				var sprite := AnimatedSprite2D.new()
+				sprite.name = layer.category.capitalize()
+				sprite.sprite_frames = sf
+				sprite.position = Vector2(0, -4.26)
+				if sf.has_animation("idle_left"):
+					sprite.animation = "idle_left"
+					sprite.play("idle_left")
+				elif sf.has_animation("idle_down"):
+					sprite.animation = "idle_down"
+					sprite.play("idle_down")
+				mother.add_child(sprite)
+				
+		# Add standard collision shape
+		var collision = CollisionPolygon2D.new()
+		collision.polygon = PackedVector2Array([
+			Vector2(0, -5.28), Vector2(-3.52, -5.28), Vector2(-3.08, 6.6),
+			Vector2(0, 9.25), Vector2(3.08, 6.6), Vector2(3.52, -5.28)
+		])
+		mother.add_child(collision)
+	else:
+		# Fallback to legacy single sprite
+		mother = load("res://scenes/girl1.tscn").instantiate()
+		mother.name = "MotherNPC"
+		mother.global_position = Vector2(565, -640)
+		mother.scale = Vector2(0.75, 0.75)
+		
+		var anim_sprite = mother.get_node_or_null("Sprite2D") as AnimatedSprite2D
+		if anim_sprite:
+			if anim_sprite.sprite_frames.has_animation("idle_left"):
+				anim_sprite.play("idle_left")
+			else:
+				anim_sprite.play("idle_down")
+				
+	# Add a name tag
+	var name_tag = Label.new()
+	name_tag.text = "Mother"
+	name_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_tag.custom_minimum_size = Vector2(100, 20)
+	var label_settings = LabelSettings.new()
+	label_settings.font_size = 18
+	label_settings.outline_size = 3
+	label_settings.outline_color = Color.BLACK
+	name_tag.label_settings = label_settings
+	name_tag.scale = Vector2(1.0 / mother.scale.x, 1.0 / mother.scale.y)
+	name_tag.position = Vector2(-50 * name_tag.scale.x, -30 * name_tag.scale.y)
+	mother.add_child(name_tag)
+	
+	# Create an Area2D for interaction
+	var area = Area2D.new()
+	area.name = "InteractionArea"
+	var col = CollisionShape2D.new()
+	var shape = RectangleShape2D.new()
+	shape.size = Vector2(80, 80)
+	col.shape = shape
+	area.add_child(col)
+	mother.add_child(area)
+	
+	# Set script dynamically
+	var mother_script = GDScript.new()
+	mother_script.source_code = "extends CharacterBody2D\n\nvar player_in_range = false\n\nfunc _ready():\n\t$InteractionArea.body_entered.connect(_on_body_entered)\n\t$InteractionArea.body_exited.connect(_on_body_exited)\n\nfunc _on_body_entered(body):\n\tif body.is_in_group(\"player\"):\n\t\tplayer_in_range = true\n\nfunc _on_body_exited(body):\n\tif body.is_in_group(\"player\"):\n\t\tplayer_in_range = false\n\nfunc _input(event):\n\tif player_in_range and event.is_action_pressed(\"interact\"):\n\t\tif GameState.is_dialogue_active:\n\t\t\treturn\n\t\tvar dialogue_resource = load(\"res://dialogues/tutorial.dialogue\")\n\t\tvar balloon_scene = load(\"res://dialogues/balloon.tscn\")\n\t\tvar balloon = balloon_scene.instantiate()\n\t\tget_tree().root.add_child(balloon)\n\t\tballoon.start(dialogue_resource, \"mother_idle\")\n"
+	mother.set_script(mother_script)
+	
+	add_child(mother)
+	print("[MainGame] Mother NPC successfully spawned at (565, -640) facing left.")
+
+# Updated on 2026-05-24

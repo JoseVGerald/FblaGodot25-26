@@ -5,6 +5,9 @@ extends CanvasLayer
 
 signal menu_closed
 
+var buy_home_btn: Button = null
+var home_progress_lbl: Label = null
+
 # ── Colour palette (design tokens from handoff) ──────────────────────────────
 const CLR_NAVY_DEEP  := Color("#0d1b36")
 const CLR_NAVY       := Color("#1a2a4a")
@@ -138,6 +141,27 @@ func _ready() -> void:
 		GameState.day_started.connect(func(_d): _update_day_label())
 	_style_loan_buttons()
 	_wire_numeric_validation()
+
+	# Dynamic Buy House controls for Adult pathway
+	var overview = $Panel/VBox/Content/TabContainer/Overview
+	if overview and GameState.selected_pathway == "adult":
+		home_progress_lbl = Label.new()
+		home_progress_lbl.name = "HomeProgressLabel"
+		home_progress_lbl.add_theme_font_size_override("font_size", 28)
+		home_progress_lbl.add_theme_color_override("font_color", CLR_GOLD)
+		var font := UITheme.get_pixel_font()
+		if font: home_progress_lbl.add_theme_font_override("font", font)
+		overview.add_child(home_progress_lbl)
+		
+		buy_home_btn = Button.new()
+		buy_home_btn.name = "BuyHomeButton"
+		buy_home_btn.text = "Buy House ($%.2f)" % GameState.house_price
+		buy_home_btn.add_theme_font_size_override("font_size", 30)
+		buy_home_btn.custom_minimum_size = Vector2(240, 60)
+		UITheme.style_button(buy_home_btn, CLR_GREEN)
+		overview.add_child(buy_home_btn)
+		buy_home_btn.pressed.connect(_on_buy_home_pressed)
+
 	update_ui()
 
 func _wire_numeric_validation() -> void:
@@ -203,9 +227,9 @@ func _update_day_label() -> void:
 # ── Overview tab ──────────────────────────────────────────────────────────────
 
 func update_overview() -> void:
-	spendable_label.text = "Spending Money: $%d" % GameState.money
+	spendable_label.text = "Spending Money: $%.2f" % GameState.money
 	spendable_label.add_theme_color_override("font_color", CLR_GREEN)
-	savings_label.text = "Emergency Savings: $%d" % GameState.savings_balance
+	savings_label.text = "Emergency Savings: $%.2f" % GameState.savings_balance
 	savings_label.add_theme_color_override("font_color", CLR_CYAN)
 
 	var food_spent   = GameState.budget_data["Food"]["spent"]
@@ -229,20 +253,20 @@ func update_overview() -> void:
 	if total_spent > 0:
 		if food_pct > 0:
 			_pie_slices.append({"name": "Food & Water", "pct": food_pct, "color": CLR_CAT_FOOD,
-				"detail": "$%d / $%d" % [food_spent, food_limit]})
+				"detail": "$%.2f / $%.2f" % [food_spent, food_limit]})
 		if vet_pct > 0:
 			_pie_slices.append({"name": "Vet & Medicine", "pct": vet_pct, "color": CLR_CAT_VET,
-				"detail": "$%d / $%d" % [vet_spent, vet_limit]})
+				"detail": "$%.2f / $%.2f" % [vet_spent, vet_limit]})
 		if travel_pct > 0:
 			_pie_slices.append({"name": "Travel", "pct": travel_pct, "color": CLR_CAT_TRAVEL,
-				"detail": "$%d / $%d" % [travel_spent, travel_limit]})
+				"detail": "$%.2f / $%.2f" % [travel_spent, travel_limit]})
 	else:
 		_pie_slices.append({"name": "Food & Water", "pct": 33.3, "color": CLR_CAT_FOOD,
-			"detail": "$0 / $%d" % food_limit})
+			"detail": "$0.00 / $%.2f" % food_limit})
 		_pie_slices.append({"name": "Vet & Medicine", "pct": 33.3, "color": CLR_CAT_VET,
-			"detail": "$0 / $%d" % vet_limit})
+			"detail": "$0.00 / $%.2f" % vet_limit})
 		_pie_slices.append({"name": "Travel", "pct": 33.4, "color": CLR_CAT_TRAVEL,
-			"detail": "$0 / $%d" % travel_limit})
+			"detail": "$0.00 / $%.2f" % travel_limit})
 
 	var angle := -PI / 2.0
 	for i in _pie_slices.size():
@@ -254,6 +278,16 @@ func update_overview() -> void:
 	_ensure_pie_canvas()
 	if _pie_canvas:
 		_pie_canvas.queue_redraw()
+
+	if is_instance_valid(home_progress_lbl):
+		if GameState.house_owned:
+			home_progress_lbl.text = "CONGRATULATIONS! House Purchased!"
+			buy_home_btn.visible = false
+		else:
+			home_progress_lbl.text = "Goal: Buy House ($%.2f) - Cash: $%.2f / $%.2f" % [GameState.house_price, GameState.money, GameState.house_price]
+			buy_home_btn.text = "Buy House ($%.2f)" % GameState.house_price
+			buy_home_btn.visible = true
+			buy_home_btn.disabled = GameState.money < GameState.house_price
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  PIE CHART — Canvas + hover
@@ -431,28 +465,28 @@ func _draw_progress_bar(ctrl: Control, category: String) -> void:
 func update_budget_inputs() -> void:
 	if not food_slider.has_focus():
 		food_slider.value = GameState.budget_data["Food"]["limit"]
-		food_limit_label.text = "$%d" % food_slider.value
+		food_limit_label.text = "$%.2f" % food_slider.value
 	if not vet_slider.has_focus():
 		vet_slider.value = GameState.budget_data["Vet"]["limit"]
-		vet_limit_label.text = "$%d" % vet_slider.value
+		vet_limit_label.text = "$%.2f" % vet_slider.value
 	if not travel_slider.has_focus():
 		travel_slider.value = GameState.budget_data["Travel"]["limit"]
-		travel_limit_label.text = "$%d" % travel_slider.value
+		travel_limit_label.text = "$%.2f" % travel_slider.value
 
 	for category in ["Food", "Vet", "Travel"]:
-		var limit: int = GameState.budget_data[category]["limit"]
-		var spent: int = GameState.budget_data[category]["spent"]
+		var limit: float = GameState.budget_data[category]["limit"]
+		var spent: float = GameState.budget_data[category]["spent"]
 		var ratio := 0.0
 		if limit > 0:
-			ratio = clamp(float(spent) / float(limit), 0.0, 1.0)
+			ratio = clamp(spent / limit, 0.0, 1.0)
 		_budget_progress[category]["ratio"] = ratio
 
-	food_spent_label.text   = "Spent: $%d" % GameState.budget_data["Food"]["spent"]
-	food_limit_meta.text    = "Limit: $%d" % GameState.budget_data["Food"]["limit"]
-	vet_spent_label.text    = "Spent: $%d" % GameState.budget_data["Vet"]["spent"]
-	vet_limit_meta.text     = "Limit: $%d" % GameState.budget_data["Vet"]["limit"]
-	travel_spent_label.text = "Spent: $%d" % GameState.budget_data["Travel"]["spent"]
-	travel_limit_meta.text  = "Limit: $%d" % GameState.budget_data["Travel"]["limit"]
+	food_spent_label.text   = "Spent: $%.2f" % GameState.budget_data["Food"]["spent"]
+	food_limit_meta.text    = "Limit: $%.2f" % GameState.budget_data["Food"]["limit"]
+	vet_spent_label.text    = "Spent: $%.2f" % GameState.budget_data["Vet"]["spent"]
+	vet_limit_meta.text     = "Limit: $%.2f" % GameState.budget_data["Vet"]["limit"]
+	travel_spent_label.text = "Spent: $%.2f" % GameState.budget_data["Travel"]["spent"]
+	travel_limit_meta.text  = "Limit: $%.2f" % GameState.budget_data["Travel"]["limit"]
 
 	food_progress_bar.queue_redraw()
 	vet_progress_bar.queue_redraw()
@@ -473,16 +507,16 @@ func update_report() -> void:
 	var week := int(float(GameState.current_day) / 7.0) + 1
 	week_label.text = "WEEK %d" % week
 
-	var income: int    = int(r.get("income", 0))
-	var spent: int     = int(r.get("total_spent", 0))
-	var net: int       = income - spent
-	var emergency: int = int(r.get("emergency_usage", 0))
+	var income: float    = r.get("income", 0.0)
+	var spent: float     = r.get("total_spent", 0.0)
+	var net: float       = income - spent
+	var emergency: float = r.get("emergency_usage", 0.0)
 
-	report_income_val.text = "+$%d" % income
-	report_spent_val.text  = "-$%d" % spent
-	report_net_val.text    = ("+$%d" % net) if net >= 0 else "-$%d" % abs(net)
+	report_income_val.text = "+$%.2f" % income
+	report_spent_val.text  = "-$%.2f" % spent
+	report_net_val.text    = ("+$%.2f" % net) if net >= 0 else "-$%.2f" % abs(net)
 	report_net_val.add_theme_color_override("font_color", CLR_GREEN if net >= 0 else CLR_RED)
-	report_emer_val.text   = "$%d" % emergency
+	report_emer_val.text   = "$%.2f" % emergency
 
 	_populate_breakdown_grid(r)
 	_populate_events_grid(r, week)
@@ -500,9 +534,9 @@ func _populate_breakdown_grid(r: Dictionary) -> void:
 	var categories := ["Food", "Vet", "Travel"]
 	var breakdown: Dictionary = r.get("category_breakdown", {})
 	for cat in categories:
-		var spent: int = int(breakdown.get(cat, 0))
-		var limit: int = int(GameState.budget_data[cat]["limit"])
-		var remaining: int = limit - spent
+		var spent: float = breakdown.get(cat, 0.0)
+		var limit: float = GameState.budget_data[cat]["limit"]
+		var remaining: float = limit - spent
 
 		# Pill cell
 		var pill := UITheme.make_cat_pill(cat, 33)
@@ -510,13 +544,13 @@ func _populate_breakdown_grid(r: Dictionary) -> void:
 		breakdown_grid.add_child(pill)
 
 		var spent_color := CLR_RED if spent > 0 else CLR_DIM
-		breakdown_grid.add_child(_make_cell("$%d" % spent, spent_color))
-		breakdown_grid.add_child(_make_cell("$%d" % limit, CLR_DIM))
+		breakdown_grid.add_child(_make_cell("$%.2f" % spent, spent_color))
+		breakdown_grid.add_child(_make_cell("$%.2f" % limit, CLR_DIM))
 
 		var remaining_color := CLR_GREEN
 		if remaining <= 0: remaining_color = CLR_RED
 		elif spent == 0:   remaining_color = CLR_CYAN
-		breakdown_grid.add_child(_make_cell("$%d" % remaining, remaining_color))
+		breakdown_grid.add_child(_make_cell("$%.2f" % remaining, remaining_color))
 
 		var status_text: String
 		var status_color: Color
@@ -526,7 +560,7 @@ func _populate_breakdown_grid(r: Dictionary) -> void:
 		elif remaining <= 0:
 			status_text = "✗ Over"
 			status_color = CLR_RED
-		elif float(spent) / max(1.0, float(limit)) > 0.85:
+		elif spent / max(1.0, limit) > 0.85:
 			status_text = "! Near limit"
 			status_color = CLR_ORANGE
 		else:
@@ -546,15 +580,15 @@ func _populate_events_grid(r: Dictionary, _week: int) -> void:
 	events_grid.add_child(_make_cell("Inflation rate", CLR_DIM))
 	events_grid.add_child(_make_cell("%+0.1f%% on all costs" % inflation_pct, CLR_ORANGE))
 
-	var emergency: int = int(r.get("emergency_usage", 0))
+	var emergency: float = r.get("emergency_usage", 0.0)
 	if emergency > 0:
 		events_grid.add_child(_make_cell("Emergency coverage", CLR_DIM))
-		events_grid.add_child(_make_cell("-$%d from savings" % emergency, CLR_RED))
+		events_grid.add_child(_make_cell("-$%.2f from savings" % emergency, CLR_RED))
 
-	var income: int = int(r.get("income", 0))
+	var income: float = r.get("income", 0.0)
 	if income > 0:
 		events_grid.add_child(_make_cell("Weekly allowance", CLR_DIM))
-		events_grid.add_child(_make_cell("+$%d income" % income, CLR_GREEN))
+		events_grid.add_child(_make_cell("+$%.2f income" % income, CLR_GREEN))
 
 	if GameState.loan_balance > 0:
 		events_grid.add_child(_make_cell("Active loan", CLR_DIM))
@@ -581,9 +615,9 @@ func _make_cell(text: String, color: Color) -> Label:
 # ── History header ───────────────────────────────────────────────────────────
 
 func update_history_header() -> void:
-	history_cash_label.text  = "Spending Cash: $%d" % GameState.money
+	history_cash_label.text  = "Spending Cash: $%.2f" % GameState.money
 	history_cash_label.add_theme_color_override("font_color", CLR_GREEN)
-	history_spent_label.text = "All-Time Total Spent: $%d" % GameState.all_time_spent
+	history_spent_label.text = "All-Time Total Spent: $%.2f" % GameState.all_time_spent
 	history_spent_label.add_theme_color_override("font_color", CLR_RED)
 
 # ── History list ──────────────────────────────────────────────────────────────
@@ -631,7 +665,7 @@ func update_history() -> void:
 		var amount_label := Label.new()
 		var is_income    = entry["amount"] >= 0
 		var prefix       := "+" if is_income else ""
-		amount_label.text = "%s$%d" % [prefix, entry["amount"]]
+		amount_label.text = "%s$%.2f" % [prefix, entry["amount"]]
 		amount_label.add_theme_color_override("font_color", CLR_GREEN if is_income else CLR_RED)
 		amount_label.add_theme_font_size_override("font_size", FONT_SIZE)
 		amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -865,36 +899,47 @@ func _style_loan_buttons() -> void:
 func _on_close_btn_pressed() -> void:
 	hide_menu()
 
+func _on_buy_home_pressed() -> void:
+	if GameState.buy_home():
+		update_ui()
+		var hud = get_tree().get_first_node_in_group("hud")
+		if hud and hud.has_method("show_notification"):
+			hud.show_notification("House purchased successfully!", CLR_GREEN)
+		
+		# Yield briefly for cinematic pacing, then curtain transition to the Final Stats report!
+		await get_tree().create_timer(1.2, false, true).timeout
+		SceneManager.change_scene("res://scenes/ui/FinalStatsScreen.tscn", {"pattern": "curtains"})
+
 func _on_deposit_btn_pressed() -> void:
-	var amount := int(deposit_input.text)
-	if amount > 0:
+	var amount := float(deposit_input.text)
+	if amount > 0.0:
 		if GameState.deposit_to_savings(amount):
 			deposit_input.text = ""
 			update_ui()
 
 func _on_withdraw_btn_pressed() -> void:
-	var amount := int(deposit_input.text)
-	if amount > 0:
+	var amount := float(deposit_input.text)
+	if amount > 0.0:
 		var received := GameState.withdraw_from_savings(amount)
-		if received > 0:
+		if received > 0.0:
 			deposit_input.text = ""
 			update_ui()
 
 func _on_food_slider_value_changed(value: float) -> void:
-	GameState.budget_data["Food"]["limit"] = int(value)
-	food_limit_label.text = "$%d" % value
+	GameState.budget_data["Food"]["limit"] = value
+	food_limit_label.text = "$%.2f" % value
 	update_budget_inputs()
 	update_overview()
 
 func _on_vet_slider_value_changed(value: float) -> void:
-	GameState.budget_data["Vet"]["limit"] = int(value)
-	vet_limit_label.text = "$%d" % value
+	GameState.budget_data["Vet"]["limit"] = value
+	vet_limit_label.text = "$%.2f" % value
 	update_budget_inputs()
 	update_overview()
 
 func _on_travel_slider_value_changed(value: float) -> void:
-	GameState.budget_data["Travel"]["limit"] = int(value)
-	travel_limit_label.text = "$%d" % value
+	GameState.budget_data["Travel"]["limit"] = value
+	travel_limit_label.text = "$%.2f" % value
 	update_budget_inputs()
 	update_overview()
 
@@ -912,16 +957,16 @@ func _on_graphs_btn_pressed() -> void:
 	graph_canvas.build_graph_data(GameState.transaction_history)
 
 func _on_borrow_btn_pressed() -> void:
-	var amount := int(loan_input.text)
-	if amount > 0:
+	var amount := float(loan_input.text)
+	if amount > 0.0:
 		if GameState.take_loan(amount):
 			loan_input.text = ""
 			update_ui()
 
 func _on_repay_btn_pressed() -> void:
-	var amount := int(loan_input.text)
-	if amount > 0:
+	var amount := float(loan_input.text)
+	if amount > 0.0:
 		var paid := GameState.repay_loan(amount)
-		if paid > 0:
+		if paid > 0.0:
 			loan_input.text = ""
 			update_ui()

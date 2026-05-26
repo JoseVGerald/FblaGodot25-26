@@ -267,7 +267,8 @@ func _physics_process(delta: float) -> void:
 
 	# Kick off the food → water → sleep routine the moment the player enters.
 	if GameState.Inside_house and not was_in_house:
-		_start_evening_routine()
+		if GameState.is_tutorial_complete:
+			_start_evening_routine()
 	was_in_house = GameState.Inside_house
 
 	# On the Mend: track if health was critically low then recovered
@@ -344,7 +345,7 @@ func _process_action_path():
 			action_callback = Callable()
 			cb.call()
 		# Open pet needs menu when path action finishes
-		if needs_menu_instance:
+		if needs_menu_instance and GameState.is_tutorial_complete:
 			needs_menu_instance.show_menu(self)
 		return
 

@@ -1,13 +1,11 @@
-# COMMIT: Achievements and Catch Minigame Update
-extends Node
-
 # Day 1 Tutorial Controller
-# Manages the guided tutorial sequence on the first day
+# Manages conversational or legacy tutorials on the first day based on the chosen pathway.
+extends Node
 
 var tutorial_hint_scene = preload("res://scenes/ui/tutorial_hint.tscn")
 var tutorial_hint: CanvasLayer = null
 
-var current_step: int = 0
+var current_step: int = 1
 var tutorial_active: bool = false
 
 # References to game elements
@@ -17,7 +15,6 @@ var hud: CanvasLayer = null
 signal tutorial_completed
 
 func _ready():
-	# This node processes even when game is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 func start_tutorial(game_dog: CharacterBody2D, game_hud: CanvasLayer):
@@ -25,85 +22,299 @@ func start_tutorial(game_dog: CharacterBody2D, game_hud: CanvasLayer):
 	dog = game_dog
 	hud = game_hud
 	tutorial_active = true
-	current_step = 0
+	current_step = 1
 	
-	# Create tutorial hint UI
+	# Connect to the job selection trigger signal in GameState
+	if not GameState.job_selection_requested.is_connected(_on_job_selection_requested):
+		GameState.job_selection_requested.connect(_on_job_selection_requested)
+	
+	# Create tutorial hint UI for highlights and prompts
 	tutorial_hint = tutorial_hint_scene.instantiate()
 	tutorial_hint.process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().root.add_child(tutorial_hint)
 	
-	# Wait for scene to render (use process_always timer)
+	# Wait for scene to render
 	await get_tree().create_timer(1.0, false, true).timeout
 	
-	# Block movement but allow menu inputs (don't pause the game)
+	# Block movement but allow menu inputs
 	GameState.tutorial_blocks_movement = true
 	
-	print("[Tutorial] Starting tutorial")
+	print("[Tutorial] Starting tutorial from Step 1 (Pathway: ", GameState.selected_pathway, ")")
 	run_step()
 
-func run_step():
-	"""Execute current tutorial step."""
-	print("[Tutorial] Running step ", current_step)
-	match current_step:
-		0:
-			# Step 1: Press P or paw to open pet needs
-			# Don't pause - let player interact
-			tutorial_hint.show_hint("Press P or 🐾 to open pet needs.")
-			# Wait for needs menu to open
-			if dog:
-				# Wait a bit for needs_menu_instance to be created if not yet
-				if not dog.needs_menu_instance:
-					await get_tree().create_timer(0.5, false, true).timeout
-				if dog.needs_menu_instance:
-					dog.needs_menu_instance.process_mode = Node.PROCESS_MODE_ALWAYS
-					var panel = dog.needs_menu_instance.panel
-					while not panel.visible:
-						await get_tree().process_frame
-					advance_step()
-				else:
-					# Fallback: skip this step after 3 seconds if menu not available
-					print("[Tutorial] Warning: needs_menu_instance not found, skipping step 0")
-					await get_tree().create_timer(3.0, false, true).timeout
-					advance_step()
-			else:
-				print("[Tutorial] Error: dog is null")
-				advance_step()
+func run_dialogue(title_name: String) -> void:
+	"""Helper to play a DialogueManager conversation branch and wait for completion."""
+	if DialogueManager == null:
+		return
 		
+	var dialogue_resource = load("res://dialogues/tutorial.dialogue")
+	var balloon_scene = load("res://dialogues/balloon.tscn")
+	var balloon = balloon_scene.instantiate()
+	
+	GameState.tutorial_blocks_movement = true
+	get_tree().root.add_child(balloon)
+	balloon.start(dialogue_resource, title_name)
+	
+	# Wait until conversation finishes (the balloon exits the tree)
+	await balloon.tree_exited
+
+func _on_job_selection_requested() -> void:
+	"""Spawns the Job Selection screen overlay."""
+	var job_menu_scene = load("res://scenes/ui/JobSelectionMenu.tscn")
+	if job_menu_scene:
+		var job_menu = job_menu_scene.instantiate()
+		get_tree().root.add_child(job_menu)
+		print("[Tutorial] Job selection screen overlaid successfully.")
+
+func run_step():
+	"""Execute pathway-specific conversational or legacy tutorial steps."""
+	print("[Tutorial] Running step ", current_step)
+	var pathway = GameState.selected_pathway
+	
+	if pathway == "adult":
+		run_adult_step()
+	else:
+		run_kid_teen_step()
+
+func run_kid_teen_step():
+	"""Conversational dialogue pathway for Kid & Teenager."""
+	var pathway = GameState.selected_pathway
+	match current_step:
 		1:
-			# Step 2: Explain pet needs (4 seconds)
-			tutorial_hint.show_hint("This tells you the needs of your little buddy. When food or water is low, take them back home to feed them.", 4.0)
-			await tutorial_hint.hint_hidden
+			# Step 1: Conversational Intro, then wait for Needs Menu
+			if pathway == "kid":
+				await run_dialogue("kid_step1")
+			else:
+				await run_dialogue("teen_step1")
+				
+			# Spotlight the Needs button
+			if tutorial_hint:
+				tutorial_hint.show_hint("Press P or Needs to open pet needs.")
+				if hud and "needs_btn" in hud and hud.needs_btn:
+					tutorial_hint.set_highlight_target(hud.needs_btn)
+			
+			# Wait for Needs Menu to be visible
+			var menu_open = false
+			while not menu_open:
+				await get_tree().process_frame
+				if dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
+					menu_open = true
+			
+			if tutorial_hint:
+				tutorial_hint.set_highlight_target(null)
+				tutorial_hint.hide_hint()
 			advance_step()
 		
 		2:
-			# Step 3: Energy and health (6 seconds), then close menu
-			tutorial_hint.show_hint("When their energy is low, take them home to sleep. If health is low, take them to the vet.", 6.0)
-			await tutorial_hint.hint_hidden
-			# Close the needs menu
+			# Step 2: Explain needs, then spotlight Supplies button
+			if pathway == "kid":
+				await run_dialogue("kid_step2")
+			else:
+				await run_dialogue("teen_step2")
+				
+			# Close Needs Menu
+			if dog and dog.needs_menu_instance:
+				dog.needs_menu_instance.panel.hide()
+				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
+					dog.needs_menu_instance.arrow.hide()
+			
+			# Spotlight Supplies button
+			if tutorial_hint:
+				tutorial_hint.show_hint("Press Supplies to see your supplies.")
+				if hud and "supplies_btn" in hud and hud.supplies_btn:
+					tutorial_hint.set_highlight_target(hud.supplies_btn)
+			
+			# Wait for Supplies Menu to be visible
+			var supplies_open = false
+			while not supplies_open:
+				await get_tree().process_frame
+				if hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
+					supplies_open = true
+			
+			if tutorial_hint:
+				tutorial_hint.set_highlight_target(null)
+				tutorial_hint.hide_hint()
+			advance_step()
+		
+		3:
+			# Step 3: Explain inventory, then spotlight Finance button
+			if pathway == "kid":
+				await run_dialogue("kid_step3")
+			else:
+				await run_dialogue("teen_step3")
+				
+			# Close Supplies Menu
+			if hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
+				hud.supplies_menu_instance.hide_menu()
+				
+			# Spotlight Finance button
+			if tutorial_hint:
+				tutorial_hint.show_hint("Click Finances to see your finances.")
+				if hud and "finance_btn" in hud and hud.finance_btn:
+					tutorial_hint.set_highlight_target(hud.finance_btn)
+			
+			# Wait for Finance Menu to open
+			if hud:
+				await hud.finance_menu_opened
+			else:
+				await get_tree().create_timer(3.0, false, true).timeout
+			
+			if tutorial_hint:
+				tutorial_hint.set_highlight_target(null)
+				tutorial_hint.hide_hint()
+			advance_step()
+		
+		4:
+			# Step 4: Dialogue/Job selection sequence
+			# Auto-close Finance Menu and ensure tree is unpaused
+			var fin_menu = get_tree().root.find_child("FinanceMenu", true, false)
+			if fin_menu and fin_menu.visible:
+				if fin_menu.has_method("hide_menu"):
+					fin_menu.hide_menu()
+				else:
+					fin_menu.hide()
+			# Force unpause — the finance menu pauses the tree and its
+			# cleanup callback (queue_free + unpause) is deferred, so the
+			# tree can still be paused at this point.
+			get_tree().paused = false
+			# Wait two frames so any deferred queue_free settles
+			await get_tree().process_frame
+			await get_tree().process_frame
+				
+			if pathway == "kid":
+				await run_dialogue("kid_step4")
+				advance_step()
+			else:
+				# Teenager triggers job selection
+				await run_dialogue("teen_step4")
+				
+				# Wait until job is chosen
+				while GameState.active_job == "none":
+					await get_tree().process_frame
+					
+				await get_tree().create_timer(0.5, false, true).timeout
+				await run_dialogue("teen_step5")
+				advance_step()
+		
+		5:
+			# Complete!
+			end_tutorial()
+
+func run_adult_step():
+	"""Legacy text-only pathway for independent Adults, starting with job selection."""
+	match current_step:
+		1:
+			# Step 1: Trigger Job Selection immediately at start
+			GameState.trigger_job_selection()
+			
+			# Wait until job is chosen
+			while GameState.active_job == "none":
+				await get_tree().process_frame
+				
+			advance_step()
+		
+		2:
+			# Step 2: Open Needs
+			if tutorial_hint:
+				tutorial_hint.show_hint("Press P or Needs to open pet needs.")
+				if hud and "needs_btn" in hud and hud.needs_btn:
+					tutorial_hint.set_highlight_target(hud.needs_btn)
+			
+			var menu_open = false
+			while not menu_open:
+				await get_tree().process_frame
+				if dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
+					menu_open = true
+			
+			if tutorial_hint:
+				tutorial_hint.set_highlight_target(null)
+			advance_step()
+		
+		3:
+			# Step 3: Needs Explanation
+			if tutorial_hint and dog and dog.needs_menu_instance:
+				tutorial_hint.set_highlight_target(dog.needs_menu_instance.panel)
+			if tutorial_hint:
+				tutorial_hint.show_hint("This tells you the needs of your little buddy. When food or water is low, take them back home to feed them.", 4.0)
+				await tutorial_hint.hint_hidden
+			advance_step()
+		
+		4:
+			# Step 4: Needs Energy & Health
+			if tutorial_hint and dog and dog.needs_menu_instance:
+				tutorial_hint.set_highlight_target(dog.needs_menu_instance.panel)
+			if tutorial_hint:
+				tutorial_hint.show_hint("When their energy is low, take them home to sleep. If health is low, take them to the vet.", 6.0)
+				await tutorial_hint.hint_hidden
+				
+			if tutorial_hint:
+				tutorial_hint.set_highlight_target(null)
+			
+			# Auto-close Needs
 			if dog and dog.needs_menu_instance:
 				dog.needs_menu_instance.panel.hide()
 				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
 					dog.needs_menu_instance.arrow.hide()
 			advance_step()
 		
-		3:
-			# Step 4: Show supplies hint for 5 seconds (no click required)
-			tutorial_hint.show_hint("Press 📈 to see your supplies.", 5.0)
-			await tutorial_hint.hint_hidden
-			advance_step()
-		
-		4:
-			# Step 5: Final hint about pause and finances (4 seconds)
-			tutorial_hint.show_hint("Press ... to pause and click 📝 to see your finances.", 4.0)
-			await tutorial_hint.hint_hidden
-			advance_step()
-		
 		5:
-			# Tutorial complete!
+			# Step 5: Open Supplies
+			if tutorial_hint:
+				tutorial_hint.show_hint("Press Supplies to see your supplies.")
+				if hud and "supplies_btn" in hud and hud.supplies_btn:
+					tutorial_hint.set_highlight_target(hud.supplies_btn)
+			
+			var supplies_open = false
+			while not supplies_open:
+				await get_tree().process_frame
+				if hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
+					supplies_open = true
+					
+			if tutorial_hint:
+				if hud and hud.supplies_menu_instance:
+					tutorial_hint.set_highlight_target(hud.supplies_menu_instance.panel)
+				tutorial_hint.show_hint("This shows your supplies. Food, water, and medication are essential to care for your buddy.", 4.0)
+				await tutorial_hint.hint_hidden
+				tutorial_hint.set_highlight_target(null)
+				
+			# Auto-close Supplies
+			if hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
+				hud.supplies_menu_instance.hide_menu()
+			advance_step()
+		
+		6:
+			# Step 6: Open Finances
+			if tutorial_hint:
+				tutorial_hint.show_hint("Click Finances to see your finances.")
+				if hud and "finance_btn" in hud and hud.finance_btn:
+					tutorial_hint.set_highlight_target(hud.finance_btn)
+			
+			if hud:
+				await hud.finance_menu_opened
+			else:
+				await get_tree().create_timer(3.0, false, true).timeout
+				
+			if tutorial_hint:
+				tutorial_hint.set_highlight_target(null)
+			advance_step()
+		
+		7:
+			# Step 7: Auto-close Finances
+			var fin_menu = get_tree().root.find_child("FinanceMenu", true, false)
+			if fin_menu and fin_menu.visible:
+				if fin_menu.has_method("hide_menu"):
+					fin_menu.hide_menu()
+				else:
+					fin_menu.hide()
+			# Force unpause — same deferred-cleanup race as kid/teen step 4
+			get_tree().paused = false
+			await get_tree().process_frame
+			await get_tree().process_frame
+			advance_step()
+		
+		8:
+			# Complete!
 			end_tutorial()
-
-func _on_supplies_opened():
-	advance_step()
 
 func advance_step():
 	current_step += 1
@@ -114,30 +325,28 @@ func end_tutorial():
 	tutorial_active = false
 	GameState.is_tutorial_complete = true
 	
-	# Allow movement again
+	# Allow player to walk freely
 	GameState.tutorial_blocks_movement = false
 
+	# Unlock starting achievements
 	GameState._unlock("Graduated")
 	GameState._unlock("Week One Down")
 
 	tutorial_completed.emit()
 	
-	# Start vet visit sequence (keep tutorial_hint for these hints)
+	# Guides player directly to the vet (without emojis)
 	await show_vet_hints()
 
 func show_vet_hints():
 	"""Show hints guiding player to vet."""
-	# Hint 1: Pet health is low (4 seconds)
-	tutorial_hint.show_hint("Your pet's health is low. Let's go and take them to the vet!", 4.0)
-	await tutorial_hint.hint_hidden
+	if tutorial_hint:
+		tutorial_hint.show_hint("Your pet's health is low. Let's go and take them to the vet!", 4.0)
+		await tutorial_hint.hint_hidden
 	
-	# Hint 2: Follow path (4 seconds)
-	tutorial_hint.show_hint("Follow the path to the vet.", 4.0)
-	await tutorial_hint.hint_hidden
+	if tutorial_hint:
+		tutorial_hint.show_hint("Follow the path to the vet.", 4.0)
+		await tutorial_hint.hint_hidden
 	
-	# Now clean up tutorial hint - vet entrance will handle "press E" hint
 	if tutorial_hint:
 		tutorial_hint.queue_free()
 		tutorial_hint = null
-
-# Updated on 2026-04-19

@@ -20,8 +20,29 @@ const CharacterAssets = preload("res://scripts/CharacterAssets.gd")
 ## Maps component index (1-N) to SpriteFrames .tres paths for in-game animations
 var COMPONENT_ANIM_PATHS: Dictionary = CharacterAssets.COMPONENT_ANIM_PATHS
 
-var money: int = 150
-var starting_money: int = 150
+var money: float = 150.0
+var starting_money: float = 150.0
+
+# Pathway & Job properties
+var selected_pathway: String = "kid"       # "kid", "teenager", "adult"
+var active_job: String = "none":
+	set(val):
+		if val != active_job:
+			active_job = val
+			weeks_worked_at_current_job = 0
+			weeks_quota_missed_row = 0
+var weeks_quota_missed_row: int = 0
+var weeks_worked_at_current_job: int = 0
+var fired_jobs_history: Array = []
+var work_days_scheduled: int = 3           # Work shifts planned per week (1-7)
+var days_worked_this_week: int = 0
+var rent_timer: int = 28                   # Days remaining until rent is due
+var monthly_rent: float = 200.0
+var house_owned: bool = false
+var house_price: float = 1000.0
+var news_boy_pay: float = 10.0
+var burger_cashier_pay: float = 15.0
+var bank_accountant_pay: float = 25.0
 
 # Customizable Costs
 var food_cost: int = 20
@@ -29,7 +50,7 @@ var water_cost: int = 10
 var medicine_cost: int = 40
 var vet_fee: int = 50
 var taxi_cost: int = 10
-var ball_chore: int = 2
+var ball_chore: float = 2.0                # Float to support 20 cents ($0.20) for kid chore
 var master_volume: int = 70
 var current_day: int = 0
 var days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -37,7 +58,7 @@ var day_timer: float = 0.0
 var DAY_DURATION: float = 300.0
 
 # Economy Modifiers (player-customizable)
-var starting_savings: int = 200                 # Initial savings on new game
+var starting_savings: float = 200.0                 # Initial savings on new game
 var withdrawal_penalty_rate: float = 0.15       # 15% penalty for early savings withdrawal
 var savings_interest_rate: float = 0.05         # 5% daily interest on savings
 var loan_interest_rate: float = 0.10            # 10% weekly interest on outstanding loans
@@ -82,21 +103,21 @@ var Inside_house: bool = false:
 signal day_started(day_number: int)
 
 # Finance System
-var weekly_allowance: int = 150
-var savings_balance: int = 200 # Starts at $200
+var weekly_allowance: float = 150.0
+var savings_balance: float = 200.0 # Starts at $200
 var budget_data: Dictionary = {
-	"Food": {"limit": 50, "spent": 0},
-	"Vet": {"limit": 50, "spent": 0},
-	"Travel": {"limit": 50, "spent": 0}
+	"Food": {"limit": 50, "spent": 0.0},
+	"Vet": {"limit": 50, "spent": 0.0},
+	"Travel": {"limit": 50, "spent": 0.0}
 }
 var weekly_report: Dictionary = {
-	"income": 0,
-	"total_spent": 0,
+	"income": 0.0,
+	"total_spent": 0.0,
 	"category_breakdown": {},
-	"emergency_usage": 0
+	"emergency_usage": 0.0
 }
 var transaction_history: Array = [] # Stores {day, description, amount, category}
-var all_time_spent: int = 0
+var all_time_spent: float = 0.0
 
 # Pet Advanced Features
 var inflation_rate: float = 1.0
@@ -184,6 +205,7 @@ signal history_updated
 signal vet_talk_finished
 @warning_ignore("unused_signal")
 signal open_shop_requested
+signal job_selection_requested
 
 func _ready():
 	apply_volume()
@@ -262,18 +284,46 @@ func _advance_day_after_supply_decrement() -> void:
 	
 	# Banking Interest Logic
 	if savings_balance > 0:
-		var interest = int(savings_balance * savings_interest_rate)
-		if interest > 0:
+		var rate = savings_interest_rate
+		if active_job == "bank_accountant":
+			rate = 0.07
+		var interest = savings_balance * rate
+		if interest > 0.01:
 			savings_balance += interest
 			savings_updated.emit()
 	
+	# Adult Rent Logic
+	if selected_pathway == "adult" and not house_owned:
+		rent_timer -= 1
+		if rent_timer <= 0:
+			rent_timer = 28
+			if money >= monthly_rent:
+				money -= monthly_rent
+				record_transaction("Monthly Rent Payment", -monthly_rent, "Emergency")
+				event_triggered.emit("Paid monthly rent: $%.2f" % monthly_rent)
+			else:
+				var total_avail = money + savings_balance
+				if total_avail >= monthly_rent:
+					var diff = monthly_rent - money
+					money = 0.0
+					savings_balance -= diff
+					savings_updated.emit()
+					record_transaction("Monthly Rent (Savings Fallback)", -monthly_rent, "Emergency")
+					event_triggered.emit("Paid monthly rent using savings: $%.2f" % monthly_rent)
+				else:
+					money = max(0.0, money - monthly_rent)
+					dog_health = max(10.0, dog_health - 30.0)
+					event_triggered.emit("COULD NOT PAY RENT! Eviction warnings sent. Buddy is extremely stressed!")
+	
 	# Inflation & Random Bills
 	if current_day > 0 and current_day % 10 == 0:
-		inflation_rate += 0.1
-		var tax: int = int(10.0 * inflation_rate)
+		var multiplier = 1.0 if selected_pathway == "kid" else inflation_rate
+		if selected_pathway != "kid":
+			inflation_rate += 0.1
+		var tax: float = 10.0 * multiplier
 		if money >= tax:
 			spend_money(tax, "Travel") # Put under Travel or general
-			event_triggered.emit("Inflation up! Paid pet license tax: $" + str(tax))
+			event_triggered.emit("Inflation up! Paid pet license tax: $%.2f" % tax)
 		else:
 			dog_health -= 20
 			event_triggered.emit("Could not pay tax! Dog gets stressed.")
@@ -286,9 +336,9 @@ func _advance_day_after_supply_decrement() -> void:
 	# Random Text Event (20% chance)
 	if randf() < 0.2:
 		var evs = [
-			{"msg": "Pet found a $5 bill!", "amt": 5, "type": "money"},
-			{"msg": "Pet chewed your shoe...", "amt": - 15, "type": "money"},
-			{"msg": "Pet had a wonderful dream", "amt": 15, "type": "health"}
+			{"msg": "Pet found a $5 bill!", "amt": 5.0, "type": "money"},
+			{"msg": "Pet chewed your shoe...", "amt": -15.0, "type": "money"},
+			{"msg": "Pet had a wonderful dream", "amt": 15.0, "type": "health"}
 		]
 		var ev = evs[randi() % evs.size()]
 		event_triggered.emit(ev["msg"])
@@ -337,32 +387,64 @@ signal budget_warning(category: String, message: String)
 
 func reset_weekly_budgets():
 	# Tightwad check: if total weekly spend was <= $30
-	if weekly_report["total_spent"] <= 30:
+	if weekly_report["total_spent"] <= 30.0:
 		_unlock("Tightwad")
+
+	# Career Firing Mechanic
+	if active_job != "none":
+		weeks_worked_at_current_job += 1
+		var quota_met := (days_worked_this_week >= work_days_scheduled)
+		if not quota_met:
+			weeks_quota_missed_row += 1
+			# Fired if missed quota in first week OR missed 3 weeks in a row
+			if weeks_worked_at_current_job == 1 or weeks_quota_missed_row >= 3:
+				var fired_job = active_job
+				if not fired_job in fired_jobs_history:
+					fired_jobs_history.append(fired_job)
+				
+				var job_display = active_job_display_name
+				active_job = "none"
+				
+				event_triggered.emit("⚠️ Fired! You didn't meet your shift quota for " + job_display + " (" + str(days_worked_this_week) + "/" + str(work_days_scheduled) + " days). Cannot re-apply!")
+				call_deferred("trigger_job_selection")
+		else:
+			weeks_quota_missed_row = 0
 
 	# Loan interest accrues each new week before allowance arrives
 	_apply_weekly_loan_interest()
 
+	# Set weekly allowance based on pathway
+	if selected_pathway == "kid":
+		weekly_allowance = 100.0
+	elif selected_pathway == "teenager":
+		weekly_allowance = 50.0
+	elif selected_pathway == "adult":
+		weekly_allowance = 0.0
+
+	# Reset work days worked this week
+	days_worked_this_week = 0
+
 	# Archive current week's report (could store in a history list if needed)
 	weekly_report["income"] = weekly_allowance
-	weekly_report["total_spent"] = 0
+	weekly_report["total_spent"] = 0.0
 	weekly_report["category_breakdown"] = {}
-	weekly_report["emergency_usage"] = 0
+	weekly_report["emergency_usage"] = 0.0
 
 	# Add allowance
-	money += weekly_allowance
-	record_transaction("Weekly Allowance", weekly_allowance, "Income")
-	_unlock("First Paycheck")
+	if weekly_allowance > 0.0:
+		money += weekly_allowance
+		record_transaction("Weekly Allowance", weekly_allowance, "Income")
+		_unlock("First Paycheck")
 	
 	# Reset spent amounts, keep limits
 	for category in budget_data:
 		weekly_report["category_breakdown"][category] = budget_data[category]["spent"]
-		budget_data[category]["spent"] = 0
+		budget_data[category]["spent"] = 0.0
 		
 	budget_updated.emit()
-	print("Weekly budgets reset. Income received.")
+	print("Weekly budgets reset. Income received: $", weekly_allowance)
 
-func record_transaction(description: String, amount: int, category: String):
+func record_transaction(description: String, amount: float, category: String):
 	var entry = {
 		"day": current_day,
 		"description": description,
@@ -374,10 +456,10 @@ func record_transaction(description: String, amount: int, category: String):
 		all_time_spent += abs(amount)
 	history_updated.emit()
 
-func spend_money(amount: int, category: String) -> bool:
+func spend_money(amount: float, category: String) -> bool:
 	if money >= amount:
 		money -= amount
-		total_spent += amount
+		total_spent += int(amount)
 		record_transaction("Purchase: " + category, -amount, category)
 		
 		# Update budget if category exists
@@ -410,7 +492,7 @@ func spend_money(amount: int, category: String) -> bool:
 			
 	return false
 
-func deposit_to_savings(amount: int) -> bool:
+func deposit_to_savings(amount: float) -> bool:
 	if money >= amount:
 		money -= amount
 		savings_balance += amount
@@ -421,49 +503,54 @@ func deposit_to_savings(amount: int) -> bool:
 	return false
 
 
-## Withdraw from savings with a 15% early withdrawal penalty.
-## Returns the amount actually received (after penalty), or 0 if insufficient.
-func withdraw_from_savings(amount: int) -> int:
-	if amount <= 0 or savings_balance < amount:
-		return 0
-	var penalty := int(ceil(float(amount) * withdrawal_penalty_rate))
+## Withdraw from savings with early withdrawal penalty. Waived for bank accountant.
+## Returns the amount actually received.
+func withdraw_from_savings(amount: float) -> float:
+	if amount <= 0.0 or savings_balance < amount:
+		return 0.0
+	var penalty := 0.0
+	if active_job != "bank_accountant":
+		penalty = amount * withdrawal_penalty_rate
 	var received := amount - penalty
 	savings_balance -= amount
 	money += received
 	record_transaction("Savings Withdrawal", received, "Transfer")
-	if penalty > 0:
+	if penalty > 0.0:
 		record_transaction("Withdrawal Penalty (%d%%)" % int(round(withdrawal_penalty_rate * 100.0)), -penalty, "Emergency")
-	weekly_report["emergency_usage"] += penalty
+		weekly_report["emergency_usage"] += penalty
 	savings_updated.emit()
 	budget_updated.emit()
-	event_triggered.emit("Withdrew $%d from savings. Lost $%d penalty!" % [amount, penalty])
+	if penalty > 0.0:
+		event_triggered.emit("Withdrew $%.2f from savings. Lost $%.2f penalty!" % [amount, penalty])
+	else:
+		event_triggered.emit("Withdrew $%.2f from savings. Penalty Waived!" % amount)
 	return received
 
 ## Borrow money from the bank. Adds cash on hand, grows loan_balance.
 ## Returns true if the loan was approved.
-func take_loan(amount: int) -> bool:
-	if amount <= 0:
+func take_loan(amount: float) -> bool:
+	if amount <= 0.0:
 		return false
-	if loan_balance + amount > max_loan_amount:
+	if loan_balance + int(amount) > max_loan_amount:
 		return false
-	loan_balance += amount
+	loan_balance += int(amount)
 	money += amount
 	record_transaction("Loan Taken", amount, "Loan")
 	loan_updated.emit()
 	savings_updated.emit()
-	event_triggered.emit("Loan approved: +$%d. You now owe $%d." % [amount, loan_balance])
+	event_triggered.emit("Loan approved: +$%.2f. You now owe $%d." % [amount, loan_balance])
 	return true
 
 
 ## Pay back part of the loan balance from cash on hand.
 ## Returns the amount actually paid.
-func repay_loan(amount: int) -> int:
-	if amount <= 0 or loan_balance <= 0 or money <= 0:
-		return 0
-	var payment: int = int(min(amount, min(money, loan_balance)))
+func repay_loan(amount: float) -> float:
+	if amount <= 0.0 or loan_balance <= 0 or money <= 0.0:
+		return 0.0
+	var payment: float = min(amount, min(money, float(loan_balance)))
 	money -= payment
-	loan_balance -= payment
-	total_spent += payment
+	loan_balance -= int(payment)
+	total_spent += int(payment)
 	record_transaction("Loan Repayment", -payment, "Loan")
 	loan_updated.emit()
 	savings_updated.emit()
@@ -479,12 +566,12 @@ func _apply_weekly_loan_interest() -> void:
 		return
 	loan_balance += interest
 	loan_interest_accrued += interest
-	record_transaction("Loan Interest (%d%%)" % int(round(loan_interest_rate * 100.0)), -interest, "Loan")
+	record_transaction("Loan Interest (%d%%)" % int(round(loan_interest_rate * 100.0)), -float(interest), "Loan")
 	loan_updated.emit()
 	event_triggered.emit("Loan interest charged: +$%d owed." % interest)
 
 
-func check_emergency_fund(cost: int, item_name: String) -> bool:
+func check_emergency_fund(cost: float, item_name: String) -> bool:
 	# Auto-pay from savings if affordable
 	if savings_balance >= cost:
 		savings_balance -= cost
@@ -494,6 +581,71 @@ func check_emergency_fund(cost: int, item_name: String) -> bool:
 		emergency_fund_used.emit(item_name)
 		return true
 	return false
+
+func work_shift() -> void:
+	if active_job == "none":
+		return
+	
+	var pay: float = 0.0
+	var job_name: String = ""
+	
+	if active_job == "news_boy":
+		pay = news_boy_pay
+		job_name = "News Boy"
+	elif active_job == "burger_cashier":
+		pay = burger_cashier_pay
+		job_name = "Burger Cashier"
+		# Benefit: Employee meal (+1 food day supply)
+		food += 1
+		event_triggered.emit("Burger Employee Meal: +1 Food Supply!")
+	elif active_job == "bank_accountant":
+		pay = bank_accountant_pay
+		job_name = "Bank Accountant"
+		# Benefit: interest/penalty handled dynamically in banking logic
+	
+	money += pay
+	days_worked_this_week += 1
+	record_transaction("Work Shift: " + job_name, pay, "Income")
+	event_triggered.emit("Completed work shift! Earned $%.2f" % pay)
+	budget_updated.emit()
+
+func buy_home() -> bool:
+	if money >= house_price:
+		money -= house_price
+		house_owned = true
+		record_transaction("Purchased House", -house_price, "Emergency")
+		event_triggered.emit("CONGRATULATIONS! You have purchased the house and secured a permanent home for Buddy!")
+		return true
+	return false
+
+var active_job_display_name: String:
+	get:
+		match active_job:
+			"news_boy": return "News Boy"
+			"burger_cashier": return "Burger Cashier"
+			"bank_accountant": return "Bank Accountant"
+			_: return "None"
+
+var active_job_benefit_description: String:
+	get:
+		match active_job:
+			"news_boy": return "That free taxi ride benefit will help you get around town."
+			"burger_cashier": return "That employee meal benefit will help feed your buddy."
+			"bank_accountant": return "That bank interest and penalty waiver will keep your savings safe."
+			_: return ""
+
+func trigger_job_selection() -> void:
+	job_selection_requested.emit()
+	# Prevent double spawning of job menu overlay
+	if get_tree():
+		for child in get_tree().root.get_children():
+			if child.name == "JobSelectionMenu" or child.name.begins_with("JobSelectionMenu"):
+				return
+		var job_menu_scene = load("res://scenes/ui/JobSelectionMenu.tscn")
+		if job_menu_scene:
+			var job_menu = job_menu_scene.instantiate()
+			job_menu.name = "JobSelectionMenu"
+			get_tree().root.add_child(job_menu)
 
 func get_budget_status(category: String) -> float:
 	if category in budget_data and budget_data[category]["limit"] > 0:
@@ -511,19 +663,30 @@ func reset_all() -> void:
 	player_name = ""
 	char_body = 1; char_hairstyle = 1; char_outfit = 1; char_eyes = 1; char_accessory = 1
 	uses_component_system = false
+	# Pathways & Jobs
+	selected_pathway = "kid"
+	active_job = "none"
+	work_days_scheduled = 3
+	days_worked_this_week = 0
+	weeks_quota_missed_row = 0
+	weeks_worked_at_current_job = 0
+	fired_jobs_history = []
+	rent_timer = 28
+	monthly_rent = 200.0
+	house_owned = false
 	# Finance
 	money = starting_money
 	savings_balance = starting_savings
 	loan_balance = 0
 	loan_interest_accrued = 0
 	budget_data = {
-		"Food": {"limit": starting_food_budget, "spent": 0},
-		"Vet":  {"limit": starting_vet_budget, "spent": 0},
-		"Travel": {"limit": starting_travel_budget, "spent": 0}
+		"Food": {"limit": starting_food_budget, "spent": 0.0},
+		"Vet":  {"limit": starting_vet_budget, "spent": 0.0},
+		"Travel": {"limit": starting_travel_budget, "spent": 0.0}
 	}
-	weekly_report = {"income": 0, "total_spent": 0, "category_breakdown": {}, "emergency_usage": 0}
+	weekly_report = {"income": 0.0, "total_spent": 0.0, "category_breakdown": {}, "emergency_usage": 0.0}
 	transaction_history = []
-	all_time_spent = 0
+	all_time_spent = 0.0
 	# Supplies / pet
 	food = 0; water = 0; medication = "none"
 	dog_health = 30.0; has_prescription = false
@@ -559,13 +722,13 @@ func initialize_day_one():
 	loan_balance = 0
 	loan_interest_accrued = 0
 	budget_data = {
-		"Food": {"limit": starting_food_budget, "spent": 0},
-		"Vet": {"limit": starting_vet_budget, "spent": 0},
-		"Travel": {"limit": starting_travel_budget, "spent": 0}
+		"Food": {"limit": starting_food_budget, "spent": 0.0},
+		"Vet": {"limit": starting_vet_budget, "spent": 0.0},
+		"Travel": {"limit": starting_travel_budget, "spent": 0.0}
 	}
 	dog_health = 30.0
 	transaction_history = []
-	all_time_spent = 0
+	all_time_spent = 0.0
 
 func save_character(id: int, variant: String):
 	character_id = id
@@ -658,6 +821,17 @@ func save_game(dog_data: Dictionary = {}):
 		"is_tutorial_complete": is_tutorial_complete,
 		"is_day_one": is_day_one,
 		"master_volume": master_volume,
+		# Pathways & Jobs
+		"selected_pathway": selected_pathway,
+		"active_job": active_job,
+		"work_days_scheduled": work_days_scheduled,
+		"days_worked_this_week": days_worked_this_week,
+		"weeks_quota_missed_row": weeks_quota_missed_row,
+		"weeks_worked_at_current_job": weeks_worked_at_current_job,
+		"fired_jobs_history": fired_jobs_history,
+		"rent_timer": rent_timer,
+		"monthly_rent": monthly_rent,
+		"house_owned": house_owned,
 		# Customizable Costs
 		"food_cost": food_cost,
 		"water_cost": water_cost,
@@ -742,8 +916,8 @@ func load_game() -> bool:
 	dog_breed = save_data.get("dog_breed", "Golden_Retriever")
 	pet_name = save_data.get("pet_name", "")
 	player_name = save_data.get("player_name", "")
-	money = save_data.get("money", 150)
-	starting_money = save_data.get("starting_money", 150)
+	money = save_data.get("money", 150.0)
+	starting_money = save_data.get("starting_money", 150.0)
 	current_day = save_data.get("current_day", 0)
 	day_timer = save_data.get("day_timer", 0.0)
 	food = save_data.get("food", 0)
@@ -753,18 +927,30 @@ func load_game() -> bool:
 	is_day_one = save_data.get("is_day_one", true)
 	master_volume = save_data.get("master_volume", 70)
 	
+	# Pathways & Jobs
+	selected_pathway = save_data.get("selected_pathway", "kid")
+	active_job = save_data.get("active_job", "none")
+	work_days_scheduled = save_data.get("work_days_scheduled", 3)
+	days_worked_this_week = save_data.get("days_worked_this_week", 0)
+	weeks_quota_missed_row = save_data.get("weeks_quota_missed_row", 0)
+	weeks_worked_at_current_job = save_data.get("weeks_worked_at_current_job", 0)
+	fired_jobs_history = save_data.get("fired_jobs_history", [])
+	rent_timer = save_data.get("rent_timer", 28)
+	monthly_rent = save_data.get("monthly_rent", 200.0)
+	house_owned = save_data.get("house_owned", false)
+	
 	# Restore Customizable Costs
 	food_cost = save_data.get("food_cost", 20)
 	water_cost = save_data.get("water_cost", 10)
 	medicine_cost = save_data.get("medicine_cost", 40)
 	vet_fee = save_data.get("vet_fee", 50)
 	taxi_cost = save_data.get("taxi_cost", 10)
-	ball_chore = save_data.get("ball_chore", 2)
+	ball_chore = save_data.get("ball_chore", 2.0)
 	
 	# Restore Finance Data
-	savings_balance = save_data.get("savings_balance", 200)
-	starting_savings = save_data.get("starting_savings", 200)
-	weekly_allowance = save_data.get("weekly_allowance", 150)
+	savings_balance = save_data.get("savings_balance", 200.0)
+	starting_savings = save_data.get("starting_savings", 200.0)
+	weekly_allowance = save_data.get("weekly_allowance", 150.0)
 	starting_food_budget = save_data.get("starting_food_budget", 50)
 	starting_vet_budget = save_data.get("starting_vet_budget", 50)
 	starting_travel_budget = save_data.get("starting_travel_budget", 50)
@@ -775,15 +961,15 @@ func load_game() -> bool:
 	loan_balance = save_data.get("loan_balance", 0)
 	loan_interest_accrued = save_data.get("loan_interest_accrued", 0)
 	budget_data = save_data.get("budget_data", {
-		"Food": {"limit": starting_food_budget, "spent": 0},
-		"Vet": {"limit": starting_vet_budget, "spent": 0},
-		"Travel": {"limit": starting_travel_budget, "spent": 0}
+		"Food": {"limit": starting_food_budget, "spent": 0.0},
+		"Vet": {"limit": starting_vet_budget, "spent": 0.0},
+		"Travel": {"limit": starting_travel_budget, "spent": 0.0}
 	})
 	weekly_report = save_data.get("weekly_report", {
-		"income": 0,
-		"total_spent": 0,
+		"income": 0.0,
+		"total_spent": 0.0,
 		"category_breakdown": {},
-		"emergency_usage": 0
+		"emergency_usage": 0.0
 	})
 	transaction_history = save_data.get("transaction_history", [])
 	all_time_spent = save_data.get("all_time_spent", 0)

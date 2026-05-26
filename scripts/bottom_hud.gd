@@ -57,6 +57,11 @@ var _time_label_hovered: bool   = false  # RichTextLabel hover (no scale/font-si
 
 # ── Signal for tutorial system ────────────────────────────────────────────────
 signal supplies_menu_opened
+signal finance_menu_opened
+
+var status_lbl: Label = null
+var work_btn: Button = null
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  LIFECYCLE
@@ -131,8 +136,9 @@ func _process(_delta):
 
 ## Update the money and time labels every frame.
 func update_ui():
-	money_label.text = "$" + str(GameState.money)
+	money_label.text = "$%.2f" % GameState.money
 	_apply_time_label_text()
+	_update_hud_status_label()
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  VISUAL REDESIGN (applied at _ready)
@@ -152,11 +158,21 @@ func _apply_redesign_styling() -> void:
 		bg.self_modulate.a = 1.0
 
 	# Money label — pixel font, green, big.
-	money_label.text = "$" + str(GameState.money)
+	money_label.text = "$%.2f" % GameState.money
 	money_label.add_theme_color_override("font_color", UIColors.BTN_GREEN)
 	money_label.add_theme_font_size_override("font_size", 58)
 	var pf := UITheme.get_pixel_font()
 	if pf: money_label.add_theme_font_override("font", pf)
+
+	# Status Indicator (Work/Rent details)
+	var left_sec = get_node_or_null("Background/Margin/MainHBox/LeftSection")
+	if left_sec:
+		status_lbl = Label.new()
+		status_lbl.name = "StatusLabel"
+		status_lbl.add_theme_color_override("font_color", Color("#FFD700"))
+		status_lbl.add_theme_font_size_override("font_size", 20)
+		if pf: status_lbl.add_theme_font_override("font", pf)
+		left_sec.add_child(status_lbl)
 
 	# Nav buttons — text-only labels per spec (no emoji) + tinted style.
 	supplies_btn.text = "Supplies"
@@ -168,6 +184,63 @@ func _apply_redesign_styling() -> void:
 	UITheme.style_hud_btn(supplies_btn, UIColors.BORDER_BLUE)
 	UITheme.style_hud_btn(needs_btn,    UIColors.BTN_GREEN)
 	UITheme.style_hud_btn(home_btn,     UIColors.WARN_ORANGE)
+
+	# Create Work button for Teen/Adult pathways
+	var right_sec = get_node_or_null("Background/Margin/MainHBox/RightSection")
+	if right_sec:
+		work_btn = Button.new()
+		work_btn.name = "WorkBtn"
+		work_btn.text = "Work"
+		work_btn.add_theme_font_size_override("font_size", 26)
+		work_btn.custom_minimum_size = Vector2(140, 80)
+		UITheme.style_hud_btn(work_btn, Color("#8B0000")) # Dark red / crimson
+		right_sec.add_child(work_btn)
+		work_btn.pressed.connect(_on_work_btn_pressed)
+
+func _update_hud_status_label():
+	if not is_instance_valid(status_lbl):
+		return
+	
+	if GameState.selected_pathway == "kid":
+		status_lbl.text = "Kid Pathway"
+	elif GameState.selected_pathway == "teenager":
+		var job_str = "No Job"
+		if GameState.active_job == "news_boy": job_str = "News Boy"
+		elif GameState.active_job == "burger_cashier": job_str = "Burger Cashier"
+		elif GameState.active_job == "bank_accountant": job_str = "Bank Accountant"
+		status_lbl.text = "Job: %s | Work: %d/3 days" % [job_str, GameState.days_worked_this_week]
+	elif GameState.selected_pathway == "adult":
+		var job_str = "No Job"
+		if GameState.active_job == "news_boy": job_str = "News Boy"
+		elif GameState.active_job == "burger_cashier": job_str = "Burger Cashier"
+		elif GameState.active_job == "bank_accountant": job_str = "Bank Accountant"
+		
+		var rent_str = "Rent Due: %d days" % GameState.rent_timer if not GameState.house_owned else "Home Owned!"
+		status_lbl.text = "Job: %s\nWork: %d/%d days | %s" % [
+			job_str, 
+			GameState.days_worked_this_week, 
+			GameState.work_days_scheduled,
+			rent_str
+		]
+	
+	if is_instance_valid(work_btn):
+		var show_work = GameState.selected_pathway != "kid" and GameState.active_job != "none"
+		var can_work_more = true
+		if GameState.selected_pathway == "teenager" and GameState.days_worked_this_week >= 3:
+			can_work_more = false
+		elif GameState.selected_pathway == "adult" and GameState.days_worked_this_week >= GameState.work_days_scheduled:
+			can_work_more = false
+		
+		work_btn.visible = show_work
+		work_btn.disabled = not can_work_more
+
+func _on_work_btn_pressed():
+	if GameState.active_job == "none":
+		show_notification("You do not have a job yet! Talk to Mother or choose a job first.", CLR_RED)
+		return
+	
+	# Simulate a work shift:
+	GameState.work_shift()
 
 	# Top-right HUD — Finances and Pause both get a dark-blue tinted box.
 	finance_btn.text = "Finances"
@@ -491,6 +564,7 @@ func _on_finance_btn_pressed():
 	get_tree().paused = true
 	var finance_menu = finance_menu_scene.instantiate()
 	add_child(finance_menu)
+	finance_menu_opened.emit()
 	finance_menu.show_menu()
 	finance_menu.menu_closed.connect(func():
 		finance_menu.queue_free()

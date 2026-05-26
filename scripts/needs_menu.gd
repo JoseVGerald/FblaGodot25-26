@@ -66,7 +66,10 @@ func _ready() -> void:
 			bar.custom_minimum_size.y = 24
 	# Wire the close button
 	$PanelContainer/VBoxContainer/TitleHBox/CloseButton.pressed.connect(
-		func() -> void: panel.hide()
+		func() -> void:
+			if GameState.is_day_one and not GameState.is_tutorial_complete:
+				return
+			panel.hide()
 	)
 
 ## Restyle "Needs" title as cyan, stat labels uppercase + dim, close button red compact.
@@ -109,10 +112,14 @@ func _process(delta: float) -> void:
 		update_ui()
 	# Close on cancel or click outside
 	if panel.visible:
-		if Input.is_action_just_pressed("ui_cancel"):
-			panel.hide()
-		elif Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not is_mouse_over_panel():
-			panel.hide()
+		if GameState.is_day_one and not GameState.is_tutorial_complete:
+			# Block manual closing during tutorial (the tutorial controller handles this automatically)
+			pass
+		else:
+			if Input.is_action_just_pressed("ui_cancel"):
+				panel.hide()
+			elif Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not is_mouse_over_panel():
+				panel.hide()
 
 # ── UI update ──────────────────────────────────────────────────────────────────
 

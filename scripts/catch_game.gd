@@ -23,7 +23,7 @@ const FRENZY_THRESHOLD      := 10.0
 const GAME_DURATION         := 40.0
 
 # ── State ──────────────────────────────────────────────────────────────────────
-var round_earnings: int  = 0
+var round_earnings: float  = 0.0
 var session_catches: int = 0
 var game_active:    bool = false
 var show_end_screen: bool = false
@@ -338,7 +338,7 @@ func _process_balls(delta: float) -> void:
 
 func _catch_ball(ball: Dictionary) -> void:
 	round_earnings += GameState.ball_chore
-	popup_list.append({"text": "+$%d" % GameState.ball_chore, "pos": Vector2(ball["pos"]), "time": 1.0})
+	popup_list.append({"text": "+$%.2f" % GameState.ball_chore, "pos": Vector2(ball["pos"]), "time": 1.0})
 	balls.erase(ball)
 	session_catches += 1
 	
@@ -455,7 +455,7 @@ func _draw() -> void:
 	# ── Earnings ──────────────────────────────────────────────────────────────
 	draw_string(ThemeDB.fallback_font,
 		Vector2(arena_rect.position.x, arena_rect.position.y + arena_rect.size.y + 64.0),
-		"Earned: $%d" % round_earnings,
+		"Earned: $%.2f" % round_earnings,
 		HORIZONTAL_ALIGNMENT_CENTER, int(arena_rect.size.x), 40, Color(0.2, 1.0, 0.2))
 
 	# ── Popups ────────────────────────────────────────────────────────────────
@@ -507,7 +507,7 @@ func _draw_end_screen() -> void:
 	draw_rect(pr, Color(0.5, 0.8, 0.5), false, 4.0)
 
 	var font       := ThemeDB.fallback_font
-	var ttxt       := "You earned $%d" % round_earnings
+	var ttxt       := "You earned $%.2f" % round_earnings
 	var tsz        := 72
 	var tw: float  = font.get_string_size(ttxt, HORIZONTAL_ALIGNMENT_LEFT, -1, tsz).x
 	draw_string(font, Vector2(center.x - tw * 0.5, center.y - 40.0),

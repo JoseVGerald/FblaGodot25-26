@@ -1,0 +1,53 @@
+~ kid_step1
+Mother: Hello, sweetie! Look at this little buddy I bought you. I'll explain what the text is later... but for now, you should know that raising a pet is a big responsibility!
+Mother: Everything you need is in your house or in town. You need to keep track of their Hunger, Thirst, and Energy. Let's look at their status: press P or click the needs button to open their Needs!
+=> END
+
+~ kid_step2
+Mother: Ah, look at that! The bars show their current stats. Remember to bring them home to feed them when Hunger or Thirst is low. If they are tired, they need to sleep. If they get sick, you must take them to the Vet!
+Mother: Now, let's check your inventory. Press the Supplies button to see what you have!
+=> END
+
+~ kid_step3
+Mother: We are out of pet food and water! You'll need to buy supplies at the Shop in town. But to buy things, you need money.
+Mother: Let's check your account and budget. Open the Finances menu so we can see how we are doing!
+=> END
+
+~ kid_step4
+Mother: Since you're just a kid, I will take care of the house rent and fund a weekly allowance of ${{GameState.weekly_allowance}} for you! But if you want to earn extra cash for your buddy, you can do chores around the house. If you do the ball fetch chore, I will give you ${{GameState.ball_chore}} for every ball collected!
+Mother: Oh dear, your buddy's health is quite low. I want you to go down the path to the Vet in the bottom-left of town to get a checkup. Go on, I'll be waiting here!
+=> END
+
+
+~ teen_step1
+Mother: Welcome home, dear! I'm glad you're learning to care for your new buddy, but now that you're a teenager, you need to start learning about real-world finances.
+Mother: I can still provide a small weekly allowance of ${{GameState.weekly_allowance}} and cover your rent, but you'll need to earn your own spending money. Let's look at your buddy's status: press P or click the needs button to open their Needs!
+=> END
+
+~ teen_step2
+Mother: You need to keep their Hunger, Thirst, and Energy high, and watch their health. If they are sick, take them to the Vet!
+Mother: Now, let's check your supplies. Press the Supplies button!
+=> END
+
+~ teen_step3
+Mother: No supplies! You'll need to buy kibble and water at the Shop in town. To see how much cash we have, open the Finances menu!
+=> END
+
+~ teen_step4
+Mother: As a teenager, you are old enough to get a part-time job! I've arranged for three different employers in town to offer you shifts. You can work up to 3 days a week.
+Mother: Before we get started, which job would you like to take? Each has its own pay and special benefits!
+do GameState.trigger_job_selection()
+=> END
+
+~ teen_step5
+Mother: {{GameState.active_job_display_name}}? A wonderful choice! {{GameState.active_job_benefit_description}}
+Mother: Now, your buddy's health is low, so follow the path to the Vet for a checkup. Good luck!
+=> END
+
+
+~ mother_idle
+if GameState.selected_pathway == "kid"
+	Mother: Hello sweetie! Chores around the house pay ${{GameState.ball_chore}} per ball. Keep caring for your buddy!
+else
+	Mother: Hello dear! Make sure to complete your scheduled work shifts this week!
+=> END

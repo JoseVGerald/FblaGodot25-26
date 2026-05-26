@@ -91,8 +91,14 @@ func _travel_to(destination: String):
 		_show_taxi_warning("Be near the road to hail a taxi")
 		return
 	var is_vertical_call := _taxi_call_area_is_vertical(call_area)
-	if not GameState.spend_money(GameState.taxi_cost, "Travel"):
-		return
+	var cost = GameState.taxi_cost
+	if GameState.active_job == "news_boy":
+		cost = 0.0
+	if cost > 0.0:
+		if not GameState.spend_money(cost, "Travel"):
+			return
+	else:
+		GameState.record_transaction("Taxi Commute (News Boy Benefit)", 0.0, "Travel")
 	hide_menu()
 
 	# Achievement tracking

@@ -1,352 +1,526 @@
+# CostCustomization.gd -> PathwaySelection.gd
+# Highly polished, adaptive sidebar pathway presets + dynamic cost customization grids.
 extends Control
 
-# Starting values
-@onready var starting_cash_input:    LineEdit = $ScrollContainer/Sections/StartingGrid/StartingCashInput
-@onready var starting_savings_input: LineEdit = $ScrollContainer/Sections/StartingGrid/StartingSavingsInput
-@onready var weekly_allowance_input: LineEdit = $ScrollContainer/Sections/StartingGrid/WeeklyAllowanceInput
+@onready var scroll_container = $ScrollContainer
 
-# Item & service costs
-@onready var food_input:     LineEdit = $ScrollContainer/Sections/CostsGrid/FoodInput
-@onready var water_input:    LineEdit = $ScrollContainer/Sections/CostsGrid/WaterInput
-@onready var medicine_input: LineEdit = $ScrollContainer/Sections/CostsGrid/MedicineInput
-@onready var vet_input:      LineEdit = $ScrollContainer/Sections/CostsGrid/VetInput
-@onready var taxi_input:     LineEdit = $ScrollContainer/Sections/CostsGrid/TaxiInput
-@onready var ball_input:     LineEdit = $ScrollContainer/Sections/CostsGrid/BallInput
+# Inputs references
+@onready var starting_cash_input = $ScrollContainer/Sections/StartingGrid/StartingCashInput
+@onready var starting_savings_input = $ScrollContainer/Sections/StartingGrid/StartingSavingsInput
+@onready var weekly_allowance_input = $ScrollContainer/Sections/StartingGrid/WeeklyAllowanceInput
 
-# Budget limits
-@onready var food_budget_input:   LineEdit = $ScrollContainer/Sections/BudgetGrid/FoodBudgetInput
-@onready var vet_budget_input:    LineEdit = $ScrollContainer/Sections/BudgetGrid/VetBudgetInput
-@onready var travel_budget_input: LineEdit = $ScrollContainer/Sections/BudgetGrid/TravelBudgetInput
+@onready var food_input = $ScrollContainer/Sections/CostsGrid/FoodInput
+@onready var water_input = $ScrollContainer/Sections/CostsGrid/WaterInput
+@onready var medicine_input = $ScrollContainer/Sections/CostsGrid/MedicineInput
+@onready var vet_input = $ScrollContainer/Sections/CostsGrid/VetInput
+@onready var taxi_input = $ScrollContainer/Sections/CostsGrid/TaxiInput
+@onready var ball_input = $ScrollContainer/Sections/CostsGrid/BallInput
 
-# Economy modifiers
-@onready var interest_input:  LineEdit = $ScrollContainer/Sections/ModifiersGrid/InterestInput
-@onready var penalty_input:   LineEdit = $ScrollContainer/Sections/ModifiersGrid/PenaltyInput
-@onready var loan_rate_input: LineEdit = $ScrollContainer/Sections/ModifiersGrid/LoanRateInput
-@onready var max_loan_input:  LineEdit = $ScrollContainer/Sections/ModifiersGrid/MaxLoanInput
+@onready var food_budget_input = $ScrollContainer/Sections/BudgetGrid/FoodBudgetInput
+@onready var vet_budget_input = $ScrollContainer/Sections/BudgetGrid/VetBudgetInput
+@onready var travel_budget_input = $ScrollContainer/Sections/BudgetGrid/TravelBudgetInput
 
-@onready var continue_button: Button = $ButtonContainer/ContinueButton
-@onready var back_button:     Button = $ButtonContainer/BackButton
+@onready var interest_input = $ScrollContainer/Sections/ModifiersGrid/InterestInput
+@onready var penalty_input = $ScrollContainer/Sections/ModifiersGrid/PenaltyInput
+@onready var loan_rate_input = $ScrollContainer/Sections/ModifiersGrid/LoanRateInput
+@onready var max_loan_input = $ScrollContainer/Sections/ModifiersGrid/MaxLoanInput
 
-var _status_label: Label = null
-var _status_tween: Tween = null
-var _preset_buttons: Dictionary = {}
-var _active_preset: String = "medium"
-var _ignore_text_changes: bool = false
+@onready var back_button = $ButtonContainer/BackButton
+@onready var continue_button = $ButtonContainer/ContinueButton
 
-const PRESETS := {
-	"easy": {
-		"starting_cash": 300, "starting_savings": 400, "weekly_allowance": 250,
-		"food": 10, "water": 5, "medicine": 20, "vet": 25, "taxi": 5, "ball": 5,
-		"food_budget": 100, "vet_budget": 100, "travel_budget": 100,
-		"interest": 10, "penalty": 5, "loan_rate": 5, "max_loan": 1000,
-	},
-	"medium": {
-		"starting_cash": 150, "starting_savings": 200, "weekly_allowance": 150,
-		"food": 20, "water": 10, "medicine": 40, "vet": 50, "taxi": 10, "ball": 2,
-		"food_budget": 50, "vet_budget": 50, "travel_budget": 50,
-		"interest": 5, "penalty": 15, "loan_rate": 10, "max_loan": 500,
-	},
-	"hard": {
-		"starting_cash": 75, "starting_savings": 100, "weekly_allowance": 75,
-		"food": 35, "water": 15, "medicine": 60, "vet": 80, "taxi": 20, "ball": 1,
-		"food_budget": 30, "vet_budget": 30, "travel_budget": 30,
-		"interest": 2, "penalty": 25, "loan_rate": 20, "max_loan": 250,
-	},
-}
+# New dynamic grid inputs
+var adult_section_header: Label = null
+var adult_grid: GridContainer = null
+var career_section_header: Label = null
+var career_grid: GridContainer = null
 
-const PRESET_COLORS := {
-	"easy":   Color(0.35, 0.78, 0.35),
-	"medium": Color(0.53, 0.85, 0.98),
-	"hard":   Color(0.95, 0.4, 0.4),
-}
+var rent_input: LineEdit = null
+var house_price_input: LineEdit = null
+var news_boy_input: LineEdit = null
+var burger_cashier_input: LineEdit = null
+var bank_accountant_input: LineEdit = null
+
+var _selected_pathway: String = "kid"
+var pathway_cards: VBoxContainer = null
 
 func _ready() -> void:
 	UITheme.apply_theme(self)
+	
+	# Instantly construct new dynamic grids inside the scroll container
+	setup_new_variables()
+	
+	# Populate values from GameState defaults
+	populate_from_state()
+	
+	# Rearrange the layout into a responsive parent HBoxContainer
+	# This holds ScrollContainer on the left and the Sidebar on the right perfectly, scaling to any screen resolution.
+	setup_layout()
+	
+	# Connect buttons
+	if back_button:
+		back_button.pressed.connect(_on_back_pressed)
+	if continue_button:
+		continue_button.pressed.connect(_on_continue_pressed)
+		UITheme.style_button(continue_button, Color("#4CAF50"))
 
-	_build_preset_selector()
+func setup_layout() -> void:
+	"""Creates a highly responsive HBox layout separating custom grids and preset sidebar."""
+	var main_hbox := HBoxContainer.new()
+	main_hbox.name = "MainHBox"
+	main_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	main_hbox.add_theme_constant_override("separation", 24)
+	
+	# Full stretch matching screen dimensions with margins
+	main_hbox.position = Vector2(40, 165)
+	main_hbox.size = Vector2(1200, 460)
+	main_hbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+	main_hbox.offset_left = 40
+	main_hbox.offset_top = 165
+	main_hbox.offset_right = -40
+	main_hbox.offset_bottom = -110
+	main_hbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	main_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	add_child(main_hbox)
+	
+	# Re-parent the scroll container to left side of HBox
+	if scroll_container:
+		remove_child(scroll_container)
+		main_hbox.add_child(scroll_container)
+		scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll_container.size_flags_stretch_ratio = 2.4
+		scroll_container.show()
+		
+	# Setup Sidebar on the right side of HBox
+	setup_sidebar(main_hbox)
 
-	# Starting values
-	starting_cash_input.text    = str(GameState.starting_money)
-	starting_savings_input.text = str(GameState.starting_savings)
-	weekly_allowance_input.text = str(GameState.weekly_allowance)
+func setup_new_variables() -> void:
+	"""Programmatically adds the new pathway rent/house costs and career day pays inputs."""
+	var sections = $ScrollContainer/Sections
+	if not sections:
+		return
+		
+	var pf := UITheme.get_pixel_font()
+	
+	# HSeparator
+	var sep1 := HSeparator.new()
+	sections.add_child(sep1)
+	
+	# Section Header: Adult Settings
+	adult_section_header = Label.new()
+	adult_section_header.text = "Adult Pathway Settings"
+	adult_section_header.add_theme_font_size_override("font_size", 28)
+	adult_section_header.add_theme_color_override("font_color", Color("#53d8fb"))
+	if pf: adult_section_header.add_theme_font_override("font", pf)
+	sections.add_child(adult_section_header)
+	
+	# Grid: Adult Settings
+	adult_grid = GridContainer.new()
+	adult_grid.columns = 3
+	adult_grid.add_theme_constant_override("h_separation", 20)
+	adult_grid.add_theme_constant_override("v_separation", 12)
+	sections.add_child(adult_grid)
+	
+	# Row 1 Labels
+	var rent_lbl := Label.new()
+	rent_lbl.text = "Monthly Rent"
+	rent_lbl.add_theme_font_size_override("font_size", 22)
+	rent_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	adult_grid.add_child(rent_lbl)
+	
+	var hp_lbl := Label.new()
+	hp_lbl.text = "House Purchase Price"
+	hp_lbl.add_theme_font_size_override("font_size", 22)
+	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	adult_grid.add_child(hp_lbl)
+	
+	var spacer1 := Control.new()
+	adult_grid.add_child(spacer1)
+	
+	# Row 2 LineEdits
+	rent_input = LineEdit.new()
+	rent_input.custom_minimum_size = Vector2(220, 56)
+	rent_input.add_theme_font_size_override("font_size", 28)
+	rent_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	adult_grid.add_child(rent_input)
+	
+	house_price_input = LineEdit.new()
+	house_price_input.custom_minimum_size = Vector2(220, 56)
+	house_price_input.add_theme_font_size_override("font_size", 28)
+	house_price_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	adult_grid.add_child(house_price_input)
+	
+	var spacer2 := Control.new()
+	adult_grid.add_child(spacer2)
+	
+	# HSeparator
+	var sep2 := HSeparator.new()
+	sections.add_child(sep2)
+	
+	# Section Header: Career Settings
+	career_section_header = Label.new()
+	career_section_header.text = "Career Day Pay Settings"
+	career_section_header.add_theme_font_size_override("font_size", 28)
+	career_section_header.add_theme_color_override("font_color", Color("#53d8fb"))
+	if pf: career_section_header.add_theme_font_override("font", pf)
+	sections.add_child(career_section_header)
+	
+	# Grid: Career Settings
+	career_grid = GridContainer.new()
+	career_grid.columns = 3
+	career_grid.add_theme_constant_override("h_separation", 20)
+	career_grid.add_theme_constant_override("v_separation", 12)
+	sections.add_child(career_grid)
+	
+	# Row 1 Labels
+	var nb_lbl := Label.new()
+	nb_lbl.text = "News Boy Day Pay"
+	nb_lbl.add_theme_font_size_override("font_size", 22)
+	nb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	career_grid.add_child(nb_lbl)
+	
+	var bc_lbl := Label.new()
+	bc_lbl.text = "Burger Cashier Day Pay"
+	bc_lbl.add_theme_font_size_override("font_size", 22)
+	bc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	career_grid.add_child(bc_lbl)
+	
+	var ba_lbl := Label.new()
+	ba_lbl.text = "Bank Accountant Day Pay"
+	ba_lbl.add_theme_font_size_override("font_size", 22)
+	ba_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	career_grid.add_child(ba_lbl)
+	
+	# Row 2 LineEdits
+	news_boy_input = LineEdit.new()
+	news_boy_input.custom_minimum_size = Vector2(220, 56)
+	news_boy_input.add_theme_font_size_override("font_size", 28)
+	news_boy_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	career_grid.add_child(news_boy_input)
+	
+	burger_cashier_input = LineEdit.new()
+	burger_cashier_input.custom_minimum_size = Vector2(220, 56)
+	burger_cashier_input.add_theme_font_size_override("font_size", 28)
+	burger_cashier_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	career_grid.add_child(burger_cashier_input)
+	
+	bank_accountant_input = LineEdit.new()
+	bank_accountant_input.custom_minimum_size = Vector2(220, 56)
+	bank_accountant_input.add_theme_font_size_override("font_size", 28)
+	bank_accountant_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	career_grid.add_child(bank_accountant_input)
 
-	# Costs
-	food_input.text     = str(GameState.food_cost)
-	water_input.text    = str(GameState.water_cost)
+func populate_from_state() -> void:
+	"""Prefill inputs based on current GameState values."""
+	starting_cash_input.text = "%.2f" % GameState.starting_money
+	starting_savings_input.text = "%.2f" % GameState.starting_savings
+	weekly_allowance_input.text = "%.2f" % GameState.weekly_allowance
+	
+	food_input.text = str(GameState.food_cost)
+	water_input.text = str(GameState.water_cost)
 	medicine_input.text = str(GameState.medicine_cost)
-	vet_input.text      = str(GameState.vet_fee)
-	taxi_input.text     = str(GameState.taxi_cost)
-	ball_input.text     = str(GameState.ball_chore)
+	vet_input.text = str(GameState.vet_fee)
+	taxi_input.text = str(GameState.taxi_cost)
+	ball_input.text = "%.2f" % GameState.ball_chore
+	
+	food_budget_input.text = str(GameState.budget_data["Food"]["limit"])
+	vet_budget_input.text = str(GameState.budget_data["Vet"]["limit"])
+	travel_budget_input.text = str(GameState.budget_data["Travel"]["limit"])
+	
+	interest_input.text = str(int(GameState.savings_interest_rate * 100))
+	penalty_input.text = str(int(GameState.withdrawal_penalty_rate * 100))
+	loan_rate_input.text = str(int(GameState.loan_interest_rate * 100))
+	max_loan_input.text = str(GameState.max_loan_amount)
+	
+	# New dynamic fields
+	if rent_input:
+		rent_input.text = "%.2f" % GameState.monthly_rent
+	if house_price_input:
+		house_price_input.text = "%.2f" % GameState.house_price
+	if news_boy_input:
+		news_boy_input.text = "%.2f" % GameState.news_boy_pay
+	if burger_cashier_input:
+		burger_cashier_input.text = "%.2f" % GameState.burger_cashier_pay
+	if bank_accountant_input:
+		bank_accountant_input.text = "%.2f" % GameState.bank_accountant_pay
 
-	# Budgets
-	food_budget_input.text   = str(GameState.starting_food_budget)
-	vet_budget_input.text    = str(GameState.starting_vet_budget)
-	travel_budget_input.text = str(GameState.starting_travel_budget)
+func apply_preset(pathway: String) -> void:
+	"""Apply pathway presets to left input fields and dynamically manage visibility."""
+	_selected_pathway = pathway
+	
+	# Update active LineEdit visibilities dynamically
+	_update_field_visibilities(pathway)
+	
+	if pathway == "kid":
+		starting_cash_input.text = "150.00"
+		starting_savings_input.text = "200.00"
+		weekly_allowance_input.text = "100.00"
+		ball_input.text = "0.20"
+	elif pathway == "teenager":
+		starting_cash_input.text = "150.00"
+		starting_savings_input.text = "200.00"
+		weekly_allowance_input.text = "50.00"
+		ball_input.text = "0.20"
+		news_boy_input.text = "10.00"
+		burger_cashier_input.text = "15.00"
+		bank_accountant_input.text = "25.00"
+	elif pathway == "adult":
+		starting_cash_input.text = "150.00"
+		starting_savings_input.text = "200.00"
+		weekly_allowance_input.text = "0.00"
+		ball_input.text = "0.00"
+		rent_input.text = "200.00"
+		house_price_input.text = "1000.00"
+		news_boy_input.text = "10.00"
+		burger_cashier_input.text = "15.00"
+		bank_accountant_input.text = "25.00"
 
-	# Modifiers (stored as floats 0..1, shown as percentages)
-	interest_input.text  = str(int(round(GameState.savings_interest_rate * 100.0)))
-	penalty_input.text   = str(int(round(GameState.withdrawal_penalty_rate * 100.0)))
-	loan_rate_input.text = str(int(round(GameState.loan_interest_rate * 100.0)))
-	max_loan_input.text  = str(GameState.max_loan_amount)
+func _update_field_visibilities(pathway: String) -> void:
+	"""Selectively toggles grid elements so pathway-ineligible variables remain clean and hidden."""
+	var show_allowance := (pathway == "kid" or pathway == "teenager")
+	var show_ball := (pathway == "kid" or pathway == "teenager")
+	var show_adult := (pathway == "adult")
+	var show_career := (pathway == "teenager" or pathway == "adult")
+	
+	# Allowance row cell toggle
+	var allowance_lbl = get_node_or_null("ScrollContainer/Sections/StartingGrid/WeeklyAllowanceLabel")
+	if allowance_lbl: allowance_lbl.visible = show_allowance
+	if weekly_allowance_input: weekly_allowance_input.visible = show_allowance
+	
+	# Chores row cell toggle
+	var ball_lbl = get_node_or_null("ScrollContainer/Sections/CostsGrid/BallLabel")
+	if ball_lbl: ball_lbl.visible = show_ball
+	if ball_input: ball_input.visible = show_ball
+	
+	# Adult Settings row toggle
+	if adult_section_header: adult_section_header.visible = show_adult
+	if adult_grid: adult_grid.visible = show_adult
+	
+	# Career Settings row toggle
+	if career_section_header: career_section_header.visible = show_career
+	if career_grid: career_grid.visible = show_career
 
-	_detect_initial_preset()
+func setup_sidebar(parent_hbox: HBoxContainer) -> void:
+	"""Build a highly scaled-up sidebar panel on the right side of the main HBox."""
+	var sidebar := PanelContainer.new()
+	sidebar.name = "Sidebar"
+	sidebar.custom_minimum_size = Vector2(680, 0) # 3x scaled and wide!
+	sidebar.size_flags_horizontal = Control.SIZE_SHRINK_END
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("#111a30")
+	sb.border_color = Color("#22335c")
+	sb.border_width_bottom = 4
+	sb.border_width_top = 4
+	sb.border_width_left = 4
+	sb.border_width_right = 4
+	sb.set_corner_radius_all(18)
+	sb.set_content_margin_all(20)
+	sidebar.add_theme_stylebox_override("panel", sb)
+	parent_hbox.add_child(sidebar)
+	
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 24)
+	sidebar.add_child(vbox)
+	
+	var title := Label.new()
+	title.text = "SELECT PATHWAY"
+	title.add_theme_font_size_override("font_size", 44) # 3x scaled!
+	title.add_theme_color_override("font_color", Color("#53d8fb"))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var pf := UITheme.get_pixel_font()
+	if pf: title.add_theme_font_override("font", pf)
+	vbox.add_child(title)
+	
+	pathway_cards = VBoxContainer.new()
+	pathway_cards.add_theme_constant_override("separation", 18)
+	vbox.add_child(pathway_cards)
+	
+	_create_sidebar_card(pathway_cards, "kid", "👶 Kid Pathway", "Allow: $100\nChore: $0.20\nRent: Free", Color("#4CAF50"))
+	_create_sidebar_card(pathway_cards, "teenager", "🎒 Teenager", "Allow: $50\nChore: $0.20\nRent: Free\nJobs: Part-Time", Color("#FFA726"))
+	_create_sidebar_card(pathway_cards, "adult", "💼 Adult", "Allow: $0\nRent: $200\nJobs: Full-Time\nGoal: Buy Home", Color("#EF5350"))
+	
+	# Select Kid by default
+	call_deferred("_select_default")
 
-	continue_button.pressed.connect(_on_continue_pressed)
-	back_button.pressed.connect(_on_back_pressed)
+func _select_default() -> void:
+	if pathway_cards and pathway_cards.get_child_count() > 0:
+		var first_card = pathway_cards.get_child(0)
+		var btn = first_card.find_child("SelectBtn", true, false) as Button
+		if btn:
+			btn.pressed.emit()
 
-	_wire_numeric_validation()
-	_setup_status_label()
-
-	starting_cash_input.grab_focus()
-
-func _build_preset_selector() -> void:
-	var container := VBoxContainer.new()
-	container.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-	container.offset_left = -825
-	container.offset_right = -595
-	container.offset_top = 310
-	container.offset_bottom = -245
-	container.add_theme_constant_override("separation", 14)
-
-	var label := Label.new()
-	label.text = "Difficulty"
-	label.add_theme_font_size_override("font_size", 66)
-	var font := UITheme.get_pixel_font()
-	if font: label.add_theme_font_override("font", font)
-	label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	container.add_child(label)
-
-	for key in ["easy", "medium", "hard"]:
-		var btn := Button.new()
-		btn.text = key.capitalize()
-		btn.custom_minimum_size = Vector2(220, 80)
-		btn.add_theme_font_size_override("font_size", 44)
-		if font: btn.add_theme_font_override("font", font)
-		btn.pressed.connect(_on_preset_selected.bind(key))
-		container.add_child(btn)
-		_preset_buttons[key] = btn
-
-	add_child(container)
-	_update_preset_button_styles()
-
-func _on_preset_selected(key: String) -> void:
-	_active_preset = key
-	var p: Dictionary = PRESETS[key]
-	_ignore_text_changes = true
-
-	starting_cash_input.text    = str(p["starting_cash"])
-	starting_savings_input.text = str(p["starting_savings"])
-	weekly_allowance_input.text = str(p["weekly_allowance"])
-
-	food_input.text     = str(p["food"])
-	water_input.text    = str(p["water"])
-	medicine_input.text = str(p["medicine"])
-	vet_input.text      = str(p["vet"])
-	taxi_input.text     = str(p["taxi"])
-	ball_input.text     = str(p["ball"])
-
-	food_budget_input.text   = str(p["food_budget"])
-	vet_budget_input.text    = str(p["vet_budget"])
-	travel_budget_input.text = str(p["travel_budget"])
-
-	interest_input.text  = str(p["interest"])
-	penalty_input.text   = str(p["penalty"])
-	loan_rate_input.text = str(p["loan_rate"])
-	max_loan_input.text  = str(p["max_loan"])
-
-	_ignore_text_changes = false
-	_update_preset_button_styles()
-	_show_status(key.capitalize() + " preset applied")
-
-func _detect_initial_preset() -> void:
-	for key in PRESETS:
-		if _current_values_match(key):
-			_active_preset = key
-			_update_preset_button_styles()
-			return
-	_active_preset = "custom"
-	_update_preset_button_styles()
-
-func _current_values_match(key: String) -> bool:
-	var p: Dictionary = PRESETS[key]
-	return (
-		starting_cash_input.text == str(p["starting_cash"]) and
-		starting_savings_input.text == str(p["starting_savings"]) and
-		weekly_allowance_input.text == str(p["weekly_allowance"]) and
-		food_input.text == str(p["food"]) and
-		water_input.text == str(p["water"]) and
-		medicine_input.text == str(p["medicine"]) and
-		vet_input.text == str(p["vet"]) and
-		taxi_input.text == str(p["taxi"]) and
-		ball_input.text == str(p["ball"]) and
-		food_budget_input.text == str(p["food_budget"]) and
-		vet_budget_input.text == str(p["vet_budget"]) and
-		travel_budget_input.text == str(p["travel_budget"]) and
-		interest_input.text == str(p["interest"]) and
-		penalty_input.text == str(p["penalty"]) and
-		loan_rate_input.text == str(p["loan_rate"]) and
-		max_loan_input.text == str(p["max_loan"])
+func _create_sidebar_card(parent: Control, id: String, title_text: String, stats: String, accent_color: Color) -> void:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(620, 240) # 3x scaled!
+	panel.set_meta("pathway_id", id)
+	panel.set_meta("accent_color", accent_color)
+	panel.set_meta("base_title", title_text)
+	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("#182645")
+	sb.border_color = Color("#22335c")
+	sb.border_width_bottom = 4
+	sb.border_width_top = 4
+	sb.border_width_left = 4
+	sb.border_width_right = 4
+	sb.set_corner_radius_all(15)
+	sb.set_content_margin_all(20)
+	panel.add_theme_stylebox_override("panel", sb)
+	parent.add_child(panel)
+	
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	vbox.mouse_filter = Control.MOUSE_FILTER_PASS
+	panel.add_child(vbox)
+	
+	var title_btn := Button.new()
+	title_btn.name = "SelectBtn"
+	title_btn.text = title_text
+	title_btn.flat = true
+	title_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	title_btn.add_theme_color_override("font_color", accent_color)
+	title_btn.add_theme_font_size_override("font_size", 34) # 3x scaled!
+	title_btn.mouse_filter = Control.MOUSE_FILTER_PASS
+	var pf := UITheme.get_pixel_font()
+	if pf: title_btn.add_theme_font_override("font", pf)
+	vbox.add_child(title_btn)
+	
+	var stats_lbl := Label.new()
+	stats_lbl.text = stats
+	stats_lbl.add_theme_font_size_override("font_size", 24) # 3x scaled!
+	stats_lbl.add_theme_color_override("font_color", Color("#a0b2d6"))
+	stats_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
+	vbox.add_child(stats_lbl)
+	
+	# Selection logic extracted so both the button and the panel can trigger it
+	var do_select := func():
+		apply_preset(id)
+		
+		# Reset all cards to normal thin borders
+		for child in parent.get_children():
+			var card_id = child.get_meta("pathway_id")
+			var card_accent = child.get_meta("accent_color")
+			var card_base_title = child.get_meta("base_title")
+			var child_sb = child.get_theme_stylebox("panel") as StyleBoxFlat
+			var child_btn = child.find_child("SelectBtn", true, false) as Button
+			
+			if child_sb:
+				if card_id == id:
+					# Thicker border (12px) + custom tinted background of that pathway's theme color!
+					child_sb.bg_color = card_accent.darkened(0.85)
+					child_sb.border_color = card_accent
+					child_sb.border_width_bottom = 12
+					child_sb.border_width_top = 12
+					child_sb.border_width_left = 12
+					child_sb.border_width_right = 12
+					
+					if child_btn:
+						child_btn.text = "✓ " + card_base_title
+						child_btn.add_theme_color_override("font_color", Color.WHITE)
+				else:
+					# Reset thin borders (4px)
+					child_sb.bg_color = Color("#182645")
+					child_sb.border_color = Color("#22335c")
+					child_sb.border_width_bottom = 4
+					child_sb.border_width_top = 4
+					child_sb.border_width_left = 4
+					child_sb.border_width_right = 4
+					
+					if child_btn:
+						child_btn.text = card_base_title
+						child_btn.add_theme_color_override("font_color", card_accent)
+	
+	# Click the title button text — fires selection
+	title_btn.pressed.connect(do_select)
+	
+	# Click ANYWHERE on the card panel — also fires selection
+	panel.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			do_select.call()
 	)
 
-func _update_preset_button_styles() -> void:
-	for key in _preset_buttons:
-		var btn: Button = _preset_buttons[key]
-		var is_active: bool = (key == _active_preset)
-		var color: Color = PRESET_COLORS[key]
-		var sb := StyleBoxFlat.new()
-		sb.set_corner_radius_all(12)
-		sb.content_margin_left = 16
-		sb.content_margin_right = 16
-		sb.content_margin_top = 12
-		sb.content_margin_bottom = 12
-		if is_active:
-			sb.bg_color = color
-			btn.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
-		else:
-			sb.bg_color = Color(0.2, 0.22, 0.2)
-			sb.border_width_bottom = 2
-			sb.border_width_top = 2
-			sb.border_width_left = 2
-			sb.border_width_right = 2
-			sb.border_color = color.darkened(0.3)
-			btn.add_theme_color_override("font_color", color.darkened(0.1))
-		btn.add_theme_stylebox_override("normal", sb)
-		var hover_sb := sb.duplicate()
-		if is_active:
-			hover_sb.bg_color = color.lightened(0.1)
-		else:
-			hover_sb.bg_color = Color(0.28, 0.3, 0.28)
-		btn.add_theme_stylebox_override("hover", hover_sb)
-		btn.add_theme_stylebox_override("pressed", sb)
-		btn.add_theme_stylebox_override("focus", sb)
-
-func _check_preset_after_edit() -> void:
-	if _ignore_text_changes:
-		return
-	for key in PRESETS:
-		if _current_values_match(key):
-			_active_preset = key
-			_update_preset_button_styles()
-			return
-	if _active_preset != "custom":
-		_active_preset = "custom"
-		_update_preset_button_styles()
-
-func _all_money_inputs() -> Array:
-	return [starting_cash_input, starting_savings_input, weekly_allowance_input,
-		food_input, water_input, medicine_input, vet_input, taxi_input, ball_input,
-		food_budget_input, vet_budget_input, travel_budget_input,
-		interest_input, penalty_input, loan_rate_input, max_loan_input]
-
-func _wire_numeric_validation() -> void:
-	for inp in _all_money_inputs():
-		if inp:
-			inp.text_changed.connect(_on_money_text_changed.bind(inp))
-
-func _on_money_text_changed(new_text: String, inp: LineEdit) -> void:
-	if new_text.strip_edges() == "":
-		_check_preset_after_edit()
-		return
-	if not _is_valid_money(new_text):
-		inp.text = ""
-		inp.caret_column = 0
-		_show_status("Only numbers and decimals allowed")
-	_check_preset_after_edit()
-
-func _is_valid_money(s: String) -> bool:
-	var t := s.strip_edges().lstrip("$").rstrip("%").strip_edges()
-	if t == "":
-		return true
-	var dots := 0
-	for c in t:
-		if c == ".":
-			dots += 1
-			if dots > 1: return false
-		elif c < "0" or c > "9":
-			return false
-	return true
-
-func _setup_status_label() -> void:
-	_status_label = Label.new()
-	_status_label.add_theme_font_size_override("font_size", 28)
-	_status_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
-	_status_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
-	_status_label.add_theme_constant_override("shadow_offset_x", 2)
-	_status_label.add_theme_constant_override("shadow_offset_y", 2)
-	var font := UITheme.get_pixel_font()
-	if font: _status_label.add_theme_font_override("font", font)
-	_status_label.modulate.a = 0.0
-	_status_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_status_label.offset_left = 24
-	_status_label.offset_bottom = -24
-	_status_label.offset_top = -70
-	_status_label.offset_right = 800
-	add_child(_status_label)
-
-func _show_status(text: String) -> void:
-	if not _status_label: return
-	_status_label.text = text
-	if _status_tween and _status_tween.is_valid():
-		_status_tween.kill()
-	_status_label.modulate.a = 1.0
-	_status_tween = create_tween()
-	_status_tween.tween_interval(2.5)
-	_status_tween.tween_property(_status_label, "modulate:a", 0.0, 0.5)
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-			_on_continue_pressed()
+func _on_back_pressed() -> void:
+	SceneManager.change_scene("res://scenes/ui/MainMenu.tscn", {"pattern": "curtains"})
 
 func _on_continue_pressed() -> void:
-	# Starting values
-	GameState.starting_money   = _parse_int(starting_cash_input.text,    GameState.starting_money)
-	GameState.starting_savings = _parse_int(starting_savings_input.text, GameState.starting_savings)
-	GameState.weekly_allowance = _parse_int(weekly_allowance_input.text, GameState.weekly_allowance)
-
-	# Costs
-	GameState.food_cost     = _parse_int(food_input.text,     GameState.food_cost)
-	GameState.water_cost    = _parse_int(water_input.text,    GameState.water_cost)
-	GameState.medicine_cost = _parse_int(medicine_input.text, GameState.medicine_cost)
-	GameState.vet_fee       = _parse_int(vet_input.text,      GameState.vet_fee)
-	GameState.taxi_cost     = _parse_int(taxi_input.text,     GameState.taxi_cost)
-	GameState.ball_chore    = _parse_int(ball_input.text,     GameState.ball_chore)
-
-	# Budget limits
-	GameState.starting_food_budget   = _parse_int(food_budget_input.text,   GameState.starting_food_budget)
-	GameState.starting_vet_budget    = _parse_int(vet_budget_input.text,    GameState.starting_vet_budget)
-	GameState.starting_travel_budget = _parse_int(travel_budget_input.text, GameState.starting_travel_budget)
-	# Apply immediately so the live budget matches new starts
-	GameState.budget_data["Food"]["limit"]   = GameState.starting_food_budget
-	GameState.budget_data["Vet"]["limit"]    = GameState.starting_vet_budget
-	GameState.budget_data["Travel"]["limit"] = GameState.starting_travel_budget
-
-	# Modifiers — percentage inputs clamped to sane ranges, loans/max as ints
-	GameState.savings_interest_rate   = _parse_percent(interest_input.text,  GameState.savings_interest_rate)
-	GameState.withdrawal_penalty_rate = _parse_percent(penalty_input.text,   GameState.withdrawal_penalty_rate)
-	GameState.loan_interest_rate      = _parse_percent(loan_rate_input.text, GameState.loan_interest_rate)
-	GameState.max_loan_amount         = _parse_int(max_loan_input.text,      GameState.max_loan_amount)
-
+	# Parse inputs safely
+	var starting_cash := float(starting_cash_input.text)
+	var starting_savings := float(starting_savings_input.text)
+	var allowance := float(weekly_allowance_input.text) if weekly_allowance_input.visible else 0.0
+	
+	var food_c := int(food_input.text)
+	var water_c := int(water_input.text)
+	var med_c := int(medicine_input.text)
+	var vet_f := int(vet_input.text)
+	var taxi_c := int(taxi_input.text)
+	var ball_c := float(ball_input.text) if ball_input.visible else 0.0
+	
+	var food_b := int(food_budget_input.text)
+	var vet_b := int(vet_budget_input.text)
+	var travel_b := int(travel_budget_input.text)
+	
+	var interest_r := float(interest_input.text) / 100.0
+	var penalty_r := float(penalty_input.text) / 100.0
+	var loan_r := float(loan_rate_input.text) / 100.0
+	var max_loan := int(max_loan_input.text)
+	
+	# New pathway inputs
+	var monthly_rent := GameState.monthly_rent
+	var house_price := GameState.house_price
+	var news_boy_pay := GameState.news_boy_pay
+	var burger_pay := GameState.burger_cashier_pay
+	var bank_pay := GameState.bank_accountant_pay
+	
+	if rent_input and rent_input.visible and not rent_input.text.is_empty():
+		monthly_rent = float(rent_input.text)
+	if house_price_input and house_price_input.visible and not house_price_input.text.is_empty():
+		house_price = float(house_price_input.text)
+	if news_boy_input and news_boy_input.visible and not news_boy_input.text.is_empty():
+		news_boy_pay = float(news_boy_input.text)
+	if burger_cashier_input and burger_cashier_input.visible and not burger_cashier_input.text.is_empty():
+		burger_pay = float(burger_cashier_input.text)
+	if bank_accountant_input and bank_accountant_input.visible and not bank_accountant_input.text.is_empty():
+		bank_pay = float(bank_accountant_input.text)
+	
+	# Apply to GameState variables
+	GameState.selected_pathway = _selected_pathway
+	GameState.starting_money = starting_cash
+	GameState.starting_savings = starting_savings
+	GameState.weekly_allowance = allowance
+	
+	GameState.food_cost = food_c
+	GameState.water_cost = water_c
+	GameState.medicine_cost = med_c
+	GameState.vet_fee = vet_f
+	GameState.taxi_cost = taxi_c
+	GameState.ball_chore = ball_c
+	
+	GameState.budget_data["Food"]["limit"] = food_b
+	GameState.budget_data["Vet"]["limit"] = vet_b
+	GameState.budget_data["Travel"]["limit"] = travel_b
+	
+	GameState.savings_interest_rate = interest_r
+	GameState.withdrawal_penalty_rate = penalty_r
+	GameState.loan_interest_rate = loan_r
+	GameState.max_loan_amount = max_loan
+	
+	# Dynamic pathway/career values
+	GameState.monthly_rent = monthly_rent
+	GameState.house_price = house_price
+	GameState.news_boy_pay = news_boy_pay
+	GameState.burger_cashier_pay = burger_pay
+	GameState.bank_accountant_pay = bank_pay
+	
+	# Reset state balances
+	GameState.money = starting_cash
+	GameState.savings_balance = starting_savings
+	
+	# Reset career/rent
+	GameState.active_job = "none"
+	if _selected_pathway == "adult":
+		GameState.rent_timer = 28
+		GameState.house_owned = false
+	
+	print("[CostCustomization] Configured Pathway: ", _selected_pathway)
 	SceneManager.change_scene("res://scenes/ui/ConfirmSelection.tscn", {"pattern": "curtains"})
-
-func _on_back_pressed() -> void:
-	SceneManager.change_scene("res://scenes/ui/PetName.tscn", {"pattern": "curtains"})
-
-func _parse_int(text: String, default_value: int) -> int:
-	var stripped := text.strip_edges().lstrip("$").strip_edges()
-	if stripped.is_valid_int():
-		return max(0, int(stripped))
-	return default_value
-
-## Parse a percentage input (e.g. "5" or "5%") and return it as a 0..1 fraction.
-## Clamped to [0, 1] so a 120% penalty can't wipe the player out.
-func _parse_percent(text: String, default_value: float) -> float:
-	var stripped := text.strip_edges().rstrip("%").strip_edges()
-	if stripped.is_valid_int():
-		return clamp(float(int(stripped)) / 100.0, 0.0, 1.0)
-	if stripped.is_valid_float():
-		return clamp(float(stripped) / 100.0, 0.0, 1.0)
-	return default_value
-
-# Updated on 2026-04-19

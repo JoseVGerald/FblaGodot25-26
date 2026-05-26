@@ -30,6 +30,10 @@ func _ready() -> void:
 	# Ensure player collides with everything
 	collision_mask = 1
 	collision_layer = 1
+	
+	if GameState.selected_pathway in ["kid", "teenager"]:
+		last_dir = Vector2.RIGHT
+		_play_idle_anim()
 
 
 func _physics_process(_delta: float) -> void:
