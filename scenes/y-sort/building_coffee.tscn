@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=4 uid="uid://cq1a64b5y4fwe"]
+[gd_scene load_steps=2 format=4 uid="uid://cq1a64b5y4fwe"]
 
 [ext_resource type="TileSet" uid="uid://bha34kyteah5p" path="res://scenes/maps/map (3) (1)/Map_MAIN_TILESET.tres" id="1_b3a3f"]
 
@@ -8,7 +8,7 @@ radius = 33.06055
 [node name="Building_Coffee" type="StaticBody2D"]
 
 [node name="TileMap" type="TileMap" parent="."]
-position = Vector2(-0.5, 0)
+position = Vector2(0, 0)
 tile_set = ExtResource("1_b3a3f")
 collision_animatable = false
 collision_visibility_mode = 1

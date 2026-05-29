@@ -1,11 +1,11 @@
-[gd_scene load_steps=2 format=4 uid="uid://8ddpxy4tn5xo"]
+[gd_scene load_steps=1 format=4 uid="uid://8ddpxy4tn5xo"]
 
 [ext_resource type="TileSet" uid="uid://bha34kyteah5p" path="res://scenes/maps/map (3) (1)/Map_MAIN_TILESET.tres" id="1_ajqjk"]
 
 [node name="Building_Greenhouse" type="StaticBody2D"]
 
 [node name="TileMap" type="TileMap" parent="."]
-position = Vector2(-0.5, 0)
+position = Vector2(0, 0)
 tile_set = ExtResource("1_ajqjk")
 collision_animatable = false
 collision_visibility_mode = 1
