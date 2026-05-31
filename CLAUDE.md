@@ -28,6 +28,12 @@ Work through them **in the order listed** — each builds on shared helpers esta
 - All pixel-font text uses `UITheme.get_pixel_font()` (loads `assets/fonts/Minecraft.ttf`).
 - Labels containing emoji skip the pixel font — UITheme already handles this.
 
+## Motion design skill
+For any UI animation, transitions, or loading screens, invoke the **Emil Kowalski skill** first:
+- Skill is installed at `.agents/skills/emil-design-eng/`
+- To reinstall: `npx skills add emilkowalski/skill`
+- Key rules in Godot: ease-out for entering elements, linear for constant motion (progress bars), stagger groups 150–200ms apart, exit animations faster than entrances (200ms ease-in).
+
 ## Model recommendation
 Use **claude-opus-4-5** with **extended thinking (budget ≥ 8000 tokens)** for each step.
 The extra reasoning budget prevents shortcuts on the StyleBoxFlat wiring and scene tree structure.

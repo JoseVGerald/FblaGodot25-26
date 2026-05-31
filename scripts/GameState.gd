@@ -187,6 +187,9 @@ var weekly_spend_at_reset: int = 0   # snapshot at week start, for Tightwad
 # Hat-type accessory indices (1-based, matching CharacterAssets)
 const HAT_ACCESSORY_INDICES: Array = [4, 5, 6, 7, 8, 11, 18, 19]
 
+# Preloaded scenes (populated by LoadingScreen before MainMenu)
+var preloaded_map: PackedScene = null
+
 # Catch minigame
 var catch_played_today: bool = false
 var catch_last_played_day: int = -1
