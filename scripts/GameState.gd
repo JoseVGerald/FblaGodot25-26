@@ -24,7 +24,8 @@ var money: float = 150.0
 var starting_money: float = 150.0
 
 # Pathway & Job properties
-var selected_pathway: String = "kid"       # "kid", "teenager", "adult"
+var selected_pathway: String = "kid"       # always "kid" — pathway selection removed
+var difficulty: String = "medium"          # "easy", "medium", "hard"
 var active_job: String = "none":
 	set(val):
 		if val != active_job:
@@ -668,6 +669,7 @@ func reset_all() -> void:
 	uses_component_system = false
 	# Pathways & Jobs
 	selected_pathway = "kid"
+	difficulty = "medium"
 	active_job = "none"
 	work_days_scheduled = 3
 	days_worked_this_week = 0
@@ -826,6 +828,7 @@ func save_game(dog_data: Dictionary = {}):
 		"master_volume": master_volume,
 		# Pathways & Jobs
 		"selected_pathway": selected_pathway,
+		"difficulty": difficulty,
 		"active_job": active_job,
 		"work_days_scheduled": work_days_scheduled,
 		"days_worked_this_week": days_worked_this_week,
@@ -931,7 +934,8 @@ func load_game() -> bool:
 	master_volume = save_data.get("master_volume", 70)
 	
 	# Pathways & Jobs
-	selected_pathway = save_data.get("selected_pathway", "kid")
+	selected_pathway = "kid"
+	difficulty = save_data.get("difficulty", "medium")
 	active_job = save_data.get("active_job", "none")
 	work_days_scheduled = save_data.get("work_days_scheduled", 3)
 	days_worked_this_week = save_data.get("days_worked_this_week", 0)
