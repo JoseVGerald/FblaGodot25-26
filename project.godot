@@ -26,6 +26,7 @@ NotificationCenter="*res://scripts/NotificationCenter.gd"
 SceneManager="*uid://j20v4cg7v8m1"
 Npc="*res://scripts/npc.gd"
 DialogueManager="*res://addons/dialogue_manager/dialogue_manager.gd"
+ZSortManager="*res://scripts/ZSortManager.gd"
 
 [display]
 

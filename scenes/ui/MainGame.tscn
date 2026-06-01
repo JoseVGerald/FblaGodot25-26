@@ -95,20 +95,25 @@ size = Vector2(57.3125, 56)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mu1ml"]
 size = Vector2(99.3125, 60)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mrp28"]
+size = Vector2(64, 119)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qdo6g"]
+size = Vector2(122, 76)
+
 [node name="MainGame" type="Node2D" unique_id=2141790877]
 y_sort_enabled = true
 script = ExtResource("1_maingame")
 
 [node name="Background" type="ColorRect" parent="." unique_id=230480670]
-offset_left = -7182.0
-offset_top = -3797.0
-offset_right = 7313.0
-offset_bottom = 5869.0
+offset_left = -4528.0
+offset_top = -5488.0
+offset_right = 5066.0
+offset_bottom = 5248.0
 mouse_filter = 2
 color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
 
 [node name="world" parent="." unique_id=1163188942 instance=ExtResource("2_utfc0")]
-y_sort_enabled = true
 position = Vector2(-733, -298)
 
 [node name="Shop" parent="." unique_id=906636356 groups=["buildings"] instance=ExtResource("3_rl3lx")]
@@ -406,3 +411,68 @@ polygon = PackedVector2Array(-103, -1007, 285, -1003, 287, -769, -98, -772)
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1380951137]
 build_mode = 1
 polygon = PackedVector2Array(2666, 2885, 2664, -175, -716, -179, -714, 2912)
+
+[node name="car" type="StaticBody2D" parent="." unique_id=1700104572]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car" unique_id=732852580]
+position = Vector2(32, 629.5)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car2" type="StaticBody2D" parent="." unique_id=1947795465]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car2" unique_id=1253516435]
+position = Vector2(287, 628)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car3" type="StaticBody2D" parent="." unique_id=1616270317]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car3" unique_id=983196485]
+position = Vector2(549, 634)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car4" type="StaticBody2D" parent="." unique_id=551665936]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car4" unique_id=1970751629]
+position = Vector2(798, 627)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car5" type="StaticBody2D" parent="." unique_id=861644343]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car5" unique_id=17954142]
+position = Vector2(32, 283)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car6" type="StaticBody2D" parent="." unique_id=1334164586]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car6" unique_id=318925534]
+position = Vector2(292, 286)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car7" type="StaticBody2D" parent="." unique_id=483418591]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car7" unique_id=1089201883]
+position = Vector2(549, 278)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car8" type="StaticBody2D" parent="." unique_id=1014891757]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car8" unique_id=697128304]
+position = Vector2(803, 273)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="car9" type="StaticBody2D" parent="." unique_id=55570564]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car9" unique_id=870050185]
+position = Vector2(1052, 276)
+shape = SubResource("RectangleShape2D_mrp28")
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="." unique_id=1481552598]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D2" unique_id=1148346141]
+polygon = PackedVector2Array(1409, 649, 1415, 779, 1546, 708, 1663, 721, 1656, 767, 1843, 748, 1963, 707, 2036, 649, 2081, 548, 2142, 414, 2106, 271, 2024, 179, 1867, 141, 1629, 157, 1502, 121, 1436, 66, 1371, 38, 1306, -12, 1319, -147, 2219, -134, 2192, 975, 1447, 908, 1398, 792)
+
+[node name="car10" type="StaticBody2D" parent="." unique_id=1488347226]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="car10" unique_id=46862139]
+position = Vector2(-158, 367)
+shape = SubResource("RectangleShape2D_qdo6g")
