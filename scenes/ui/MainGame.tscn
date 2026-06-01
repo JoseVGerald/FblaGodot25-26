@@ -96,6 +96,7 @@ size = Vector2(57.3125, 56)
 size = Vector2(99.3125, 60)
 
 [node name="MainGame" type="Node2D" unique_id=2141790877]
+y_sort_enabled = true
 script = ExtResource("1_maingame")
 
 [node name="Background" type="ColorRect" parent="." unique_id=230480670]
@@ -107,6 +108,7 @@ mouse_filter = 2
 color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
 
 [node name="world" parent="." unique_id=1163188942 instance=ExtResource("2_utfc0")]
+y_sort_enabled = true
 position = Vector2(-733, -298)
 
 [node name="Shop" parent="." unique_id=906636356 groups=["buildings"] instance=ExtResource("3_rl3lx")]
