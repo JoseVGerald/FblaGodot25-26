@@ -119,8 +119,8 @@ func _build_ui() -> void:
 	title.text = "CHARACTER CREATOR"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 52)
-	title.add_theme_color_override("font_color", Color.WHITE)
-	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.5))
+	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	title.add_theme_color_override("font_shadow_color", UITheme.CLR_CREAM_LT)
 	title.add_theme_constant_override("shadow_offset_x", 3)
 	title.add_theme_constant_override("shadow_offset_y", 3)
 	if pixel_font:
@@ -220,7 +220,7 @@ func _build_left_panel() -> VBoxContainer:
 	direction_label = Label.new()
 	direction_label.text = DIRECTION_LABELS[active_direction]
 	direction_label.add_theme_font_size_override("font_size", 28)
-	direction_label.add_theme_color_override("font_color", Color.WHITE)
+	direction_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	direction_label.custom_minimum_size.x = 140
 	direction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pixel_font:
@@ -257,8 +257,9 @@ func _build_mini_direction_preview(direction: String) -> Control:
 	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var hsb := StyleBoxFlat.new()
 	hsb.bg_color = Color(0, 0, 0, 0)
-	hsb.border_color = Color(0.92, 0.78, 0.12) if direction == active_direction else Color(0, 0, 0, 0)
-	hsb.set_border_width_all(2)
+	hsb.border_color = UITheme.CLR_ORANGE_PX if direction == active_direction else Color(0, 0, 0, 0)
+	hsb.set_border_width_all(4)
+	hsb.set_corner_radius_all(0)
 	highlight.add_theme_stylebox_override("panel", hsb)
 	mini.add_child(highlight)
 	mini.set_meta("highlight_panel", highlight)
@@ -314,10 +315,10 @@ func _create_tab_button(category: String) -> Button:
 		btn.add_theme_font_override("font", pixel_font)
 
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.42, 0.48, 0.54)
-	sb.border_color = Color(0.32, 0.36, 0.40)
+	sb.bg_color = UITheme.CLR_CREAM_LT
+	sb.border_color = UITheme.CLR_INK
 	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(4)
+	sb.set_corner_radius_all(0)
 	sb.content_margin_left = 10
 	sb.content_margin_right = 10
 	sb.content_margin_top = 6
@@ -325,13 +326,13 @@ func _create_tab_button(category: String) -> Button:
 	btn.add_theme_stylebox_override("normal", sb)
 
 	var sb_hover: StyleBoxFlat = sb.duplicate()
-	sb_hover.bg_color = Color(0.50, 0.56, 0.62)
+	sb_hover.bg_color = UITheme.CLR_CREAM
 	btn.add_theme_stylebox_override("hover", sb_hover)
 
 	# store a pre-built "active" stylebox as meta so _refresh_tab_styles can swap it in
 	var sb_active: StyleBoxFlat = sb.duplicate()
-	sb_active.bg_color = Color(0.92, 0.62, 0.08)
-	sb_active.border_color = Color(0.70, 0.45, 0.05)
+	sb_active.bg_color = UITheme.CLR_MAROON
+	sb_active.border_color = UITheme.CLR_INK
 	btn.set_meta("active_stylebox", sb_active)
 	btn.set_meta("inactive_stylebox", sb)
 	btn.set_meta("category", category)
@@ -340,16 +341,27 @@ func _create_tab_button(category: String) -> Button:
 	return btn
 
 
-func _create_checker_bg() -> Node2D:
-	var map = load("res://New Ui/FINAL CHARACTER CREATOR/Map.tscn").instantiate()
-	map.scale = Vector2(7.5, 7.5)
-	if map.has_node("Layer_1_1"):
-		map.get_node("Layer_1_1").queue_free()
-	
-	var bg = Node2D.new()
-	bg.name = "Backdrop"
-	bg.add_child(map)
-	return bg
+func _create_checker_bg() -> ColorRect:
+	var rect := ColorRect.new()
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var shader := Shader.new()
+	shader.code = """
+shader_type canvas_item;
+uniform vec4 color1 : source_color = vec4(0.78, 0.36, 0.38, 1.0);
+uniform vec4 color2 : source_color = vec4(0.69, 0.30, 0.32, 1.0);
+uniform float tile_size = 48.0;
+void fragment() {
+	vec2 pos = FRAGCOORD.xy / tile_size;
+	float checker = mod(floor(pos.x) + floor(pos.y), 2.0);
+	COLOR = mix(color1, color2, checker);
+}
+"""
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	rect.material = mat
+	return rect
 
 
 func _create_bottom_bar() -> PanelContainer:
@@ -359,8 +371,8 @@ func _create_bottom_bar() -> PanelContainer:
 	# Bottom-bar chrome + interior are scaled 1.5× (border/padding/fonts/btns)
 	# so the name row reads larger relative to the rest of the screen.
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.75, 0.75, 0.75)
-	sb.border_color = Color(0.55, 0.55, 0.55)
+	sb.bg_color = UITheme.CLR_CREAM
+	sb.border_color = UITheme.CLR_INK
 	sb.border_width_top = 6       # was 4
 	sb.content_margin_left = 45   # was 30
 	sb.content_margin_right = 45  # was 30
@@ -411,22 +423,22 @@ func _create_bottom_bar() -> PanelContainer:
 	name_input.placeholder_text = "Enter Name"
 	name_input.max_length = 25
 	name_input.add_theme_font_size_override("font_size", 36)  # was 24
-	name_input.add_theme_color_override("font_color", Color.BLACK)
-	name_input.add_theme_color_override("font_placeholder_color", Color(0.45, 0.45, 0.45))
+	name_input.add_theme_color_override("font_color", UITheme.CLR_INK)
+	name_input.add_theme_color_override("font_placeholder_color", UITheme.CLR_GRAY_DRK)
 	if pixel_font:
 		name_input.add_theme_font_override("font", pixel_font)
 	var input_sb := StyleBoxFlat.new()
-	input_sb.bg_color = Color.WHITE
-	input_sb.border_color = Color(0.4, 0.45, 0.5)
+	input_sb.bg_color = UITheme.CLR_CREAM_LT
+	input_sb.border_color = UITheme.CLR_INK
 	input_sb.set_border_width_all(5)     # was 3
-	input_sb.set_corner_radius_all(6)    # was 4
+	input_sb.set_corner_radius_all(0)    # was 4
 	input_sb.content_margin_left = 18    # was 12
 	input_sb.content_margin_right = 18   # was 12
 	input_sb.content_margin_top = 9      # was 6
 	input_sb.content_margin_bottom = 9   # was 6
 	name_input.add_theme_stylebox_override("normal", input_sb)
 	var input_sb_focus: StyleBoxFlat = input_sb.duplicate()
-	input_sb_focus.border_color = Color(0.85, 0.80, 0.2)
+	input_sb_focus.border_color = UITheme.CLR_ORANGE_PX
 	input_sb_focus.border_width_bottom = 6  # was 4
 	name_input.add_theme_stylebox_override("focus", input_sb_focus)
 	name_input.text_changed.connect(_on_name_changed)
@@ -473,7 +485,12 @@ func _create_styled_button(label_text: String, bg_color: Color) -> Button:
 	if pixel_font:
 		btn.add_theme_font_override("font", pixel_font)
 	
-	UITheme.style_pixel_button(btn, true)
+	# Determine if this should be styled as secondary (gray/secondary tint passed)
+	var is_secondary = false
+	if bg_color.r < 0.6 and bg_color.g < 0.6 and bg_color.b < 0.6:
+		is_secondary = true
+	
+	UITheme.style_pixel_button(btn, is_secondary)
 
 	return btn
 
@@ -549,7 +566,7 @@ func _refresh_mini_previews() -> void:
 		var hp: Panel = mini.get_meta("highlight_panel", null)
 		if hp:
 			var sb: StyleBoxFlat = hp.get_theme_stylebox("panel").duplicate()
-			sb.border_color = Color(0.92, 0.78, 0.12) if dir == active_direction else Color(0, 0, 0, 0)
+			sb.border_color = UITheme.CLR_ORANGE_PX if dir == active_direction else Color(0, 0, 0, 0)
 			hp.add_theme_stylebox_override("panel", sb)
 
 
@@ -602,15 +619,15 @@ func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
 	var is_selected: bool = (index_0 + 1) == int(selections[category])
 
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.18, 0.20, 0.24) if is_selected else Color(0.60, 0.65, 0.70)
-	sb.border_color = Color(0.92, 0.78, 0.12) if is_selected else Color(0.40, 0.44, 0.48)
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(4)
+	sb.bg_color = UITheme.CLR_MAROON_D if is_selected else UITheme.CLR_CREAM_LT
+	sb.border_color = UITheme.CLR_ORANGE_PX if is_selected else UITheme.CLR_INK
+	sb.set_border_width_all(4 if is_selected else 2)
+	sb.set_corner_radius_all(0)
 	btn.add_theme_stylebox_override("normal", sb)
 
 	var sb_hover: StyleBoxFlat = sb.duplicate()
 	if not is_selected:
-		sb_hover.bg_color = Color(0.70, 0.75, 0.80)
+		sb_hover.bg_color = UITheme.CLR_CREAM
 	btn.add_theme_stylebox_override("hover", sb_hover)
 	btn.add_theme_stylebox_override("pressed", sb_hover)
 

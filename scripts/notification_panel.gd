@@ -11,19 +11,18 @@
 
 extends CanvasLayer
 
-# ── Colour palette (matches game-wide identity) ────────────────────────────
-const CLR_NAVY       := Color("#1a2a4a")
-const CLR_NAVY_LIGHT := Color("#1e3a6e")
-const CLR_NAVY_DEEP  := Color("#0d1b36")
-const CLR_SKY        := Color("#4A90D9")
-const CLR_CYAN       := Color("#53d8fb")
+# ── Colour palette (maroon pixel-art identity) ─────────────────────────────────
+const CLR_PANEL_BG   := UITheme.CLR_CREAM
+const CLR_ROW_BG     := UITheme.CLR_CREAM_LT
+const CLR_ROW_HOVER  := Color("#f5c89a")   # slightly darker cream for hover
+const CLR_BORDER     := UITheme.CLR_INK
 const CLR_GREEN      := Color("#4CAF50")
 const CLR_RED        := Color("#EF5350")
-const CLR_GOLD       := Color("#FFD700")
-const CLR_WHITE      := Color.WHITE
-const CLR_GREY_ICON  := Color("#666688")
-const CLR_GREY_TITLE := Color(0.6, 0.6, 0.6, 0.5)
-const CLR_GREY_DESC  := Color(0.38, 0.38, 0.38)
+const CLR_GOLD       := UITheme.CLR_GOLD
+const CLR_TEXT       := UITheme.CLR_INK
+const CLR_GREY_ICON  := UITheme.CLR_GRAY_DRK
+const CLR_GREY_TITLE := Color(UITheme.CLR_INK.r, UITheme.CLR_INK.g, UITheme.CLR_INK.b, 0.5)
+const CLR_GREY_DESC  := Color(UITheme.CLR_INK.r, UITheme.CLR_INK.g, UITheme.CLR_INK.b, 0.6)
 
 # ── Internal state ────────────────────────────────────────────────────────────
 var _list_container : VBoxContainer = null
@@ -46,18 +45,17 @@ func _ready() -> void:
 # ══════════════════════════════════════════════════════════════════════════════
 
 func _build_ui() -> void:
-	var root := Control.new()
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(root)
+	# Full-screen dimmer
+	var bg := ColorRect.new()
+	bg.anchors_preset = Control.PRESET_FULL_RECT
+	bg.anchor_right   = 1.0
+	bg.anchor_bottom  = 1.0
+	bg.color          = Color(0, 0, 0, 0.65)
+	bg.mouse_filter   = Control.MOUSE_FILTER_IGNORE
+	add_child(bg)
 
-	var map = load("res://New Ui/FINAL NOTIFICATIONS/Map.tscn").instantiate()
-	map.scale = Vector2(7.5, 7.5)
-	var bg = Node2D.new()
-	bg.name = "Backdrop"
-	bg.add_child(map)
-	root.add_child(bg)
-
-	var panel := MarginContainer.new()
+	# Main panel (960×680, centered — same size as achievements)
+	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(960, 680)
 	panel.anchors_preset      = Control.PRESET_CENTER
 	panel.anchor_left   = 0.5
@@ -68,7 +66,18 @@ func _build_ui() -> void:
 	panel.offset_top    = -340
 	panel.offset_right  = 480
 	panel.offset_bottom = 340
-	root.add_child(panel)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical   = Control.GROW_DIRECTION_BOTH
+	panel.modulate.a      = 1.0
+
+	var panel_sb := StyleBoxFlat.new()
+	panel_sb.bg_color     = CLR_PANEL_BG
+	panel_sb.border_color = CLR_BORDER
+	panel_sb.set_border_width_all(4)
+	panel_sb.set_corner_radius_all(0)
+	panel_sb.set_content_margin_all(20)
+	panel.add_theme_stylebox_override("panel", panel_sb)
+	add_child(panel)
 
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -76,6 +85,7 @@ func _build_ui() -> void:
 	vbox.add_theme_constant_override("separation", 14)
 	panel.add_child(vbox)
 
+	# Header: title + close
 	var header := HBoxContainer.new()
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(header)
@@ -85,37 +95,37 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 58)
 	title.size_flags_horizontal  = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment   = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", UITheme.CLR_CREAM)
+	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	var font := UITheme.get_pixel_font()
 	if font:
 		title.add_theme_font_override("font", font)
 	header.add_child(title)
 
 	var close_btn := Button.new()
-	close_btn.text = "X"
+	close_btn.text = "✕"
 	close_btn.custom_minimum_size = Vector2(80, 80)
 	close_btn.add_theme_font_size_override("font_size", 42)
 	close_btn.pressed.connect(_close_panel)
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color("#ef5350")
-	sb.border_color = UITheme.CLR_INK
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(0)
-	close_btn.add_theme_stylebox_override("normal", sb)
-	close_btn.add_theme_stylebox_override("hover", sb)
-	close_btn.add_theme_stylebox_override("pressed", sb)
-	UITheme._do_juice_on(close_btn)
+	UITheme.style_close_button(close_btn)
 	header.add_child(close_btn)
 
+	# Separator
+	var title_sep := ColorRect.new()
+	title_sep.color                 = CLR_BORDER
+	title_sep.custom_minimum_size   = Vector2(0, 3)
+	title_sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(title_sep)
+
+	# Counter
 	_counter_label = Label.new()
 	_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_counter_label.add_theme_font_size_override("font_size", 32)
-	_counter_label.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	_counter_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if font:
 		_counter_label.add_theme_font_override("font", font)
 	vbox.add_child(_counter_label)
 
+	# Scroll list
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical    = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -124,7 +134,7 @@ func _build_ui() -> void:
 	_list_container = VBoxContainer.new()
 	_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list_container.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-	_list_container.add_theme_constant_override("separation", 24)
+	_list_container.add_theme_constant_override("separation", 0)
 	scroll.add_child(_list_container)
 
 	_fill_list()
@@ -155,7 +165,7 @@ func _fill_list() -> void:
 		var empty_lbl := Label.new()
 		empty_lbl.text = "No notifications yet."
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty_lbl.add_theme_color_override("font_color", Color(CLR_WHITE, 0.4))
+		empty_lbl.add_theme_color_override("font_color", Color(CLR_TEXT.r, CLR_TEXT.g, CLR_TEXT.b, 0.4))
 		empty_lbl.add_theme_font_size_override("font_size", 32)
 		if font:
 			empty_lbl.add_theme_font_override("font", font)
@@ -171,6 +181,14 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	var is_achievement: bool = (entry.type == NotificationCenter.NotifType.ACHIEVEMENT)
 	var _is_event: bool      = (entry.type == NotificationCenter.NotifType.EVENT)
 
+	# ── Background bar (ColorRect, same as achievements_popup.gd) ──────────
+	var row_bg := ColorRect.new()
+	row_bg.color = CLR_ROW_BG
+	row_bg.custom_minimum_size   = Vector2(0, 64)
+	row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list_container.add_child(row_bg)
+
+	# ── Content row (HBoxContainer, sibling of row_bg) ─────────────────────
 	var row := HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 18)
@@ -178,8 +196,18 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	row.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_list_container.add_child(row)
 
+	# ── Hover highlighting ──────────────────────────────────────────
+	row.mouse_entered.connect(func():
+		row_bg.color = CLR_ROW_HOVER
+	)
+	row.mouse_exited.connect(func():
+		row_bg.color = CLR_ROW_BG
+	)
+
+	# ── Determine action for this row ─────────────────────────────────────
 	var action := _get_action(entry)
 
+	# ── Click handling via gui_input on the HBox ───────────────────────────
 	row.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			match action["kind"]:
@@ -189,27 +217,25 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 				_:              _close_panel()
 	)
 
+	# ── Icon column (54px wide) ────────────────────────────────────────────
 	var icon := Label.new()
 	if is_warning:
 		icon.text = "!"
-		icon.add_theme_color_override("font_color", Color("#ef5350"))
+		icon.add_theme_color_override("font_color", CLR_RED)
 	elif is_achievement:
-		icon.text = "★"
-		icon.add_theme_color_override("font_color", Color("#ffd071"))
+		icon.text = "T"
+		icon.add_theme_color_override("font_color", CLR_GOLD)
 	else:
-		icon.text = "•"
-		icon.add_theme_color_override("font_color", Color("#8a7868"))
+		icon.text = "-"
+		icon.add_theme_color_override("font_color", CLR_GREY_ICON)
 	icon.add_theme_font_size_override("font_size", 40)
 	icon.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
 	icon.custom_minimum_size.x = 54
 	if font:
 		icon.add_theme_font_override("font", font)
 	row.add_child(icon)
-	
-	var texts_vbox = VBoxContainer.new()
-	texts_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(texts_vbox)
 
+	# ── Title (notification type + day) ────────────────────────────────────
 	var type_text := ""
 	if is_warning:
 		type_text = "Warning — Day %d" % entry.timestamp_day
@@ -222,57 +248,67 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	name_label.text = type_text
 	name_label.add_theme_font_size_override("font_size", 36)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.add_theme_color_override("font_color", UITheme.CLR_INK)
+	name_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
+	name_label.add_theme_color_override("font_color", CLR_GREY_TITLE)
 	if font:
 		name_label.add_theme_font_override("font", font)
-	texts_vbox.add_child(name_label)
+	row.add_child(name_label)
 
+	# ── Description (right-aligned, grayed like achievements) ──────────────
 	var desc_label := Label.new()
 	desc_label.text = entry.message
 	desc_label.add_theme_font_size_override("font_size", 24)
 	desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	desc_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	desc_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_RIGHT
+	desc_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
+	desc_label.add_theme_color_override("font_color", CLR_GREY_DESC)
 	if font:
 		desc_label.add_theme_font_override("font", font)
-	texts_vbox.add_child(desc_label)
+	row.add_child(desc_label)
 
+	# ── Hover: brighten text like achievements unlocked state ──────────────
+	row.mouse_entered.connect(func():
+		name_label.add_theme_color_override("font_color", CLR_TEXT)
+		desc_label.add_theme_color_override("font_color", CLR_GREEN if is_achievement else CLR_RED if is_warning else CLR_TEXT)
+	)
+	row.mouse_exited.connect(func():
+		name_label.add_theme_color_override("font_color", CLR_GREY_TITLE)
+		desc_label.add_theme_color_override("font_color", CLR_GREY_DESC)
+	)
+
+	# ── Action arrow indicator (→) for clickable rows ─────────────────────
 	if action["kind"] != "none":
 		var arrow := Label.new()
 		arrow.text = "→"
 		arrow.add_theme_font_size_override("font_size", 32)
-		arrow.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+		arrow.add_theme_color_override("font_color", CLR_GOLD)
 		arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		if font:
 			arrow.add_theme_font_override("font", font)
 		row.add_child(arrow)
 
+	# ── Dismiss button (Red X) ────────────────────────────────────────────
+	# Uses a smaller button on the far right to clear this specific entry.
 	var x_btn := Button.new()
 	x_btn.text = "✕"
 	x_btn.custom_minimum_size = Vector2(48, 48)
 	x_btn.add_theme_font_size_override("font_size", 24)
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color("#ef5350")
-	sb.border_color = UITheme.CLR_INK
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(0)
-	x_btn.add_theme_stylebox_override("normal", sb)
-	x_btn.add_theme_stylebox_override("hover", sb)
-	x_btn.add_theme_stylebox_override("pressed", sb)
-	
-	UITheme._do_juice_on(x_btn)
-	x_btn.name = "Dismiss"
+	UITheme.style_close_button(x_btn)
 	if font:
 		x_btn.add_theme_font_override("font", font)
 	row.add_child(x_btn)
 
 	x_btn.pressed.connect(func():
 		NotificationCenter.remove_notification(entry)
-		row.queue_free()
-		var count = NotificationCenter.notifications.size()
-		if _counter_label:
-			_counter_label.text = "%d Notification%s" % [count, "" if count == 1 else "s"]
+		_fill_list()
 	)
+
+	# ── Separator ──────────────────────────────────────────────────────────
+	var sep := ColorRect.new()
+	sep.color                   = CLR_BORDER
+	sep.custom_minimum_size     = Vector2(0, 2)
+	sep.size_flags_horizontal   = Control.SIZE_EXPAND_FILL
+	_list_container.add_child(sep)
 
 func _get_action(entry: Dictionary) -> Dictionary:
 	var msg: String = entry.get("message", "").to_lower()
@@ -358,10 +394,10 @@ func _show_taxi_dialog(dest: String) -> void:
 	_taxi_dialog.grow_vertical   = Control.GROW_DIRECTION_BOTH
 
 	var dialog_sb := StyleBoxFlat.new()
-	dialog_sb.bg_color     = CLR_NAVY
+	dialog_sb.bg_color     = CLR_PANEL_BG
 	dialog_sb.border_color = CLR_GOLD
-	dialog_sb.set_border_width_all(2)
-	dialog_sb.set_corner_radius_all(8)
+	dialog_sb.set_border_width_all(4)
+	dialog_sb.set_corner_radius_all(0)
 	dialog_sb.set_content_margin_all(20)
 	_taxi_dialog.add_theme_stylebox_override("panel", dialog_sb)
 	add_child(_taxi_dialog)
@@ -375,7 +411,7 @@ func _show_taxi_dialog(dest: String) -> void:
 	question_lbl.text = "Take a Taxi?"
 	question_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	question_lbl.add_theme_font_size_override("font_size", 40)
-	question_lbl.add_theme_color_override("font_color", CLR_GOLD)
+	question_lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if font:
 		question_lbl.add_theme_font_override("font", font)
 	vbox.add_child(question_lbl)
@@ -384,7 +420,7 @@ func _show_taxi_dialog(dest: String) -> void:
 	cost_lbl.text = "This will cost $%d" % GameState.taxi_cost
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_lbl.add_theme_font_size_override("font_size", 30)
-	cost_lbl.add_theme_color_override("font_color", CLR_WHITE)
+	cost_lbl.add_theme_color_override("font_color", CLR_TEXT)
 	if font:
 		cost_lbl.add_theme_font_override("font", font)
 	vbox.add_child(cost_lbl)
@@ -408,7 +444,7 @@ func _show_taxi_dialog(dest: String) -> void:
 	yes_btn.text = "Yes — $%d" % GameState.taxi_cost
 	yes_btn.custom_minimum_size = Vector2(200, 60)
 	yes_btn.add_theme_font_size_override("font_size", 28)
-	UITheme.style_button(yes_btn, CLR_GREEN)
+	UITheme.style_pixel_button(yes_btn)
 	if font:
 		yes_btn.add_theme_font_override("font", font)
 	btn_row.add_child(yes_btn)
@@ -417,7 +453,7 @@ func _show_taxi_dialog(dest: String) -> void:
 	no_btn.text = "No"
 	no_btn.custom_minimum_size = Vector2(120, 60)
 	no_btn.add_theme_font_size_override("font_size", 28)
-	UITheme.style_button(no_btn, CLR_RED)
+	UITheme.style_pixel_button(no_btn, true)
 	if font:
 		no_btn.add_theme_font_override("font", font)
 	btn_row.add_child(no_btn)

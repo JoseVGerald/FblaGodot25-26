@@ -1,6 +1,6 @@
 # COMMIT: Achievements and Catch Minigame Update
 class_name UITheme
-## Shared UI styling utilities for the blue-checker pixel-art aesthetic.
+## Shared UI styling utilities for the maroon pixel-art aesthetic.
 ##
 ## Two modes:
 ##   apply_theme(root)          – full-screen menus: adds checker bg + styles everything
@@ -8,25 +8,28 @@ class_name UITheme
 
 const PIXEL_FONT_PATH := "res://assets/fonts/Minecraft.ttf"
 
-# Button colour palette
+# Legacy button colour palette (kept for backward compat)
 const CLR_GREY   := Color(0.45, 0.48, 0.52)
 const CLR_GREEN  := Color(0.30, 0.68, 0.38)
 const CLR_ORANGE := Color(0.92, 0.62, 0.08)
 const CLR_RED    := Color(0.72, 0.25, 0.25)
 
-const CLR_INK       := Color("#493333")
-const CLR_MAROON    := Color("#b75b5f")
-const CLR_MAROON_D  := Color("#9c4351")
-const CLR_CREAM     := Color("#ffd7a8")
-const CLR_CREAM_LT  := Color("#ffe3c6")
-const CLR_TAN       := Color("#e5b67f")
-const CLR_TAN_HI    := Color("#f0cb97")
-const CLR_TAN_DRK   := Color("#c7895d")
-const CLR_GRAY      := Color("#c6b09b")
-const CLR_GRAY_HI   := Color("#e8d0b9")
-const CLR_GRAY_DRK  := Color("#8a7868")
-const CLR_ORANGE_PX := Color("#ffa34d")
-const CLR_GOLD      := Color("#ffd071")
+# ── New UI maroon pixel-art palette ──────────────────────────────────────────
+const CLR_INK       := Color("#493333")   # All borders, text, outlines
+const CLR_MAROON    := Color("#b75b5f")   # Panel background (full-screen menus)
+const CLR_MAROON_D  := Color("#9c4351")   # Darker sections, dividers, grid trays
+const CLR_CREAM     := Color("#ffd7a8")   # Title plaque bg, overlay panel bg
+const CLR_CREAM_LT  := Color("#ffe3c6")   # Highlight line inside plaque
+const CLR_TAN       := Color("#e5b67f")   # Primary button fill
+const CLR_TAN_HI    := Color("#f0cb97")   # Primary button hover highlight
+const CLR_TAN_DRK   := Color("#c7895d")   # Primary button inner-bottom shade
+const CLR_GRAY_NEW  := Color("#c6b09b")   # Secondary / disabled button
+const CLR_GRAY_HI   := Color("#e8d0b9")   # Secondary button hover
+const CLR_GRAY_DRK  := Color("#8a7868")   # Gray button inner-bottom shade
+const CLR_ORANGE_PX := Color("#ffa34d")   # Corner brackets, accent bars, active tab
+const CLR_GOLD      := Color("#ffd071")   # Corner highlight, selection outline
+const CLR_PINK      := Color("#f29485")   # Display / chart background area
+
 
 # ═══════════════════════════════════════════════════════════════════
 #  PUBLIC API
@@ -44,7 +47,7 @@ static func apply_overlay_theme(root: Node) -> void:
 	_style_children_recursive(root, false)
 
 
-## Create the blue checker background (can also be used standalone).
+## Create the maroon checker background (can also be used standalone).
 static func create_checker_bg() -> ColorRect:
 	var rect := ColorRect.new()
 	rect.name = "CheckerBG"
@@ -54,8 +57,8 @@ static func create_checker_bg() -> ColorRect:
 	var shader := Shader.new()
 	shader.code = """
 shader_type canvas_item;
-uniform vec4 color1 : source_color = vec4(0.247, 0.584, 0.776, 1.0);
-uniform vec4 color2 : source_color = vec4(0.208, 0.529, 0.722, 1.0);
+uniform vec4 color1 : source_color = vec4(0.718, 0.357, 0.373, 1.0);
+uniform vec4 color2 : source_color = vec4(0.612, 0.263, 0.318, 1.0);
 uniform float tile_size = 48.0;
 void fragment() {
 	vec2 pos = FRAGCOORD.xy / tile_size;
@@ -112,13 +115,128 @@ static func style_button(btn: Button, bg_color: Color = CLR_GREY) -> void:
 	btn.add_theme_stylebox_override("disabled", sb_disabled)
 
 
+## New-UI pixel button: thick bottom border = 3D depth, square corners.
+## `secondary = true` → gray fill; `false` → tan/primary fill.
+static func style_pixel_button(btn: Button, secondary: bool = false) -> void:
+	var f := get_pixel_font()
+	if f: btn.add_theme_font_override("font", f)
+	btn.add_theme_color_override("font_color",         CLR_INK)
+	btn.add_theme_color_override("font_hover_color",   CLR_INK)
+	btn.add_theme_color_override("font_pressed_color", CLR_INK)
+
+	var fill     := CLR_GRAY_NEW if secondary else CLR_TAN
+	var fill_hi  := CLR_GRAY_HI  if secondary else CLR_TAN_HI
+	var fill_drk := CLR_GRAY_DRK if secondary else CLR_TAN_DRK
+
+	btn.add_theme_stylebox_override("normal",   _pxsb(fill,                fill_drk, 8))
+	btn.add_theme_stylebox_override("hover",    _pxsb(fill_hi,             fill_drk, 8))
+	btn.add_theme_stylebox_override("pressed",  _pxsb(fill.darkened(0.06), fill_drk, 2))
+	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30), fill_drk, 0))
+	_do_juice_on(btn)
+
+
+## StyleBoxFlat factory for pixel buttons: `depth` = extra bottom border thickness.
+static func _pxsb(fill: Color, shadow: Color, depth: int) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color            = fill
+	sb.border_color        = CLR_INK
+	sb.border_width_top    = 3
+	sb.border_width_left   = 3
+	sb.border_width_right  = 3
+	sb.border_width_bottom = 3 + depth          # thick bottom = 3-D base
+	sb.anti_aliasing       = false              # crisp pixel edges
+	sb.set_corner_radius_all(0)                 # sharp = pixel art
+	sb.content_margin_left   = 18
+	sb.content_margin_right  = 18
+	sb.content_margin_top    = 12
+	sb.content_margin_bottom = 12 + (8 - depth) # shrinks on press = sinks
+	return sb
+
+
+## Wire hover/press/sound animation signals onto any Button.
+## Safe to call multiple times — uses meta guard.
+static func _do_juice_on(btn: Button) -> void:
+	if btn.has_meta("juiced"): return
+	btn.set_meta("juiced", true)
+	# Deferred so size is known when pivot is calculated.
+	# We use a one-shot ready connection: if already in tree, call next frame.
+	if btn.is_inside_tree():
+		(func(): apply_juice_now(btn)).call_deferred()
+	else:
+		btn.ready.connect(func(): apply_juice_now(btn), CONNECT_ONE_SHOT)
+
+
+## Apply hover/press/sound signals to a Button. Call after layout so pivot is correct.
+static func apply_juice_now(btn: Button) -> void:
+	btn.pivot_offset = btn.size * 0.5
+	btn.resized.connect(func(): btn.pivot_offset = btn.size * 0.5)
+	btn.mouse_entered.connect(func():
+		if btn.disabled: return
+		var tw := btn.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(btn, "scale", Vector2.ONE * 1.05, 0.10))
+	btn.mouse_exited.connect(func():
+		var tw := btn.create_tween()
+		tw.tween_property(btn, "scale", Vector2.ONE, 0.08))
+	btn.button_down.connect(func():
+		Sfx.click()
+		var tw := btn.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(btn, "scale", Vector2(1.03, 0.88), 0.06))
+	btn.button_up.connect(func():
+		var tw := btn.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(btn, "scale", Vector2.ONE, 0.10))
+
+
+## Style the red ✕ close button used on all overlay panels.
+static func style_close_button(btn: Button) -> void:
+	var f := get_pixel_font()
+	if f: btn.add_theme_font_override("font", f)
+	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("#ef5350")
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 10
+	sb.content_margin_right = 10
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	btn.add_theme_stylebox_override("normal", sb)
+
+	var sb_h: StyleBoxFlat = sb.duplicate()
+	sb_h.bg_color = Color("#ff6b6b")
+	btn.add_theme_stylebox_override("hover", sb_h)
+
+	var sb_p: StyleBoxFlat = sb.duplicate()
+	sb_p.bg_color = Color("#d32f2f")
+	btn.add_theme_stylebox_override("pressed", sb_p)
+	_do_juice_on(btn)
+
+
+## Style an overlay PanelContainer with cream bg + ink border (new UI).
+static func style_cream_panel(panel: Control) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = CLR_CREAM
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(4)
+	sb.set_corner_radius_all(0)
+	sb.set_content_margin_all(20)
+	if panel is PanelContainer:
+		panel.add_theme_stylebox_override("panel", sb)
+	elif panel is Panel:
+		panel.add_theme_stylebox_override("panel", sb)
+	panel.modulate.a = 1.0
+
+
 static func style_label(label: Label, force_white: bool = true) -> void:
 	var font := get_pixel_font()
 	if font and not _has_emoji(label.text):
 		label.add_theme_font_override("font", font)
 	if force_white:
-		label.add_theme_color_override("font_color", Color.WHITE)
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.5))
+		label.add_theme_color_override("font_color", CLR_INK)
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.3))
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
 
@@ -149,13 +267,12 @@ static func style_line_edit(input: LineEdit) -> void:
 
 
 static func style_panel(panel: Control) -> void:
-	# Navy-blue panel style matching the game's sky-blue / green identity.
-	# Colours match UIColors constants: BG_NAVY=#1a2a4a, BORDER_BLUE=#4A90D9
+	# Cream panel with ink border matching the maroon pixel-art identity.
 	var sb := StyleBoxFlat.new()
-	sb.bg_color     = Color("#1a2a4a")
-	sb.border_color = Color("#4A90D9")
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(8)
+	sb.bg_color     = CLR_CREAM
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(4)
+	sb.set_corner_radius_all(0)
 	sb.set_content_margin_all(20)
 	if panel is PanelContainer:
 		panel.add_theme_stylebox_override("panel", sb)
@@ -382,7 +499,7 @@ static func _style_children_recursive(node: Node, force_label_colors: bool = tru
 		pass  # OptionButtons are custom-styled by their own scripts
 	elif node is Button:
 		style_button(node, _auto_button_color(node))
-		_juice_button(node)
+		_do_juice_on(node)
 	elif node is Label:
 		if force_label_colors:
 			style_label(node, true)
@@ -406,74 +523,5 @@ static func _has_emoji(text: String) -> bool:
 		if text.unicode_at(i) > 0x2000:
 			return true
 	return false
-
-static func style_pixel_button(btn : Button, secondary : bool = false) -> void:
-	var f := get_pixel_font()
-	if f: btn.add_theme_font_override("font", f)
-	btn.add_theme_color_override("font_color",         CLR_INK)
-	btn.add_theme_color_override("font_hover_color",   CLR_INK)
-	btn.add_theme_color_override("font_pressed_color", CLR_INK)
-
-	var fill     := CLR_GRAY     if secondary else CLR_TAN
-	var fill_hi  := CLR_GRAY_HI  if secondary else CLR_TAN_HI
-	var fill_drk := CLR_GRAY_DRK if secondary else CLR_TAN_DRK
-
-	btn.add_theme_stylebox_override("normal",   _pxsb(fill,                 fill_drk, 8))
-	btn.add_theme_stylebox_override("hover",    _pxsb(fill_hi,              fill_drk, 8))
-	btn.add_theme_stylebox_override("pressed",  _pxsb(fill.darkened(0.06),  fill_drk, 2))
-	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30),  fill_drk, 0))
-
-static func _pxsb(fill : Color, shadow : Color, depth : int) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color            = fill
-	sb.border_color        = CLR_INK
-	sb.border_width_top    = 3
-	sb.border_width_left   = 3
-	sb.border_width_right  = 3
-	sb.border_width_bottom = 3 + depth          # thick bottom = 3-D base
-	sb.anti_aliasing       = false              # crisp pixel edges
-	sb.set_corner_radius_all(0)                 # sharp = pixel art
-	sb.content_margin_left   = 18
-	sb.content_margin_right  = 18
-	sb.content_margin_top    = 12
-	sb.content_margin_bottom = 12 + (8 - depth) # shrinks on press = sinks
-	return sb
-
-static func _juice_button(btn : Button) -> void:
-	if btn.has_meta("juiced"): return
-	btn.set_meta("juiced", true)
-	Callable(UITheme, "_do_juice_on").call_deferred(btn)
-
-static func _do_juice_on(btn : Button) -> void:
-	btn.pivot_offset = btn.size * 0.5
-	if not btn.resized.is_connected(func(): btn.pivot_offset = btn.size * 0.5):
-		btn.resized.connect(func(): btn.pivot_offset = btn.size * 0.5)
-	
-	if not btn.mouse_entered.is_connected(_on_btn_mouse_entered):
-		btn.mouse_entered.connect(_on_btn_mouse_entered.bind(btn))
-	if not btn.mouse_exited.is_connected(_on_btn_mouse_exited):
-		btn.mouse_exited.connect(_on_btn_mouse_exited.bind(btn))
-	if not btn.button_down.is_connected(_on_btn_button_down):
-		btn.button_down.connect(_on_btn_button_down.bind(btn))
-	if not btn.button_up.is_connected(_on_btn_button_up):
-		btn.button_up.connect(_on_btn_button_up.bind(btn))
-
-static func _on_btn_mouse_entered(btn: Button) -> void:
-	if btn.disabled: return
-	var tw := btn.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(btn, "scale", Vector2.ONE * 1.05, 0.10)
-
-static func _on_btn_mouse_exited(btn: Button) -> void:
-	var tw := btn.create_tween()
-	tw.tween_property(btn, "scale", Vector2.ONE, 0.08)
-
-static func _on_btn_button_down(btn: Button) -> void:
-	Sfx.click()
-	var tw := btn.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_property(btn, "scale", Vector2(1.03, 0.88), 0.06)
-
-static func _on_btn_button_up(btn: Button) -> void:
-	var tw := btn.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(btn, "scale", Vector2.ONE, 0.10)
 
 # Updated on 2026-04-19

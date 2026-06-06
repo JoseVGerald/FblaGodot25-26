@@ -18,32 +18,19 @@ var breeds = [
 var current_breed_index = 0
 
 func _ready():
-	var map = load("res://New Ui/FINAL DOG CHOOSER MENU/Map.tscn").instantiate()
-	map.scale = Vector2(7.5, 7.5)
-	if map.has_node("Buttons_1"):
-		map.get_node("Buttons_1").queue_free()
-	
-	var bg = Node2D.new()
-	bg.name = "Backdrop"
-	bg.add_child(map)
-	add_child(bg)
-	move_child(bg, 0)
-	
-	if has_node("Background"):
-		$Background.hide()
-	
-	$VBoxContainer/ContinueButton.text = "Choose This Buddy"
-	$VBoxContainer/Title.text = "Choose Your Buddy"
-	$VBoxContainer/Title.add_theme_color_override("font_color", UITheme.CLR_CREAM)
-	
-	UITheme.style_pixel_button($VBoxContainer/ContinueButton)
-	UITheme.style_pixel_button($VBoxContainer/CycleContainer/PrevButton, true)
-	UITheme.style_pixel_button($VBoxContainer/CycleContainer/NextButton, true)
-	
+	UITheme.apply_theme(self)
 	var dog_scene = load("res://scenes/People and dog/dog.tscn").instantiate()
 	preview.sprite_frames = dog_scene.get_node("AnimatedSprite2D").sprite_frames
 	dog_scene.free()
 	update_preview()
+	# New UI pixel-art styling
+	var prev_btn = get_node_or_null("VBoxContainer/CycleContainer/PrevButton")
+	var next_btn = get_node_or_null("VBoxContainer/CycleContainer/NextButton")
+	var cont_btn = get_node_or_null("VBoxContainer/ContinueButton")
+	if prev_btn: UITheme.style_pixel_button(prev_btn, true)
+	if next_btn: UITheme.style_pixel_button(next_btn, true)
+	if cont_btn: UITheme.style_pixel_button(cont_btn)
+	breed_label.add_theme_color_override("font_color", UITheme.CLR_TAN)
 
 func _input(event):
 	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):

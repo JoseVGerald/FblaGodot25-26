@@ -10,20 +10,8 @@ extends CanvasLayer
 signal menu_opened
 
 func _ready():
-	var map = load("res://New Ui/FINAL PET SUPPLIES/Map.tscn").instantiate()
-	map.scale = Vector2(7.5, 7.5)
-	if map.has_node("Layer_1_0"):
-		map.get_node("Layer_1_0").queue_free()
-	
-	var bg = Node2D.new()
-	bg.name = "Backdrop"
-	bg.add_child(map)
-	panel.add_child(bg)
-	panel.move_child(bg, 0)
-	
-	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	
 	UITheme.apply_overlay_theme(self)
+	UITheme.style_panel(panel)
 	panel.hide()
 	_apply_redesign_styling()
 	$PanelContainer/VBoxContainer/TitleHBox/CloseButton.pressed.connect(func():
@@ -39,26 +27,21 @@ func _apply_redesign_styling() -> void:
 	var title := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/Title")
 	if title is Label:
 		title.text = "Pet Supplies"
-		title.add_theme_color_override("font_color", UITheme.CLR_INK)
+		title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 		title.add_theme_font_size_override("font_size", 46)
 
 	var close_btn := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/CloseButton")
 	if close_btn is Button:
-		close_btn.text = "X"
+		close_btn.text = "✕"
 		close_btn.custom_minimum_size = Vector2(64, 64)
-		var sb = StyleBoxFlat.new()
-		sb.bg_color = Color("#ef5350")
-		sb.border_color = UITheme.CLR_INK
-		sb.set_border_width_all(3)
-		sb.set_corner_radius_all(0)
-		close_btn.add_theme_stylebox_override("normal", sb)
-		close_btn.add_theme_stylebox_override("hover", sb)
-		close_btn.add_theme_stylebox_override("pressed", sb)
-		UITheme._do_juice_on(close_btn)
+		UITheme.style_close_button(close_btn)
 
+	# Supply row labels in ink colour
+	food_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 	food_label.add_theme_font_size_override("font_size", 36)
+	water_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 	water_label.add_theme_font_size_override("font_size", 36)
-	medication_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	medication_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 	medication_label.add_theme_font_size_override("font_size", 36)
 
 func show_menu():
@@ -116,9 +99,9 @@ func _update_low_badges() -> void:
 	var water_low := GameState.water < 5
 
 	food_label.add_theme_color_override("font_color",
-		Color("#ef5350") if food_low else UITheme.CLR_MAROON_D)
+		Color("#EF5350") if food_low else UITheme.CLR_INK)
 	water_label.add_theme_color_override("font_color",
-		Color("#ef5350") if water_low else UITheme.CLR_MAROON_D)
+		Color("#EF5350") if water_low else UITheme.CLR_INK)
 
 	var food_badge  := get_node_or_null("PanelContainer/VBoxContainer/ContentContainer/FoodRow/LowBadge")
 	var water_badge := get_node_or_null("PanelContainer/VBoxContainer/ContentContainer/WaterRow/LowBadge")

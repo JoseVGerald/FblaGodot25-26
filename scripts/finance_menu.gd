@@ -8,20 +8,20 @@ signal menu_closed
 var buy_home_btn: Button = null
 var home_progress_lbl: Label = null
 
-# ── Colour palette (design tokens from handoff) ──────────────────────────────
-const CLR_NAVY_DEEP  := Color("#0d1b36")
-const CLR_NAVY       := Color("#1a2a4a")
-const CLR_NAVY_LIGHT := Color("#1e3a6e")
-const CLR_NAVY_CARD  := Color("#162240")
-const CLR_SKY        := Color("#4A90D9")
-const CLR_SKY_DIM    := Color("#2d6aad")
-const CLR_CYAN       := Color("#53d8fb")
+# ── Colour palette (maroon pixel-art identity) ────────────────────────────────
+const CLR_NAVY_DEEP  := UITheme.CLR_MAROON_D     # For card/chart background tint
+const CLR_NAVY       := UITheme.CLR_MAROON        # Root panel bg
+const CLR_NAVY_LIGHT := UITheme.CLR_CREAM_LT      # Highlight
+const CLR_NAVY_CARD  := UITheme.CLR_CREAM          # Card bg
+const CLR_SKY        := UITheme.CLR_INK            # Panel border
+const CLR_SKY_DIM    := UITheme.CLR_GRAY_DRK       # Dim accent
+const CLR_CYAN       := UITheme.CLR_ORANGE_PX      # Active tab, title accent
 const CLR_GREEN      := Color("#4CAF50")
 const CLR_ORANGE     := Color("#FFA726")
 const CLR_RED        := Color("#EF5350")
-const CLR_GOLD       := Color("#FFD700")
-const CLR_WHITE      := Color("#f0f4ff")
-const CLR_DIM        := Color(0.94, 0.96, 1.0, 0.45)
+const CLR_GOLD       := UITheme.CLR_GOLD
+const CLR_WHITE      := UITheme.CLR_CREAM
+const CLR_DIM        := UITheme.CLR_CREAM_LT
 const CLR_CAT_FOOD   := Color("#4CAF50")
 const CLR_CAT_VET    := Color("#4A90D9")
 const CLR_CAT_TRAVEL := Color("#FFA726")
@@ -158,7 +158,7 @@ func _ready() -> void:
 		buy_home_btn.text = "Buy House ($%.2f)" % GameState.house_price
 		buy_home_btn.add_theme_font_size_override("font_size", 30)
 		buy_home_btn.custom_minimum_size = Vector2(240, 60)
-		UITheme.style_button(buy_home_btn, CLR_GREEN)
+		UITheme.style_pixel_button(buy_home_btn)
 		overview.add_child(buy_home_btn)
 		buy_home_btn.pressed.connect(_on_buy_home_pressed)
 
@@ -359,11 +359,11 @@ func _on_pie_draw() -> void:
 	for j in range(129):
 		var a := float(j) / 128.0 * TAU
 		outline_pts.append(_pie_center + Vector2(cos(a), sin(a)) * _pie_radius)
-	_pie_canvas.draw_polyline(outline_pts, CLR_SKY, 2.0)
+	_pie_canvas.draw_polyline(outline_pts, UITheme.CLR_INK, 2.0)
 
 	for slice in _pie_slices:
 		var p1 := _pie_center + Vector2(cos(slice["start_angle"]), sin(slice["start_angle"])) * _pie_radius
-		_pie_canvas.draw_line(_pie_center, p1, CLR_NAVY, 2.0)
+		_pie_canvas.draw_line(_pie_center, p1, UITheme.CLR_INK, 2.0)
 
 
 func _on_pie_input(event: InputEvent) -> void:
@@ -412,9 +412,9 @@ func _hide_pie_tooltip() -> void:
 # ── Budget Planner tab ────────────────────────────────────────────────────────
 
 func _style_budget_cards() -> void:
-	UITheme.style_card(food_card,   CLR_CAT_FOOD,   "left")
-	UITheme.style_card(vet_card,    CLR_CAT_VET,    "left")
-	UITheme.style_card(travel_card, CLR_CAT_TRAVEL, "left")
+	UITheme.style_accent_card(food_card,   CLR_CAT_FOOD)
+	UITheme.style_accent_card(vet_card,    CLR_CAT_VET)
+	UITheme.style_accent_card(travel_card, CLR_CAT_TRAVEL)
 	UITheme.style_warning_strip(budget_warning, "orange")
 	_style_slider(food_slider,   CLR_CAT_FOOD)
 	_style_slider(vet_slider,    CLR_CAT_VET)
@@ -422,15 +422,19 @@ func _style_budget_cards() -> void:
 
 func _style_slider(slider: HSlider, accent: Color) -> void:
 	var track := StyleBoxFlat.new()
-	track.bg_color = Color(accent.r, accent.g, accent.b, 0.18)
-	track.set_corner_radius_all(3)
+	track.bg_color = UITheme.CLR_MAROON_D
+	track.border_color = UITheme.CLR_INK
+	track.set_border_width_all(2)
+	track.set_corner_radius_all(0)
 	track.content_margin_top = 4
 	track.content_margin_bottom = 4
 	slider.add_theme_stylebox_override("slider", track)
 
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = accent
-	fill.set_corner_radius_all(3)
+	fill.border_color = UITheme.CLR_INK
+	fill.set_border_width_all(2)
+	fill.set_corner_radius_all(0)
 	slider.add_theme_stylebox_override("grabber_area", fill)
 	slider.add_theme_stylebox_override("grabber_area_highlight", fill)
 
@@ -441,10 +445,11 @@ func _hook_progress_canvases() -> void:
 
 func _draw_progress_bar(ctrl: Control, category: String) -> void:
 	var sz := ctrl.size
-	var radius: float = min(8.0, sz.y * 0.5)
 	var track_sb := StyleBoxFlat.new()
-	track_sb.bg_color = Color(CLR_SKY.r, CLR_SKY.g, CLR_SKY.b, 0.15)
-	track_sb.set_corner_radius_all(int(radius))
+	track_sb.bg_color = UITheme.CLR_CREAM_LT
+	track_sb.border_color = UITheme.CLR_INK
+	track_sb.set_border_width_all(2)
+	track_sb.set_corner_radius_all(0)
 	ctrl.draw_style_box(track_sb, Rect2(Vector2.ZERO, sz))
 
 	var info: Dictionary = _budget_progress.get(category, {"ratio": 0.0, "color": CLR_SKY})
@@ -459,7 +464,9 @@ func _draw_progress_bar(ctrl: Control, category: String) -> void:
 
 	var fill_sb := StyleBoxFlat.new()
 	fill_sb.bg_color = fill_color
-	fill_sb.set_corner_radius_all(int(radius))
+	fill_sb.border_color = UITheme.CLR_INK
+	fill_sb.set_border_width_all(2)
+	fill_sb.set_corner_radius_all(0)
 	ctrl.draw_style_box(fill_sb, Rect2(Vector2.ZERO, Vector2(sz.x * ratio, sz.y)))
 
 func update_budget_inputs() -> void:
@@ -495,9 +502,9 @@ func update_budget_inputs() -> void:
 # ── Weekly Report tab ────────────────────────────────────────────────────────
 
 func _style_report_panels() -> void:
-	UITheme.style_card(week_strip,     CLR_SKY_DIM, "all")
-	UITheme.style_card(breakdown_card, CLR_SKY,     "all")
-	UITheme.style_card(events_card,    CLR_SKY,     "all")
+	UITheme.style_cream_panel(week_strip)
+	UITheme.style_cream_panel(breakdown_card)
+	UITheme.style_cream_panel(events_card)
 	for lbl in [breakdown_title, events_title]:
 		var font := UITheme.get_pixel_font()
 		if font: lbl.add_theme_font_override("font", font)
@@ -631,7 +638,7 @@ func update_history() -> void:
 
 	for entry in GameState.transaction_history:
 		var row_bg := ColorRect.new()
-		row_bg.color = CLR_NAVY_LIGHT if row_idx % 2 == 1 else CLR_NAVY
+		row_bg.color = UITheme.CLR_CREAM_LT if row_idx % 2 == 1 else UITheme.CLR_CREAM
 		row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 		var h_box := HBoxContainer.new()
@@ -648,7 +655,7 @@ func update_history() -> void:
 		day_lbl.text = "  [Day %d]  " % entry["day"]
 		day_lbl.custom_minimum_size.x = 140
 		day_lbl.add_theme_font_size_override("font_size", FONT_SIZE)
-		day_lbl.add_theme_color_override("font_color", CLR_CYAN)
+		day_lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 		if pixel_font:
 			day_lbl.add_theme_font_override("font", pixel_font)
 		h_box.add_child(day_lbl)
@@ -657,7 +664,7 @@ func update_history() -> void:
 		desc_label.text = entry["description"]
 		desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		desc_label.add_theme_font_size_override("font_size", FONT_SIZE)
-		desc_label.add_theme_color_override("font_color", CLR_WHITE)
+		desc_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 		if pixel_font:
 			desc_label.add_theme_font_override("font", pixel_font)
 		h_box.add_child(desc_label)
@@ -702,20 +709,14 @@ func _style_root_panel() -> void:
 	var panel_node := get_node_or_null("Panel")
 	if not panel_node:
 		return
-	
-	var map = load("res://New Ui/FINAL FINANCIAL HUB/Map.tscn").instantiate()
-	map.scale = Vector2(7.5, 7.5)
-	if map.has_node("Layer_2_0"):
-		map.get_node("Layer_2_0").queue_free()
-	
-	var bg = Node2D.new()
-	bg.name = "Backdrop"
-	bg.add_child(map)
-	panel_node.add_child(bg)
-	panel_node.move_child(bg, 0)
-
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = CLR_NAVY
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(4)
+	sb.set_corner_radius_all(0)
+	sb.set_content_margin_all(20)
 	if panel_node is PanelContainer or panel_node is Panel:
-		panel_node.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		panel_node.add_theme_stylebox_override("panel", sb)
 	panel_node.modulate.a = 1.0
 
 func _apply_finance_panel_scale_and_close_style() -> void:
@@ -724,21 +725,8 @@ func _apply_finance_panel_scale_and_close_style() -> void:
 		panel_node.scale = Vector2(0.85, 0.85)
 		call_deferred("_center_finance_panel_pivot")
 	if close_btn:
-		close_btn.text = "X"
-		close_btn.custom_minimum_size = Vector2(64, 64)
-		var sb = StyleBoxFlat.new()
-		sb.bg_color = Color("#ef5350")
-		sb.border_color = UITheme.CLR_INK
-		sb.set_border_width_all(3)
-		sb.set_corner_radius_all(0)
-		close_btn.add_theme_stylebox_override("normal", sb)
-		close_btn.add_theme_stylebox_override("hover", sb)
-		close_btn.add_theme_stylebox_override("pressed", sb)
-		UITheme._do_juice_on(close_btn)
+		UITheme.style_close_button(close_btn)
 		close_btn.add_theme_font_size_override("font_size", 32)
-		
-		if not close_btn.pressed.is_connected(hide_menu):
-			close_btn.pressed.connect(hide_menu)
 
 
 func _center_finance_panel_pivot() -> void:
@@ -774,7 +762,7 @@ func _style_header_title() -> void:
 		title_node = get_node_or_null("Panel/VBox/Header/Title")
 	if title_node and title_node is Label:
 		title_node.add_theme_font_size_override("font_size", 64)
-		title_node.add_theme_color_override("font_color", CLR_CYAN)
+		title_node.add_theme_color_override("font_color", UITheme.CLR_CREAM)
 		var font := UITheme.get_pixel_font()
 		if font: title_node.add_theme_font_override("font", font)
 
@@ -830,34 +818,35 @@ func _grow_tab_fonts() -> void:
 
 func _style_toggle_buttons() -> void:
 	if breakdown_btn:
-		UITheme.style_button(breakdown_btn, CLR_GREEN)
+		UITheme.style_pixel_button(breakdown_btn, true)
 	if graphs_btn:
-		UITheme.style_button(graphs_btn, CLR_GREEN)
+		UITheme.style_pixel_button(graphs_btn, true)
 
 func _style_deposit_withdraw_buttons() -> void:
 	var deposit_btn = get_node_or_null("Panel/VBox/Content/TabContainer/Overview/DepositBtn")
 	var withdraw_btn = get_node_or_null("Panel/VBox/Content/TabContainer/Overview/WithdrawBtn")
 	if deposit_btn:
-		UITheme.style_button(deposit_btn, CLR_GREEN)
+		UITheme.style_pixel_button(deposit_btn)
 	if withdraw_btn:
-		UITheme.style_button(withdraw_btn, CLR_ORANGE)
+		UITheme.style_pixel_button(withdraw_btn, true)
 
 # ── Loans tab ─────────────────────────────────────────────────────────────────
 
 func _style_loan_panels() -> void:
-	# Credit card: dark navy+plum blend via solid card helper, red accent border
+	# Credit card: cream bg with ink border and red accent
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = CLR_NAVY_DEEP
-	sb.border_color = Color(CLR_RED.r, CLR_RED.g, CLR_RED.b, 0.45)
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(14)
+	sb.bg_color = UITheme.CLR_CREAM
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(3)
+	sb.border_width_left = 6
+	sb.set_corner_radius_all(0)
 	sb.content_margin_left = 22
 	sb.content_margin_right = 22
 	sb.content_margin_top = 18
 	sb.content_margin_bottom = 18
 	credit_card.add_theme_stylebox_override("panel", sb)
 
-	UITheme.style_card(action_card, CLR_SKY, "all")
+	UITheme.style_card(action_card, UITheme.CLR_INK, "all")
 	UITheme.style_warning_strip(loan_warning, "red")
 
 	# Style the LoanInput LineEdit
@@ -909,9 +898,9 @@ func update_loans() -> void:
 
 func _style_loan_buttons() -> void:
 	if borrow_btn:
-		UITheme.style_button(borrow_btn, CLR_GREEN)
+		UITheme.style_pixel_button(borrow_btn)
 	if repay_btn:
-		UITheme.style_button(repay_btn, CLR_ORANGE)
+		UITheme.style_pixel_button(repay_btn, true)
 
 # ── Signal handlers ──────────────────────────────────────────────────────────
 

@@ -1,24 +1,14 @@
 # needs_menu.gd
 # Pet Needs Panel — displays Hunger, Thirst, Energy, and Health stat bars.
-# Styled with the game's navy-blue / sky-blue pixel-art identity.
-#
-# Features:
-#   - Panel background: navy #1a2a4a, 2px sky-blue #4A90D9 border
-#   - Header strip: lighter navy #1e3a6e behind "Needs" title
-#   - Fully opaque (self_modulate.a = 1.0) — no world bleed-through
-#   - Colour-coded stat bars: orange (hunger), blue (thirst), yellow (energy), green (health)
-#   - "X / 100" value format
-#   - Flashing red warning when any stat drops below 30
-#   - "!" indicator next to critical stat names
+# Styled with the maroon/cream pixel-art identity.
 extends CanvasLayer
 
-# ── Colour palette ─────────────────────────────────────────────────────────────
-const CLR_NAVY       := Color("#1a2a4a")   # Panel background
-const CLR_NAVY_LIGHT := Color("#1e3a6e")   # Header strip background
-const CLR_NAVY_DEEP  := Color("#0d1b36")   # Bar track (deep)
-const CLR_SKY        := Color("#4A90D9")   # Panel border + accent
-const CLR_WHITE      := Color.WHITE        # Text colour
-const CLR_DANGER     := Color("#EF5350")   # Flash red for critical stats
+# ── Colour palette (maroon pixel-art) ──────────────────────────────────────────
+const CLR_PANEL_BG   := UITheme.CLR_CREAM      # Panel background
+const CLR_HEADER_BG  := UITheme.CLR_MAROON_D    # Header strip background
+const CLR_BORDER     := UITheme.CLR_INK         # Panel border
+const CLR_TEXT       := UITheme.CLR_INK         # Text colour
+const CLR_DANGER     := Color("#EF5350")        # Flash red for critical stats
 
 # Stat bar fill colours (kept from original — they look good)
 const CLR_HUNGER := Color("#FF8C00")       # Warm orange
@@ -50,20 +40,13 @@ var _flash_state : bool  = false # true = show danger colour
 # ── Lifecycle ──────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
-	var map = load("res://New Ui/FINAL PET NEEDS/Map.tscn").instantiate()
-	map.scale = Vector2(7.5, 7.5)
-	if map.has_node("Layer_1_0"):
-		map.get_node("Layer_1_0").queue_free()
-	
-	var bg = Node2D.new()
-	bg.name = "Backdrop"
-	bg.add_child(map)
-	panel.add_child(bg)
-	panel.move_child(bg, 0)
-	
-	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	
+	# Apply cream panel style with ink border
+	_apply_panel_style()
+	# Style the header strip behind the "Needs" title
+	_style_header_strip()
+	# Apply global UITheme fonts to children
 	UITheme.apply_overlay_theme(self)
+	# Restyle the title + close button per the redesign spec
 	_style_title_bar()
 	# Start hidden — show_menu() is called by the world script / HUD
 	panel.hide()
@@ -79,32 +62,24 @@ func _ready() -> void:
 			panel.hide()
 	)
 
-## Restyle "Needs" title as cyan, stat labels uppercase + dim, close button red compact.
+## Restyle "Needs" title in maroon-deep, close button red with ink border.
 func _style_title_bar() -> void:
 	var title := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/Title")
 	if title is Label:
 		title.text = "Pet Needs"
-		title.add_theme_color_override("font_color", UITheme.CLR_INK)
+		title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 		title.add_theme_font_size_override("font_size", 52)
 	var close_btn := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/CloseButton")
 	if close_btn is Button:
-		close_btn.text = "X"
+		close_btn.text = "✕"
 		close_btn.custom_minimum_size = Vector2(64, 64)
-		var sb = StyleBoxFlat.new()
-		sb.bg_color = Color("#ef5350")
-		sb.border_color = UITheme.CLR_INK
-		sb.set_border_width_all(3)
-		sb.set_corner_radius_all(0)
-		close_btn.add_theme_stylebox_override("normal", sb)
-		close_btn.add_theme_stylebox_override("hover", sb)
-		close_btn.add_theme_stylebox_override("pressed", sb)
-		UITheme._do_juice_on(close_btn)
-	# Dim + uppercase the four stat labels
+		UITheme.style_close_button(close_btn)
+	# Uppercase the four stat labels in ink colour
 	for stat in ["Hunger", "Thirst", "Energy", "Health"]:
 		var l := get_node_or_null("PanelContainer/VBoxContainer/GridContainer/" + stat + "/Label")
 		if l is Label:
 			l.text = stat.to_upper()
-			l.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+			l.add_theme_color_override("font_color", UITheme.CLR_INK)
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -166,28 +141,36 @@ func _update_stat_row(
 		name_label : Label) -> void:
 	if not bar or not val_label:
 		return
+	# Set the bar value and text display — spec format "75/100" (no spaces)
 	bar.value = stat_value
 	val_label.text = "%d/100" % int(round(stat_value))
-	val_label.add_theme_color_override("font_color", UITheme.CLR_INK)
-	
-	var fg = StyleBoxFlat.new()
-	fg.bg_color = Color("#ef5350") if stat_value < LOW_THRESHOLD else base_color
-	fg.set_corner_radius_all(0)
-	fg.border_color = UITheme.CLR_INK
-	fg.set_border_width_all(4)
-	bar.add_theme_stylebox_override("fill", fg)
-	
-	var bg = StyleBoxFlat.new()
-	bg.bg_color = Color(0,0,0,0)
-	bar.add_theme_stylebox_override("background", bg)
-	
+	val_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	# Threshold-based bar colour (spec _bar_color): <30 red, <50 orange, else base.
+	# Keeps the existing flash behaviour on top so critical stats still pulse.
+	var fill_color := _bar_color(stat_value, base_color)
+	if stat_value < LOW_THRESHOLD and _flash_state:
+		fill_color = CLR_DANGER
+	var fill_sb := StyleBoxFlat.new()
+	fill_sb.bg_color = fill_color
+	fill_sb.border_color = UITheme.CLR_INK
+	fill_sb.set_border_width_all(2)
+	fill_sb.set_corner_radius_all(0)
+	bar.add_theme_stylebox_override("fill", fill_sb)
+	# Track: light cream bg with ink border
+	var track_sb := StyleBoxFlat.new()
+	track_sb.bg_color     = Color(UITheme.CLR_CREAM_LT.r, UITheme.CLR_CREAM_LT.g, UITheme.CLR_CREAM_LT.b, 0.5)
+	track_sb.border_color = UITheme.CLR_INK
+	track_sb.set_border_width_all(2)
+	track_sb.set_corner_radius_all(0)
+	bar.add_theme_stylebox_override("background", track_sb)
+	# Warning "!" indicator next to stat name when critical
 	if name_label:
 		if stat_value < LOW_THRESHOLD:
-			name_label.add_theme_color_override("font_color", Color("#ef5350"))
+			name_label.add_theme_color_override("font_color", CLR_DANGER)
 			if not name_label.text.ends_with("!"):
 				name_label.text = name_label.text.rstrip(" !") + " !"
 		else:
-			name_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+			name_label.add_theme_color_override("font_color", CLR_TEXT)
 			name_label.text = name_label.text.rstrip(" !")
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -202,27 +185,27 @@ func _bar_color(value: float, base: Color) -> Color:
 func is_mouse_over_panel() -> bool:
 	return panel.get_global_rect().has_point(panel.get_global_mouse_position())
 
-## Apply the navy-blue panel style with sky-blue border, fully opaque.
+## Apply cream panel style with ink border.
 func _apply_panel_style() -> void:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color     = CLR_NAVY
-	sb.border_color = CLR_SKY
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(8)
+	sb.bg_color     = CLR_PANEL_BG
+	sb.border_color = CLR_BORDER
+	sb.set_border_width_all(4)
+	sb.set_corner_radius_all(0)
 	sb.set_content_margin_all(18)
 	panel.add_theme_stylebox_override("panel", sb)
 	# Force full opacity — fix world bleeding through
 	panel.modulate.a        = 1.0
 	panel.self_modulate.a   = 1.0
 
-## Style the header strip behind the panel title in lighter navy.
+## Style the header strip behind the panel title in maroon-deep.
 func _style_header_strip() -> void:
 	var title_hbox = get_node_or_null("PanelContainer/VBoxContainer/TitleHBox")
 	if not title_hbox:
 		return
 	# Add a ColorRect behind the title row
 	var header_bg := ColorRect.new()
-	header_bg.color = CLR_NAVY_LIGHT
+	header_bg.color = UITheme.CLR_MAROON_D
 	header_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	header_bg.show_behind_parent = true
 	title_hbox.add_child(header_bg)

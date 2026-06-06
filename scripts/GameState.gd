@@ -211,6 +211,7 @@ signal open_shop_requested
 signal job_selection_requested
 
 func _ready():
+	get_tree().debug_collisions_hint = false
 	apply_volume()
 	# Apply any user-saved keybinds on top of the project.godot defaults.
 	load("res://scripts/KeybindsMenu.gd").load_saved_keybinds()

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://1lrlil2xs3ne"]
 
-[ext_resource type="Script" path="res://scripts/job_selection_menu.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://clllpgfgwb28p" path="res://scripts/job_selection_menu.gd" id="1_script"]
 
-[node name="JobSelectionMenu" type="CanvasLayer"]
+[node name="JobSelectionMenu" type="CanvasLayer" unique_id=1290184747]
 script = ExtResource("1_script")

@@ -26,7 +26,7 @@ const CLR_BG_CARD    := Color("#162240")
 const CLR_BORDER_SKY := Color("#4A90D9")
 const CLR_BORDER_DIM := Color("#2d6aad")
 const CLR_CYAN       := Color("#53d8fb")
-const CLR_WHITE      := Color("#f0f4ff")
+const CLR_WHITE      := Color("#4A90D9")
 const CLR_DIM        := Color(0.94, 0.96, 1.0, 0.55)
 const CLR_AMBER      := Color("#FFA726")
 

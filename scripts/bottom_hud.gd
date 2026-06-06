@@ -147,25 +147,20 @@ func update_ui():
 ## Restyle HUD nodes to match the April 2026 redesign spec.
 ## Runs once at _ready — all existing node paths are preserved.
 func _apply_redesign_styling() -> void:
+	# Background bar
 	var bg := get_node_or_null("Background")
 	if bg is Panel:
-		var map = load("res://New Ui/FINAL OVERVIEW/Map.tscn").instantiate()
-		map.scale = Vector2(7.5, 7.5)
-		if map.has_node("Layer_1_1"):
-			map.get_node("Layer_1_1").queue_free()
-		
-		var backdrop = Node2D.new()
-		backdrop.name = "Backdrop"
-		backdrop.add_child(map)
-		bg.add_child(backdrop)
-		bg.move_child(backdrop, 0)
-		
-		bg.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		var bg_sb := StyleBoxFlat.new()
+		bg_sb.bg_color = UITheme.CLR_CREAM
+		bg_sb.border_color = UITheme.CLR_INK
+		bg_sb.border_width_top = 4
+		bg_sb.set_corner_radius_all(0)
+		bg.add_theme_stylebox_override("panel", bg_sb)
 		bg.self_modulate.a = 1.0
 
-	# Money label — pixel font, green, big.
+	# Money label — pixel font, maroon, big.
 	money_label.text = "$%.2f" % GameState.money
-	money_label.add_theme_color_override("font_color", UITheme.CLR_INK)
+	money_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	money_label.add_theme_font_size_override("font_size", 58)
 	var pf := UITheme.get_pixel_font()
 	if pf: money_label.add_theme_font_override("font", pf)
@@ -175,19 +170,20 @@ func _apply_redesign_styling() -> void:
 	if left_sec:
 		status_lbl = Label.new()
 		status_lbl.name = "StatusLabel"
-		status_lbl.add_theme_color_override("font_color", Color("#FFD700"))
+		status_lbl.add_theme_color_override("font_color", UITheme.CLR_GRAY_DRK)
 		status_lbl.add_theme_font_size_override("font_size", 20)
 		if pf: status_lbl.add_theme_font_override("font", pf)
 		left_sec.add_child(status_lbl)
 
-	# Nav buttons
+	# Nav buttons — text-only labels per spec (no emoji) + tinted style.
 	supplies_btn.text = "Supplies"
 	needs_btn.text    = "Needs"
 	home_btn.text     = "Taxi"
-	for b in [supplies_btn, needs_btn, home_btn]:
+	for b in [supplies_btn, needs_btn, home_btn, finance_btn, pause_btn]:
 		b.add_theme_font_size_override("font_size", 26)
-		b.custom_minimum_size = Vector2(160, 80)
-		UITheme.style_pixel_button(b, true)
+		if b in [supplies_btn, needs_btn, home_btn]:
+			b.custom_minimum_size = Vector2(160, 80)
+		UITheme.style_pixel_button(b)
 
 	# Create Work button for Teen/Adult pathways
 	var right_sec = get_node_or_null("Background/Margin/MainHBox/RightSection")
@@ -197,7 +193,7 @@ func _apply_redesign_styling() -> void:
 		work_btn.text = "Work"
 		work_btn.add_theme_font_size_override("font_size", 26)
 		work_btn.custom_minimum_size = Vector2(140, 80)
-		UITheme.style_pixel_button(work_btn, true)
+		UITheme.style_pixel_button(work_btn)
 		right_sec.add_child(work_btn)
 		work_btn.pressed.connect(_on_work_btn_pressed)
 
@@ -246,11 +242,12 @@ func _on_work_btn_pressed():
 	# Simulate a work shift:
 	GameState.work_shift()
 
+	# Top-right HUD — Finances and Pause both get a dark-blue tinted box.
 	finance_btn.text = "Finances"
 	pause_btn.text   = "Pause"
 	for b in [finance_btn, pause_btn]:
 		b.add_theme_font_size_override("font_size", 22)
-		UITheme.style_pixel_button(b, true)
+		UITheme.style_pixel_button(b)
 
 	# Time label — centered with a faint chip look via BBCode already handled
 	# by _apply_time_label_text. Nothing more needed here.
@@ -295,9 +292,9 @@ func _apply_time_label_text() -> void:
 	var s := GameState.get_time_string()
 	if time_label is RichTextLabel:
 		if _time_label_hovered:
-			time_label.text = "[color=#53d8fb][u]%s[/u][/color]" % s
+			time_label.text = "[color=#%s][u]%s[/u][/color]" % [UITheme.CLR_ORANGE_PX.to_html(false), s]
 		else:
-			time_label.text = "[color=#ffffff]%s[/color]" % s
+			time_label.text = "[color=#%s]%s[/color]" % [UITheme.CLR_INK.to_html(false), s]
 	else:
 		time_label.text = s
 
@@ -485,7 +482,7 @@ func _create_sim_overlay() -> void:
 	title.text = "Simulating Week..."
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 60)
-	title.add_theme_color_override("font_color", CLR_GOLD)
+	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	var font = UITheme.get_pixel_font()
 	if font:
 		title.add_theme_font_override("font", font)
@@ -709,7 +706,7 @@ func _on_open_shop_requested():
 ## Set up the notification bell button with badge overlay.
 ## Called once in _ready() after all @onready refs are available.
 func _setup_notif_button() -> void:
-	UITheme.style_button(notif_btn, UITheme.CLR_GREY)
+	UITheme.style_pixel_button(notif_btn)
 	notif_btn.text = ""   # No emoji — we use a TextureRect child instead
 
 	# TextureRect icon inside the button
@@ -747,21 +744,21 @@ func _update_notif_badge() -> void:
 		_notif_icon.position = Vector2(0, -2)
 		_notif_pulse_tween = create_tween().set_loops()
 		_notif_pulse_tween.tween_callback(
-				func(): UITheme.style_button(notif_btn, Color("#5a1010")))
+				func(): notif_btn.modulate = UITheme.CLR_RED)
 		_notif_pulse_tween.tween_interval(0.6)
 		_notif_pulse_tween.tween_callback(
-				func(): UITheme.style_button(notif_btn, UITheme.CLR_GREY))
+				func(): notif_btn.modulate = Color.WHITE)
 		_notif_pulse_tween.tween_interval(0.6)
 	elif NotificationCenter.has_unread:
 		# UNREAD state: red-badge envelope icon, no pulse
 		_notif_icon.texture = _tex_badge
 		_notif_icon.position = Vector2(0, -2)
-		UITheme.style_button(notif_btn, UITheme.CLR_GREY)
+		notif_btn.modulate = Color.WHITE
 	else:
 		# CLEAR state: plain envelope icon
 		_notif_icon.texture = _tex_normal
 		_notif_icon.position = Vector2(-4, -4)
-		UITheme.style_button(notif_btn, UITheme.CLR_GREY)
+		notif_btn.modulate = Color.WHITE
 
 ## Open the notification panel as a child of this CanvasLayer.
 func _on_notif_btn_pressed() -> void:

@@ -5,14 +5,14 @@ extends CanvasLayer
 
 signal settings_closed
 
-# ── Design tokens ────────────────────────────────────────────────────────────
-const CLR_BG_DEEP    := Color("#0d1b36")
-const CLR_BG_CARD    := Color("#162240")
-const CLR_BORDER_SKY := Color("#4A90D9")
-const CLR_BORDER_DIM := Color("#2d6aad")
-const CLR_CYAN       := Color("#53d8fb")
-const CLR_WHITE      := Color("#f0f4ff")
-const CLR_DIM        := Color(0.94, 0.96, 1.0, 0.55)
+# ── Design tokens (maroon pixel-art identity) ────────────────────────────────
+const CLR_BG_DEEP    := UITheme.CLR_MAROON_D
+const CLR_BG_CARD    := UITheme.CLR_CREAM
+const CLR_BORDER_SKY := UITheme.CLR_MAROON
+const CLR_BORDER_DIM := UITheme.CLR_GRAY_DRK
+const CLR_CYAN       := UITheme.CLR_ORANGE_PX
+const CLR_WHITE      := UITheme.CLR_INK
+const CLR_DIM        := UITheme.CLR_GRAY_DRK
 
 # ── Pre-existing scene refs (keep paths identical for tscn compatibility) ────
 @onready var volume_slider      : HSlider = $Panel/VBox/VolumeContainer/VolumeSlider
@@ -41,7 +41,7 @@ func _ready() -> void:
 	volume_slider.value_changed.connect(_on_volume_changed)
 
 	# Red close button.
-	UITheme.style_button(close_btn, UITheme.CLR_RED)
+	UITheme.style_close_button(close_btn)
 	close_btn.pressed.connect(_on_close_pressed)
 
 	# Build expanded sections procedurally so the scene file stays tiny.
@@ -72,6 +72,11 @@ func _on_close_pressed() -> void:
 func _on_mute_toggled(pressed: bool) -> void:
 	is_muted = pressed
 	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), is_muted)
+	if is_muted:
+		volume_slider.value = 0
+		volume_value_label.text = "0%"
+		if "master_volume" in GameState:
+			GameState.master_volume = 0
 	_update_mute_label()
 
 func _update_mute_label() -> void:
@@ -84,28 +89,14 @@ func _update_mute_label() -> void:
 
 func _style_panel_shell() -> void:
 	var panel_node := get_node_or_null("Panel")
-	if not panel_node:
-		return
-		
-	var map = load("res://New Ui/FINAL SETTINGS/Map.tscn").instantiate()
-	map.scale = Vector2(7.5, 7.5)
-	if map.has_node("Layer_1_1"):
-		map.get_node("Layer_1_1").queue_free()
-	
-	var bg = Node2D.new()
-	bg.name = "Backdrop"
-	bg.add_child(map)
-	panel_node.add_child(bg)
-	panel_node.move_child(bg, 0)
-	
 	if panel_node is PanelContainer:
-		panel_node.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		UITheme.style_cream_panel(panel_node)
 
 func _style_existing_header_row() -> void:
 	var title := get_node_or_null("Panel/VBox/Title")
 	if title is Label:
 		title.text = "Settings"
-		title.add_theme_color_override("font_color", CLR_BORDER_SKY)
+		title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 		title.add_theme_font_size_override("font_size", 48)
 
 	# Restyle the existing VolumeContainer as the first AUDIO card.
@@ -115,35 +106,39 @@ func _style_existing_header_row() -> void:
 		var lbl := vc.get_node_or_null("Label")
 		if lbl is Label:
 			lbl.text = "Music Volume"
-			lbl.add_theme_color_override("font_color", CLR_WHITE)
+			lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
 			lbl.add_theme_font_size_override("font_size", 30)
-		volume_value_label.add_theme_color_override("font_color", CLR_CYAN)
+		volume_value_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 		volume_value_label.add_theme_font_size_override("font_size", 30)
 
 ## Apply slider track/fill style per spec.
 func _style_slider(slider: HSlider) -> void:
 	var track := StyleBoxFlat.new()
-	track.bg_color = Color(1, 1, 1, 0.1)
-	track.set_corner_radius_all(3)
-	track.content_margin_top = 5
-	track.content_margin_bottom = 5
+	track.bg_color = UITheme.CLR_MAROON_D
+	track.border_color = UITheme.CLR_INK
+	track.set_border_width_all(2)
+	track.set_corner_radius_all(0)
+	track.content_margin_top = 4
+	track.content_margin_bottom = 4
 	slider.add_theme_stylebox_override("slider", track)
 
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = CLR_BORDER_SKY
-	fill.set_corner_radius_all(3)
+	fill.border_color = UITheme.CLR_INK
+	fill.set_border_width_all(2)
+	fill.set_corner_radius_all(0)
 	slider.add_theme_stylebox_override("grabber_area", fill)
 	slider.add_theme_stylebox_override("grabber_area_highlight", fill)
 
 	var grabber := StyleBoxFlat.new()
-	grabber.bg_color = Color.WHITE
-	grabber.border_color = CLR_BORDER_SKY
+	grabber.bg_color = UITheme.CLR_CREAM
+	grabber.border_color = UITheme.CLR_INK
 	grabber.set_border_width_all(2)
-	grabber.set_corner_radius_all(8)
-	grabber.content_margin_left = 8
-	grabber.content_margin_right = 8
-	grabber.content_margin_top = 8
-	grabber.content_margin_bottom = 8
+	grabber.set_corner_radius_all(0)
+	grabber.content_margin_left = 6
+	grabber.content_margin_right = 6
+	grabber.content_margin_top = 10
+	grabber.content_margin_bottom = 10
 	slider.add_theme_stylebox_override("grabber", grabber)
 	slider.add_theme_stylebox_override("grabber_highlight", grabber)
 
@@ -241,7 +236,7 @@ func _make_keybinds_button() -> Button:
 	btn.add_theme_font_size_override("font_size", 28)
 	var pf := UITheme.get_pixel_font()
 	if pf: btn.add_theme_font_override("font", pf)
-	UITheme.style_button(btn, CLR_BORDER_SKY)
+	UITheme.style_pixel_button(btn)
 	btn.pressed.connect(_on_keybinds_pressed)
 	return btn
 
@@ -249,11 +244,10 @@ func _on_keybinds_pressed() -> void:
 	var keybinds_menu = load("res://scenes/ui/KeybindsMenu.tscn").instantiate()
 	get_tree().root.add_child(keybinds_menu)
 
-## Build a section divider label.
 func _make_section_label(text: String) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
-	lbl.add_theme_color_override("font_color", CLR_BORDER_SKY)
+	lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	lbl.add_theme_font_size_override("font_size", 22)
 	var font := UITheme.get_pixel_font()
 	if font: lbl.add_theme_font_override("font", font)
@@ -354,17 +348,7 @@ func _inject_header_close_btn() -> void:
 	x.text = "✕"
 	x.custom_minimum_size = Vector2(44, 44)
 	x.focus_mode = Control.FOCUS_NONE
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color("#ef5350")
-	sb.border_color = UITheme.CLR_INK
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(0)
-	x.add_theme_stylebox_override("normal", sb)
-	x.add_theme_stylebox_override("hover", sb)
-	x.add_theme_stylebox_override("pressed", sb)
-	UITheme._do_juice_on(x)
-	
+	UITheme.style_close_button(x)
 	x.pressed.connect(_on_close_pressed)
 	header.add_child(x)
 
@@ -405,7 +389,7 @@ func _make_sfx_slider_row() -> HBoxContainer:
 
 	var pct := Label.new()
 	pct.text = str(int(slider.value)) + "%"
-	pct.add_theme_color_override("font_color", CLR_CYAN)
+	pct.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	pct.add_theme_font_size_override("font_size", 24)
 	pct.custom_minimum_size.x = 60
 	if pf: pct.add_theme_font_override("font", pf)
@@ -422,10 +406,10 @@ func _make_sfx_slider_row() -> HBoxContainer:
 func _apply_toggle_visual(btn: Button) -> void:
 	var on := btn.button_pressed
 	var sb := StyleBoxFlat.new()
-	sb.bg_color     = Color("#4CAF50") if on else Color("#1e3a6e")
-	sb.border_color = Color("#4CAF50") if on else CLR_BORDER_DIM
+	sb.bg_color     = UITheme.CLR_GREEN if on else UITheme.CLR_CREAM_LT
+	sb.border_color = UITheme.CLR_INK
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(14)
+	sb.set_corner_radius_all(0)
 	btn.add_theme_stylebox_override("normal",  sb)
 	btn.add_theme_stylebox_override("hover",   sb)
 	btn.add_theme_stylebox_override("pressed", sb)
