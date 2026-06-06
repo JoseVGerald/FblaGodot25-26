@@ -50,13 +50,20 @@ var _flash_state : bool  = false # true = show danger colour
 # ── Lifecycle ──────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
-	# Apply navy-blue opaque panel style matching the Financial Hub
-	_apply_panel_style()
-	# Style the header strip behind the "Needs" title
-	_style_header_strip()
-	# Apply global UITheme fonts to children
+	var map = load("res://New Ui/FINAL PET NEEDS/Map.tscn").instantiate()
+	map.scale = Vector2(7.5, 7.5)
+	if map.has_node("Layer_1_0"):
+		map.get_node("Layer_1_0").queue_free()
+	
+	var bg = Node2D.new()
+	bg.name = "Backdrop"
+	bg.add_child(map)
+	panel.add_child(bg)
+	panel.move_child(bg, 0)
+	
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	
 	UITheme.apply_overlay_theme(self)
-	# Restyle the title + close button per the redesign spec
 	_style_title_bar()
 	# Start hidden — show_menu() is called by the world script / HUD
 	panel.hide()
@@ -77,19 +84,27 @@ func _style_title_bar() -> void:
 	var title := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/Title")
 	if title is Label:
 		title.text = "Pet Needs"
-		title.add_theme_color_override("font_color", Color("#53d8fb"))
+		title.add_theme_color_override("font_color", UITheme.CLR_INK)
 		title.add_theme_font_size_override("font_size", 52)
 	var close_btn := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/CloseButton")
 	if close_btn is Button:
 		close_btn.text = "X"
 		close_btn.custom_minimum_size = Vector2(64, 64)
-		UITheme.style_button(close_btn, UITheme.CLR_RED)
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = Color("#ef5350")
+		sb.border_color = UITheme.CLR_INK
+		sb.set_border_width_all(3)
+		sb.set_corner_radius_all(0)
+		close_btn.add_theme_stylebox_override("normal", sb)
+		close_btn.add_theme_stylebox_override("hover", sb)
+		close_btn.add_theme_stylebox_override("pressed", sb)
+		UITheme._do_juice_on(close_btn)
 	# Dim + uppercase the four stat labels
 	for stat in ["Hunger", "Thirst", "Energy", "Health"]:
 		var l := get_node_or_null("PanelContainer/VBoxContainer/GridContainer/" + stat + "/Label")
 		if l is Label:
 			l.text = stat.to_upper()
-			l.add_theme_color_override("font_color", Color(0.94, 0.96, 1.0, 0.65))
+			l.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -151,34 +166,28 @@ func _update_stat_row(
 		name_label : Label) -> void:
 	if not bar or not val_label:
 		return
-	# Set the bar value and text display — spec format "75/100" (no spaces)
 	bar.value = stat_value
 	val_label.text = "%d/100" % int(round(stat_value))
-	val_label.add_theme_color_override("font_color", Color("#53d8fb"))
-	# Threshold-based bar colour (spec _bar_color): <30 red, <50 orange, else base.
-	# Keeps the existing flash behaviour on top so critical stats still pulse.
-	var fill_color := _bar_color(stat_value, base_color)
-	if stat_value < LOW_THRESHOLD and _flash_state:
-		fill_color = CLR_DANGER
-	var fill_sb := StyleBoxFlat.new()
-	fill_sb.bg_color = fill_color
-	fill_sb.set_corner_radius_all(6)
-	bar.add_theme_stylebox_override("fill", fill_sb)
-	# Translucent track per spec (white@7% bg, dim-sky@16% border)
-	var track_sb := StyleBoxFlat.new()
-	track_sb.bg_color     = Color(1, 1, 1, 0.07)
-	track_sb.border_color = Color("#2d6aad", 0.16)
-	track_sb.set_border_width_all(1)
-	track_sb.set_corner_radius_all(6)
-	bar.add_theme_stylebox_override("background", track_sb)
-	# Warning "!" indicator next to stat name when critical
+	val_label.add_theme_color_override("font_color", UITheme.CLR_INK)
+	
+	var fg = StyleBoxFlat.new()
+	fg.bg_color = Color("#ef5350") if stat_value < LOW_THRESHOLD else base_color
+	fg.set_corner_radius_all(0)
+	fg.border_color = UITheme.CLR_INK
+	fg.set_border_width_all(4)
+	bar.add_theme_stylebox_override("fill", fg)
+	
+	var bg = StyleBoxFlat.new()
+	bg.bg_color = Color(0,0,0,0)
+	bar.add_theme_stylebox_override("background", bg)
+	
 	if name_label:
 		if stat_value < LOW_THRESHOLD:
-			name_label.add_theme_color_override("font_color", CLR_DANGER)
+			name_label.add_theme_color_override("font_color", Color("#ef5350"))
 			if not name_label.text.ends_with("!"):
 				name_label.text = name_label.text.rstrip(" !") + " !"
 		else:
-			name_label.add_theme_color_override("font_color", CLR_WHITE)
+			name_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 			name_label.text = name_label.text.rstrip(" !")
 
 # ── Helpers ────────────────────────────────────────────────────────────────────

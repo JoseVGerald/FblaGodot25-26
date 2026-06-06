@@ -7,7 +7,23 @@ extends Control
 @onready var settings_button = $VBoxContainer/SettingsButton
 
 func _ready():
-	UITheme.apply_theme(self)
+	var map = load("res://New Ui/FINAL OPENING MENU/Map.tscn").instantiate()
+	map.scale = Vector2(7.5, 7.5)
+	if map.has_node("Layer_1_0"):
+		map.get_node("Layer_1_0").queue_free()
+	
+	var bg = Node2D.new()
+	bg.name = "Backdrop"
+	bg.add_child(map)
+	add_child(bg)
+	move_child(bg, 0)
+	
+	UITheme.style_pixel_button(continue_button)
+	UITheme.style_pixel_button(start_button)
+	UITheme.style_pixel_button(settings_button, true)
+	
+	$VBoxContainer/Title.add_theme_color_override("font_color", UITheme.CLR_CREAM)
+	
 	continue_button.pressed.connect(_on_continue_pressed)
 	start_button.pressed.connect(_on_start_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)

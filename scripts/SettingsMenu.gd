@@ -84,8 +84,22 @@ func _update_mute_label() -> void:
 
 func _style_panel_shell() -> void:
 	var panel_node := get_node_or_null("Panel")
+	if not panel_node:
+		return
+		
+	var map = load("res://New Ui/FINAL SETTINGS/Map.tscn").instantiate()
+	map.scale = Vector2(7.5, 7.5)
+	if map.has_node("Layer_1_1"):
+		map.get_node("Layer_1_1").queue_free()
+	
+	var bg = Node2D.new()
+	bg.name = "Backdrop"
+	bg.add_child(map)
+	panel_node.add_child(bg)
+	panel_node.move_child(bg, 0)
+	
 	if panel_node is PanelContainer:
-		UITheme.style_panel(panel_node)
+		panel_node.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 func _style_existing_header_row() -> void:
 	var title := get_node_or_null("Panel/VBox/Title")
@@ -340,7 +354,17 @@ func _inject_header_close_btn() -> void:
 	x.text = "✕"
 	x.custom_minimum_size = Vector2(44, 44)
 	x.focus_mode = Control.FOCUS_NONE
-	UITheme.style_button(x, UITheme.CLR_RED)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color("#ef5350")
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(0)
+	x.add_theme_stylebox_override("normal", sb)
+	x.add_theme_stylebox_override("hover", sb)
+	x.add_theme_stylebox_override("pressed", sb)
+	UITheme._do_juice_on(x)
+	
 	x.pressed.connect(_on_close_pressed)
 	header.add_child(x)
 

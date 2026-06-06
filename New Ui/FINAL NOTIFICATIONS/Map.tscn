@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://map"]
+
+[ext_resource type="PackedScene" uid="uid://c3MpS2v6_QQ" id="0_id" path="Layer_3_0.tscn"]
+[ext_resource type="PackedScene" uid="uid://cfyfJnB0MSl" id="1_id" path="Layer_2_1.tscn"]
+[ext_resource type="PackedScene" uid="uid://c8cYpWHIlRG" id="2_id" path="Layer_0_2.tscn"]
+
+[node name="map" type="Node2D"]
+[node name="Layer_0_2" parent="." instance=ExtResource("2_id")]
+[node name="Layer_2_1" parent="." instance=ExtResource("1_id")]
+[node name="Layer_3_0" parent="." instance=ExtResource("0_id")]

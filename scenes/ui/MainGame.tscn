@@ -96,6 +96,7 @@ size = Vector2(57.3125, 56)
 size = Vector2(99.3125, 60)
 
 [node name="MainGame" type="Node2D" unique_id=2141790877]
+y_sort_enabled = true
 script = ExtResource("1_maingame")
 
 [node name="Background" type="ColorRect" parent="." unique_id=230480670]
@@ -107,6 +108,7 @@ mouse_filter = 2
 color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
 
 [node name="world" parent="." unique_id=1163188942 instance=ExtResource("2_utfc0")]
+y_sort_enabled = true
 position = Vector2(-733, -298)
 
 [node name="Shop" parent="." unique_id=906636356 groups=["buildings"] instance=ExtResource("3_rl3lx")]
@@ -398,3 +400,9 @@ shape = SubResource("RectangleShape2D_mu1ml")
 position = Vector2(362, 221)
 build_mode = 1
 polygon = PackedVector2Array(-103, -1007, 285, -1003, 287, -769, -98, -772)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=67586023]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1380951137]
+build_mode = 1
+polygon = PackedVector2Array(2666, 2885, 2664, -175, -716, -179, -714, 2912)

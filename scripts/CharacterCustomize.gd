@@ -340,27 +340,16 @@ func _create_tab_button(category: String) -> Button:
 	return btn
 
 
-func _create_checker_bg() -> ColorRect:
-	var rect := ColorRect.new()
-	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var shader := Shader.new()
-	shader.code = """
-shader_type canvas_item;
-uniform vec4 color1 : source_color = vec4(0.247, 0.584, 0.776, 1.0);
-uniform vec4 color2 : source_color = vec4(0.208, 0.529, 0.722, 1.0);
-uniform float tile_size = 48.0;
-void fragment() {
-	vec2 pos = FRAGCOORD.xy / tile_size;
-	float checker = mod(floor(pos.x) + floor(pos.y), 2.0);
-	COLOR = mix(color1, color2, checker);
-}
-"""
-	var mat := ShaderMaterial.new()
-	mat.shader = shader
-	rect.material = mat
-	return rect
+func _create_checker_bg() -> Node2D:
+	var map = load("res://New Ui/FINAL CHARACTER CREATOR/Map.tscn").instantiate()
+	map.scale = Vector2(7.5, 7.5)
+	if map.has_node("Layer_1_1"):
+		map.get_node("Layer_1_1").queue_free()
+	
+	var bg = Node2D.new()
+	bg.name = "Backdrop"
+	bg.add_child(map)
+	return bg
 
 
 func _create_bottom_bar() -> PanelContainer:
@@ -481,35 +470,10 @@ func _create_styled_button(label_text: String, bg_color: Color) -> Button:
 	btn.text = label_text
 	btn.custom_minimum_size = Vector2(200, 55)
 	btn.add_theme_font_size_override("font_size", 28)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
 	if pixel_font:
 		btn.add_theme_font_override("font", pixel_font)
-
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = bg_color
-	sb.border_color = bg_color.darkened(0.25)
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(6)
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
-	btn.add_theme_stylebox_override("normal", sb)
-
-	var sb_hover: StyleBoxFlat = sb.duplicate()
-	sb_hover.bg_color = bg_color.lightened(0.12)
-	btn.add_theme_stylebox_override("hover", sb_hover)
-
-	var sb_pressed: StyleBoxFlat = sb.duplicate()
-	sb_pressed.bg_color = bg_color.darkened(0.12)
-	btn.add_theme_stylebox_override("pressed", sb_pressed)
-
-	var sb_disabled: StyleBoxFlat = sb.duplicate()
-	sb_disabled.bg_color = Color(0.5, 0.5, 0.5, 0.6)
-	sb_disabled.border_color = Color(0.4, 0.4, 0.4)
-	btn.add_theme_stylebox_override("disabled", sb_disabled)
+	
+	UITheme.style_pixel_button(btn, true)
 
 	return btn
 

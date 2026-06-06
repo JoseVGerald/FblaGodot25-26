@@ -702,14 +702,20 @@ func _style_root_panel() -> void:
 	var panel_node := get_node_or_null("Panel")
 	if not panel_node:
 		return
-	var sb := StyleBoxFlat.new()
-	sb.bg_color     = CLR_NAVY
-	sb.border_color = CLR_SKY
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(14)
-	sb.set_content_margin_all(20)
+	
+	var map = load("res://New Ui/FINAL FINANCIAL HUB/Map.tscn").instantiate()
+	map.scale = Vector2(7.5, 7.5)
+	if map.has_node("Layer_2_0"):
+		map.get_node("Layer_2_0").queue_free()
+	
+	var bg = Node2D.new()
+	bg.name = "Backdrop"
+	bg.add_child(map)
+	panel_node.add_child(bg)
+	panel_node.move_child(bg, 0)
+
 	if panel_node is PanelContainer or panel_node is Panel:
-		panel_node.add_theme_stylebox_override("panel", sb)
+		panel_node.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	panel_node.modulate.a = 1.0
 
 func _apply_finance_panel_scale_and_close_style() -> void:
@@ -718,8 +724,21 @@ func _apply_finance_panel_scale_and_close_style() -> void:
 		panel_node.scale = Vector2(0.85, 0.85)
 		call_deferred("_center_finance_panel_pivot")
 	if close_btn:
-		UITheme.style_button(close_btn, CLR_RED)
+		close_btn.text = "X"
+		close_btn.custom_minimum_size = Vector2(64, 64)
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = Color("#ef5350")
+		sb.border_color = UITheme.CLR_INK
+		sb.set_border_width_all(3)
+		sb.set_corner_radius_all(0)
+		close_btn.add_theme_stylebox_override("normal", sb)
+		close_btn.add_theme_stylebox_override("hover", sb)
+		close_btn.add_theme_stylebox_override("pressed", sb)
+		UITheme._do_juice_on(close_btn)
 		close_btn.add_theme_font_size_override("font_size", 32)
+		
+		if not close_btn.pressed.is_connected(hide_menu):
+			close_btn.pressed.connect(hide_menu)
 
 
 func _center_finance_panel_pivot() -> void:

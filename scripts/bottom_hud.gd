@@ -147,19 +147,25 @@ func update_ui():
 ## Restyle HUD nodes to match the April 2026 redesign spec.
 ## Runs once at _ready — all existing node paths are preserved.
 func _apply_redesign_styling() -> void:
-	# Background bar — deep navy with a subtle sky top border.
 	var bg := get_node_or_null("Background")
 	if bg is Panel:
-		var bg_sb := StyleBoxFlat.new()
-		bg_sb.bg_color = UIColors.BG_NAVY
-		bg_sb.border_color = Color("#4A90D9", 0.35)
-		bg_sb.border_width_top = 2
-		bg.add_theme_stylebox_override("panel", bg_sb)
+		var map = load("res://New Ui/FINAL OVERVIEW/Map.tscn").instantiate()
+		map.scale = Vector2(7.5, 7.5)
+		if map.has_node("Layer_1_1"):
+			map.get_node("Layer_1_1").queue_free()
+		
+		var backdrop = Node2D.new()
+		backdrop.name = "Backdrop"
+		backdrop.add_child(map)
+		bg.add_child(backdrop)
+		bg.move_child(backdrop, 0)
+		
+		bg.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 		bg.self_modulate.a = 1.0
 
 	# Money label — pixel font, green, big.
 	money_label.text = "$%.2f" % GameState.money
-	money_label.add_theme_color_override("font_color", UIColors.BTN_GREEN)
+	money_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 	money_label.add_theme_font_size_override("font_size", 58)
 	var pf := UITheme.get_pixel_font()
 	if pf: money_label.add_theme_font_override("font", pf)
@@ -174,16 +180,14 @@ func _apply_redesign_styling() -> void:
 		if pf: status_lbl.add_theme_font_override("font", pf)
 		left_sec.add_child(status_lbl)
 
-	# Nav buttons — text-only labels per spec (no emoji) + tinted style.
+	# Nav buttons
 	supplies_btn.text = "Supplies"
 	needs_btn.text    = "Needs"
 	home_btn.text     = "Taxi"
 	for b in [supplies_btn, needs_btn, home_btn]:
 		b.add_theme_font_size_override("font_size", 26)
 		b.custom_minimum_size = Vector2(160, 80)
-	UITheme.style_hud_btn(supplies_btn, UIColors.BORDER_BLUE)
-	UITheme.style_hud_btn(needs_btn,    UIColors.BTN_GREEN)
-	UITheme.style_hud_btn(home_btn,     UIColors.WARN_ORANGE)
+		UITheme.style_pixel_button(b, true)
 
 	# Create Work button for Teen/Adult pathways
 	var right_sec = get_node_or_null("Background/Margin/MainHBox/RightSection")
@@ -193,7 +197,7 @@ func _apply_redesign_styling() -> void:
 		work_btn.text = "Work"
 		work_btn.add_theme_font_size_override("font_size", 26)
 		work_btn.custom_minimum_size = Vector2(140, 80)
-		UITheme.style_hud_btn(work_btn, Color("#8B0000")) # Dark red / crimson
+		UITheme.style_pixel_button(work_btn, true)
 		right_sec.add_child(work_btn)
 		work_btn.pressed.connect(_on_work_btn_pressed)
 
@@ -242,31 +246,11 @@ func _on_work_btn_pressed():
 	# Simulate a work shift:
 	GameState.work_shift()
 
-	# Top-right HUD — Finances and Pause both get a dark-blue tinted box.
 	finance_btn.text = "Finances"
 	pause_btn.text   = "Pause"
 	for b in [finance_btn, pause_btn]:
 		b.add_theme_font_size_override("font_size", 22)
-	var dark_blue := Color("#0d2348")
-	UITheme.style_hud_btn(finance_btn, dark_blue)
-	UITheme.style_hud_btn(pause_btn,   dark_blue)
-	# Bump tint-box opacity by 50% above the default style_hud_btn alphas
-	# (0.12 bg / 0.28 border → 0.18 bg / 0.42 border).
-	for b in [finance_btn, pause_btn]:
-		var sb := StyleBoxFlat.new()
-		sb.bg_color     = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.18)
-		sb.border_color = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.42)
-		sb.set_border_width_all(2)
-		sb.set_corner_radius_all(10)
-		sb.set_content_margin_all(8)
-		b.add_theme_stylebox_override("normal", sb)
-		var sb_h: StyleBoxFlat = sb.duplicate()
-		sb_h.bg_color = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.33)
-		b.add_theme_stylebox_override("hover", sb_h)
-		var sb_p: StyleBoxFlat = sb.duplicate()
-		sb_p.bg_color = Color(dark_blue.r, dark_blue.g, dark_blue.b, 0.09)
-		b.add_theme_stylebox_override("pressed", sb_p)
-	# notif_btn handled separately by _setup_notif_button().
+		UITheme.style_pixel_button(b, true)
 
 	# Time label — centered with a faint chip look via BBCode already handled
 	# by _apply_time_label_text. Nothing more needed here.

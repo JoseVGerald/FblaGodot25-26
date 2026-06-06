@@ -14,6 +14,19 @@ const CLR_GREEN  := Color(0.30, 0.68, 0.38)
 const CLR_ORANGE := Color(0.92, 0.62, 0.08)
 const CLR_RED    := Color(0.72, 0.25, 0.25)
 
+const CLR_INK       := Color("#493333")
+const CLR_MAROON    := Color("#b75b5f")
+const CLR_MAROON_D  := Color("#9c4351")
+const CLR_CREAM     := Color("#ffd7a8")
+const CLR_CREAM_LT  := Color("#ffe3c6")
+const CLR_TAN       := Color("#e5b67f")
+const CLR_TAN_HI    := Color("#f0cb97")
+const CLR_TAN_DRK   := Color("#c7895d")
+const CLR_GRAY      := Color("#c6b09b")
+const CLR_GRAY_HI   := Color("#e8d0b9")
+const CLR_GRAY_DRK  := Color("#8a7868")
+const CLR_ORANGE_PX := Color("#ffa34d")
+const CLR_GOLD      := Color("#ffd071")
 
 # ═══════════════════════════════════════════════════════════════════
 #  PUBLIC API
@@ -369,6 +382,7 @@ static func _style_children_recursive(node: Node, force_label_colors: bool = tru
 		pass  # OptionButtons are custom-styled by their own scripts
 	elif node is Button:
 		style_button(node, _auto_button_color(node))
+		_juice_button(node)
 	elif node is Label:
 		if force_label_colors:
 			style_label(node, true)
@@ -392,5 +406,74 @@ static func _has_emoji(text: String) -> bool:
 		if text.unicode_at(i) > 0x2000:
 			return true
 	return false
+
+static func style_pixel_button(btn : Button, secondary : bool = false) -> void:
+	var f := get_pixel_font()
+	if f: btn.add_theme_font_override("font", f)
+	btn.add_theme_color_override("font_color",         CLR_INK)
+	btn.add_theme_color_override("font_hover_color",   CLR_INK)
+	btn.add_theme_color_override("font_pressed_color", CLR_INK)
+
+	var fill     := CLR_GRAY     if secondary else CLR_TAN
+	var fill_hi  := CLR_GRAY_HI  if secondary else CLR_TAN_HI
+	var fill_drk := CLR_GRAY_DRK if secondary else CLR_TAN_DRK
+
+	btn.add_theme_stylebox_override("normal",   _pxsb(fill,                 fill_drk, 8))
+	btn.add_theme_stylebox_override("hover",    _pxsb(fill_hi,              fill_drk, 8))
+	btn.add_theme_stylebox_override("pressed",  _pxsb(fill.darkened(0.06),  fill_drk, 2))
+	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30),  fill_drk, 0))
+
+static func _pxsb(fill : Color, shadow : Color, depth : int) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color            = fill
+	sb.border_color        = CLR_INK
+	sb.border_width_top    = 3
+	sb.border_width_left   = 3
+	sb.border_width_right  = 3
+	sb.border_width_bottom = 3 + depth          # thick bottom = 3-D base
+	sb.anti_aliasing       = false              # crisp pixel edges
+	sb.set_corner_radius_all(0)                 # sharp = pixel art
+	sb.content_margin_left   = 18
+	sb.content_margin_right  = 18
+	sb.content_margin_top    = 12
+	sb.content_margin_bottom = 12 + (8 - depth) # shrinks on press = sinks
+	return sb
+
+static func _juice_button(btn : Button) -> void:
+	if btn.has_meta("juiced"): return
+	btn.set_meta("juiced", true)
+	Callable(UITheme, "_do_juice_on").call_deferred(btn)
+
+static func _do_juice_on(btn : Button) -> void:
+	btn.pivot_offset = btn.size * 0.5
+	if not btn.resized.is_connected(func(): btn.pivot_offset = btn.size * 0.5):
+		btn.resized.connect(func(): btn.pivot_offset = btn.size * 0.5)
+	
+	if not btn.mouse_entered.is_connected(_on_btn_mouse_entered):
+		btn.mouse_entered.connect(_on_btn_mouse_entered.bind(btn))
+	if not btn.mouse_exited.is_connected(_on_btn_mouse_exited):
+		btn.mouse_exited.connect(_on_btn_mouse_exited.bind(btn))
+	if not btn.button_down.is_connected(_on_btn_button_down):
+		btn.button_down.connect(_on_btn_button_down.bind(btn))
+	if not btn.button_up.is_connected(_on_btn_button_up):
+		btn.button_up.connect(_on_btn_button_up.bind(btn))
+
+static func _on_btn_mouse_entered(btn: Button) -> void:
+	if btn.disabled: return
+	var tw := btn.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(btn, "scale", Vector2.ONE * 1.05, 0.10)
+
+static func _on_btn_mouse_exited(btn: Button) -> void:
+	var tw := btn.create_tween()
+	tw.tween_property(btn, "scale", Vector2.ONE, 0.08)
+
+static func _on_btn_button_down(btn: Button) -> void:
+	Sfx.click()
+	var tw := btn.create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(btn, "scale", Vector2(1.03, 0.88), 0.06)
+
+static func _on_btn_button_up(btn: Button) -> void:
+	var tw := btn.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(btn, "scale", Vector2.ONE, 0.10)
 
 # Updated on 2026-04-19

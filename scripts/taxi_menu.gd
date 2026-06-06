@@ -19,11 +19,52 @@ const _TAXI_TEX_SOUTH := preload("res://scenes/People and dog/Taxi/TAXI_CLEAN_SO
 const _TAXI_ATLAS_SIZE := Vector2i(100, 100)
 
 func _ready():
-	UITheme.apply_overlay_theme(self )
+	var map = load("res://New Ui/FINAL TAXI/Map.tscn").instantiate()
+	map.scale = Vector2(7.5, 7.5)
+	if map.has_node("Layer_1_1"):
+		map.get_node("Layer_1_1").queue_free()
+	
+	var bg = Node2D.new()
+	bg.name = "Backdrop"
+	bg.add_child(map)
+	panel.add_child(bg)
+	panel.move_child(bg, 0)
+	
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	
+	UITheme.apply_overlay_theme(self)
+	
+	var title := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/Title")
+	if title is Label:
+		title.text = "Call a Taxi"
+		title.add_theme_color_override("font_color", UITheme.CLR_INK)
+		title.add_theme_font_size_override("font_size", 46)
+
+	var close_btn := get_node_or_null("PanelContainer/VBoxContainer/TitleHBox/CloseButton")
+	if close_btn is Button:
+		close_btn.text = "X"
+		close_btn.custom_minimum_size = Vector2(64, 64)
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = Color("#ef5350")
+		sb.border_color = UITheme.CLR_INK
+		sb.set_border_width_all(3)
+		sb.set_corner_radius_all(0)
+		close_btn.add_theme_stylebox_override("normal", sb)
+		close_btn.add_theme_stylebox_override("hover", sb)
+		close_btn.add_theme_stylebox_override("pressed", sb)
+		UITheme._do_juice_on(close_btn)
+		close_btn.pressed.connect(func(): hide_menu())
+		
+	var home_btn = $PanelContainer/VBoxContainer/HomeRow/HomeBtn
+	var store_btn = $PanelContainer/VBoxContainer/StoreRow/StoreBtn
+	var vet_btn = $PanelContainer/VBoxContainer/VetRow/VetBtn
+	var park_btn = $PanelContainer/VBoxContainer/ParkRow/ParkBtn
+	
+	for b in [home_btn, store_btn, vet_btn, park_btn]:
+		UITheme.style_pixel_button(b, true)
+	
 	panel.hide()
-	$PanelContainer/VBoxContainer/TitleHBox/CloseButton.pressed.connect(func():
-		hide_menu()
-	)
+
 	$PanelContainer/VBoxContainer/HomeRow/HomeBtn.pressed.connect(func(): _travel_to("Home"))
 	$PanelContainer/VBoxContainer/StoreRow/StoreBtn.pressed.connect(func(): _travel_to("Store"))
 	$PanelContainer/VBoxContainer/VetRow/VetBtn.pressed.connect(func(): _travel_to("Vet"))

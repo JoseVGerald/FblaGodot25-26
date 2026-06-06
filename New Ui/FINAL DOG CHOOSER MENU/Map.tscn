@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://map"]
+
+[ext_resource type="PackedScene" uid="uid://cC6FcvHcZSQ" id="0_id" path="Decor_0.tscn"]
+[ext_resource type="PackedScene" uid="uid://ciJGYq7sfTV" id="1_id" path="Buttons_1.tscn"]
+[ext_resource type="PackedScene" uid="uid://cwszNTd1jTl" id="2_id" path="Foreground_2.tscn"]
+[ext_resource type="PackedScene" uid="uid://c49Lew1CJT4" id="3_id" path="Background_3.tscn"]
+
+[node name="map" type="Node2D"]
+[node name="Background_3" parent="." instance=ExtResource("3_id")]
+[node name="Foreground_2" parent="." instance=ExtResource("2_id")]
+[node name="Buttons_1" parent="." instance=ExtResource("1_id")]
+[node name="Decor_0" parent="." instance=ExtResource("0_id")]

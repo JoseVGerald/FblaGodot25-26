@@ -18,7 +18,28 @@ var breeds = [
 var current_breed_index = 0
 
 func _ready():
-	UITheme.apply_theme(self)
+	var map = load("res://New Ui/FINAL DOG CHOOSER MENU/Map.tscn").instantiate()
+	map.scale = Vector2(7.5, 7.5)
+	if map.has_node("Buttons_1"):
+		map.get_node("Buttons_1").queue_free()
+	
+	var bg = Node2D.new()
+	bg.name = "Backdrop"
+	bg.add_child(map)
+	add_child(bg)
+	move_child(bg, 0)
+	
+	if has_node("Background"):
+		$Background.hide()
+	
+	$VBoxContainer/ContinueButton.text = "Choose This Buddy"
+	$VBoxContainer/Title.text = "Choose Your Buddy"
+	$VBoxContainer/Title.add_theme_color_override("font_color", UITheme.CLR_CREAM)
+	
+	UITheme.style_pixel_button($VBoxContainer/ContinueButton)
+	UITheme.style_pixel_button($VBoxContainer/CycleContainer/PrevButton, true)
+	UITheme.style_pixel_button($VBoxContainer/CycleContainer/NextButton, true)
+	
 	var dog_scene = load("res://scenes/People and dog/dog.tscn").instantiate()
 	preview.sprite_frames = dog_scene.get_node("AnimatedSprite2D").sprite_frames
 	dog_scene.free()
