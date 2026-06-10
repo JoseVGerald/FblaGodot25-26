@@ -1,0 +1,42 @@
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col19x2"]
+size = Vector2(304, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col6x1"]
+size = Vector2(96, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col12x1"]
+size = Vector2(192, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2x1"]
+size = Vector2(32, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col3x1"]
+size = Vector2(48, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col4x1"]
+size = Vector2(64, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col11x2"]
+size = Vector2(176, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col4x2"]
+size = Vector2(64, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2x2"]
+size = Vector2(32, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col3x3"]
+size = Vector2(48, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col1x1"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col5x1"]
+size = Vector2(80, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col19x1"]
+size = Vector2(304, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2x3"]
+size = Vector2(32, 48)

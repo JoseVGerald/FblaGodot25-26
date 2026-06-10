@@ -1,0 +1,54 @@
+
+[node name="MapCollisions" type="StaticBody2D" parent="."]
+
+[node name="C0" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(96.0, 16.0)
+shape = SubResource("RectangleShape2D_col12x2")
+
+[node name="C1" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(80.0, 40.0)
+shape = SubResource("RectangleShape2D_col10x1")
+
+[node name="C2" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(184.0, 40.0)
+shape = SubResource("RectangleShape2D_col1x1")
+
+[node name="C3" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(96.0, 64.0)
+shape = SubResource("RectangleShape2D_col12x2")
+
+[node name="C4" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(80.0, 88.0)
+shape = SubResource("RectangleShape2D_col10x1")
+
+[node name="C5" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(184.0, 96.0)
+shape = SubResource("RectangleShape2D_col1x2")
+
+[node name="C6" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(72.0, 104.0)
+shape = SubResource("RectangleShape2D_col9x1")
+
+[node name="C7" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(32.0, 152.0)
+shape = SubResource("RectangleShape2D_col4x5")
+
+[node name="C8" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(136.0, 120.0)
+shape = SubResource("RectangleShape2D_col1x1")
+
+[node name="C9" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(176.0, 120.0)
+shape = SubResource("RectangleShape2D_col2x1")
+
+[node name="C10" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(160.0, 160.0)
+shape = SubResource("RectangleShape2D_col4x4")
+
+[node name="C11" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(40.0, 200.0)
+shape = SubResource("RectangleShape2D_col5x1")
+
+[node name="C12" type="CollisionShape2D" parent="MapCollisions"]
+position = Vector2(152.0, 200.0)
+shape = SubResource("RectangleShape2D_col5x1")
