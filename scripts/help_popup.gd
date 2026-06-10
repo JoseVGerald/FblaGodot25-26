@@ -385,7 +385,7 @@ func add_chat_message(text: String, is_user: bool, is_error: bool = false):
 	label.custom_minimum_size.x = 220
 	label.add_theme_font_size_override("font_size", 26)
 	if is_user:
-		label.add_theme_color_override("font_color", Color("#E6F0FF"))
+		label.add_theme_color_override("font_color", Color("#0d1b36"))
 	elif is_error:
 		label.add_theme_color_override("font_color", Color("#EF5350"))
 	else:

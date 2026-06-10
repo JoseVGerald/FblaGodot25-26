@@ -10,7 +10,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mkf6l"]
 size = Vector2(40, 20)
 
-[node name="map" type="Node2D" unique_id=1603676545]
+[node name="oldshop" type="Node2D" unique_id=1603676545]
 scale = Vector2(2, 2)
 
 [node name="Floor_4" parent="." unique_id=1628107850 instance=ExtResource("4_id")]
@@ -30,5 +30,3 @@ script = ExtResource("shop_npc_script")
 [node name="talk" type="CollisionShape2D" parent="shopNPC" unique_id=1010599684]
 position = Vector2(216, 175)
 shape = SubResource("RectangleShape2D_mkf6l")
-
-; COMMIT: Achievements and Catch Minigame Update

@@ -28,6 +28,10 @@ Work through them **in the order listed** — each builds on shared helpers esta
 - All pixel-font text uses `UITheme.get_pixel_font()` (loads `assets/fonts/Minecraft.ttf`).
 - Labels containing emoji skip the pixel font — UITheme already handles this.
 
+## Slider design
+When creating or modifying **any slider** (`HSlider`, range inputs, progress bars), invoke the **Emil Kowalski skill** first (`npx skills add emilkowalski/skill`).
+Key rules for Godot sliders: grabber_highlight slightly larger than grabber (press feedback), track uses a strong contrast fill color, linear easing for the fill as value changes, no bounce.
+
 ## Motion design skill
 For any UI animation, transitions, or loading screens, invoke the **Emil Kowalski skill** first:
 - Skill is installed at `.agents/skills/emil-design-eng/`

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Godot 4.6.2 — New UI Implementation Guide</title>
+<style>
+:root {
+  --maroon: #b75b5f; --ink: #493333; --cream: #ffd7a8; --tan: #e5b67f;
+  --orange: #ffa34d; --gold: #ffd071; --green: #4caf50; --red: #ef5350;
+  --blue: #4a90d9; --cyan: #53d8fb;
+  --bg: #1a1412; --surface: #231a17; --surface2: #2d2220; --border: #3a2a26;
+  --text: #f5e8d8; --muted: #9a8070;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
+  color: var(--text); line-height: 1.7; font-size: 15px;
+}
+@font-face { font-family: Mono; src: local("Courier New"), local("Menlo"), local("Consolas"); }
+
+/* layout */
+.layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+.sidebar {
+  background: var(--surface); border-right: 2px solid var(--border);
+  padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.sidebar h1 { font-size: 14px; color: var(--orange); padding: 0 20px 16px; border-bottom: 2px solid var(--border); letter-spacing: 1px; }
+.sidebar h2 { font-size: 10px; color: var(--muted); padding: 18px 20px 8px; letter-spacing: 1.5px; }
+.sidebar a {
+  display: block; padding: 7px 20px; font-size: 13px; color: var(--muted);
+  text-decoration: none; border-left: 3px solid transparent;
+}
+.sidebar a:hover { color: var(--text); background: var(--surface2); }
+.sidebar a.active { color: var(--orange); border-left-color: var(--orange); }
+
+.content { padding: 48px 60px; max-width: 900px; }
+
+/* typography */
+h1.page { font-size: 32px; color: var(--cream); border-bottom: 3px solid var(--orange); padding-bottom: 14px; margin-bottom: 8px; }
+.subtitle { color: var(--muted); font-size: 14px; margin-bottom: 40px; }
+h2.sec { font-size: 22px; color: var(--tan); margin: 44px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3.sub { font-size: 17px; color: var(--cream); margin: 28px 0 10px; }
+p { color: #d4c0ad; margin-bottom: 12px; }
+strong { color: var(--cream); }
+a { color: var(--orange); }
+
+/* badges */
+.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 2px; font-weight: 600; letter-spacing: .5px; }
+.tag--new { background: #4caf5033; color: var(--green); }
+.tag--file { background: #4a90d933; color: var(--blue); }
+.tag--warn { background: #ffa72633; color: var(--gold); }
+
+/* callout boxes */
+.callout { border-left: 4px solid var(--orange); background: #2a1e1a; padding: 14px 18px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+.callout.green { border-left-color: var(--green); }
+.callout.blue  { border-left-color: var(--blue); }
+.callout.red   { border-left-color: var(--red); }
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--orange); }
+.callout.green strong { color: var(--green); }
+.callout.blue  strong { color: var(--cyan); }
+
+/* code */
+pre, code { font-family: "Fira Code", "Cascadia Code", monospace; }
+code { background: #2a1e1a; color: #f0c070; padding: 2px 6px; font-size: 13px; border-radius: 2px; }
+pre {
+  background: #160f0d; border: 1px solid var(--border); border-left: 4px solid var(--orange);
+  padding: 18px 22px; overflow-x: auto; font-size: 13px; line-height: 1.6;
+  margin: 14px 0 22px; border-radius: 0 4px 4px 0;
+}
+pre .c { color: #6a5545; }  /* comment */
+pre .k { color: #ffa34d; }  /* keyword */
+pre .s { color: #a8d86e; }  /* string */
+pre .n { color: #53d8fb; }  /* node/type */
+pre .f { color: #f0c070; }  /* func */
+
+/* table */
+table { width: 100%; border-collapse: collapse; margin: 18px 0 26px; font-size: 13px; }
+th { background: var(--surface2); color: var(--cream); text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); }
+td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:nth-child(even) td { background: #1e1512; }
+td code { font-size: 12px; }
+
+/* menu ref cards */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.card {
+  background: var(--surface2); border: 1px solid var(--border); border-top: 3px solid var(--orange);
+  padding: 16px; border-radius: 2px;
+}
+.card h4 { color: var(--orange); font-size: 14px; margin-bottom: 8px; }
+.card .map { font-size: 12px; color: var(--blue); margin-bottom: 8px; font-family: monospace; }
+.card .items { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.card .items b { color: var(--cream); }
+
+.step { display: flex; gap: 14px; margin: 14px 0; }
+.step-n { flex: 0 0 28px; width: 28px; height: 28px; background: var(--orange); color: var(--ink);
+  font-weight: 700; font-size: 14px; display: grid; place-items: center; border-radius: 2px; }
+.step-body { flex: 1; padding-top: 4px; }
+.step-body p { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <h1>NEW UI · GODOT GUIDE</h1>
+  <h2>Overview</h2>
+  <a href="#approach">Integration Approach</a>
+  <a href="#palette">Colour Palette</a>
+  <a href="#pixel-setup">Pixel Setup</a>
+  <h2>Code Components</h2>
+  <a href="#sfx">Sfx Autoload</a>
+  <a href="#juicy">JuicyButton Script</a>
+  <a href="#uitheme">UITheme Hook</a>
+  <a href="#pixelbtn">style_pixel_button()</a>
+  <h2>Menu Mapping</h2>
+  <a href="#menu-table">All 11 Menus</a>
+  <a href="#background">Tilemap Background</a>
+  <h2>Per-Menu Steps</h2>
+  <a href="#m-opening">Opening Menu</a>
+  <a href="#m-chooser">Dog Chooser</a>
+  <a href="#m-petname">Pet Name</a>
+  <a href="#m-needs">Pet Needs</a>
+  <a href="#m-supplies">Pet Supplies</a>
+  <a href="#m-taxi">Taxi</a>
+  <a href="#m-notif">Notifications</a>
+  <a href="#m-finance">Financial Hub</a>
+  <a href="#m-settings">Settings</a>
+  <a href="#m-pause">Pause</a>
+  <a href="#m-overview">Game Overview</a>
+  <a href="#m-charcreator" style="color:var(--orange)">★ Character Creator</a>
+</nav>
+
+<!-- ── Content ── -->
+<main class="content">
+
+<h1 class="page">My Little Buddy — New UI Implementation Guide</h1>
+<p class="subtitle">Godot 4.6.2 · GDScript 2 · Authored from full codebase analysis + tileset render</p>
+
+<!-- ════════════════ APPROACH ════════════════ -->
+<h2 class="sec" id="approach">Integration Approach</h2>
+
+<p>The <strong>/new ui/</strong> folder contains 11 tilemap scenes (Map.tscn + TileMapLayer children). Each is a <em>visual-only</em> pixel-art frame: maroon panel, orange-bracket corners, cream title plaque, and baked button shapes — but <strong>no interactive Godot nodes, no text, no scripts</strong>.</p>
+
+<p>The recommended integration keeps your existing <strong>Control-tree menus intact</strong> and uses the tilemap art purely as the backdrop:</p>
+
+<div class="callout green">
+<strong>Strategy:</strong> Instance each <code>Map.tscn</code> as a visual backdrop (Node2D, scaled up, nearest-filtered). Layer your real <code>Button</code>/<code>Label</code> nodes over it via a <code>Control</code> root anchored to the same panel region. Restyle the buttons to <strong>match the tileset palette</strong> (see <a href="#pixelbtn">style_pixel_button()</a>) so they blend with the art. Then add <a href="#juicy">JuicyButton</a> to get the missing press animation and click sound.
+</div>
+
+<h3 class="sub">Why not use the baked button shapes directly?</h3>
+<p>The baked button shapes are <code>TileMapLayer</code> pixels — you can't attach <code>pressed</code> signals or animate them. The cleanest path is: hide the baked button tiles layer (or keep it — they'll sit under real transparent Control buttons), and place properly-styled <code>Button</code> nodes anchored over each baked shape. The buttons look identical to the art <em>and</em> they can press, hover, and play sound.</p>
+
+<!-- ════════════════ PALETTE ════════════════ -->
+<h2 class="sec" id="palette">Colour Palette</h2>
+<p>Sampled directly from the tileset PNGs. Use these in all <code>StyleBoxFlat</code> and <code>Label</code> overrides to match the art:</p>
+
+<table>
+<tr><th>Token</th><th>Hex</th><th>Use</th></tr>
+<tr><td><code>ink</code></td><td><code>#493333</code></td><td>All borders, text, outlines</td></tr>
+<tr><td><code>maroon</code></td><td><code>#b75b5f</code></td><td>Panel background (full-screen menus)</td></tr>
+<tr><td><code>maroon_deep</code></td><td><code>#9c4351</code></td><td>Darker panel sections, dividers</td></tr>
+<tr><td><code>cream</code></td><td><code>#ffd7a8</code></td><td>Title plaque bg, overlay panel bg</td></tr>
+<tr><td><code>cream_light</code></td><td><code>#ffe3c6</code></td><td>Highlight row inside plaque</td></tr>
+<tr><td><code>tan</code></td><td><code>#e5b67f</code></td><td>Primary button fill</td></tr>
+<tr><td><code>tan_dark</code></td><td><code>#c7895d</code></td><td>Button inner-bottom shade</td></tr>
+<tr><td><code>gray</code></td><td><code>#c6b09b</code></td><td>Secondary / disabled button</td></tr>
+<tr><td><code>gray_dark</code></td><td><code>#8a7868</code></td><td>Gray button inner-bottom shade</td></tr>
+<tr><td><code>orange</code></td><td><code>#ffa34d</code></td><td>Corner brackets, accent bars</td></tr>
+<tr><td><code>gold</code></td><td><code>#ffd071</code></td><td>Corner edge highlight</td></tr>
+<tr><td><code>pink</code></td><td><code>#f29485</code></td><td>Display/chart background area</td></tr>
+</table>
+
+<!-- ════════════════ PIXEL SETUP ════════════════ -->
+<h2 class="sec" id="pixel-setup">Project Pixel Setup</h2>
+<p>The tilesets use <strong>16×16 px tiles</strong>. To keep them crisp when scaled:</p>
+<div class="step"><div class="step-n">1</div><div class="step-body"><p>Go to <strong>Project → Project Settings → Rendering → Textures</strong> and set <strong>Default Texture Filter</strong> to <code>Nearest</code>. This stops bilinear blur on all pixel art.</p></div></div>
+<div class="step"><div class="step-n">2</div><div class="step-body"><p>When instancing a tilemap Map.tscn as a backdrop, set the parent <code>Node2D</code> scale to match your game resolution. At 16 px tiles and a 1024×576 viewport, scale ≈ 8 makes a 14×10-tile menu fill the screen (14×16×8 = 1792 px — bigger than viewport, so clamp; try scale 6–8 and tweak).</p></div></div>
+<div class="step"><div class="step-n">3</div><div class="step-body"><p>The tilemap's <code>TileSet.tile_size = Vector2i(16,16)</code> and <code>texture_region_size = Vector2i(16,16)</code>. No changes needed — just import the <code>tileset.png</code> with <strong>Filter = Nearest</strong> in the Import dock.</p></div></div>
+
+<!-- ════════════════ SFX AUTOLOAD ════════════════ -->
+<h2 class="sec" id="sfx">Step 1 — Sfx Autoload</h2>
+<p>Create <code>res://scripts/Sfx.gd</code> and add it as an autoload singleton named <code>Sfx</code> (<strong>Project → Project Settings → AutoLoad</strong>). Drop a short click WAV at <code>res://assets/sfx/click.wav</code> (16-bit, mono, &lt;100ms — any pixel-blip sound works).</p>
+
+<pre><span class="c"># Sfx.gd  — AutoLoad singleton</span>
+<span class="k">extends</span> <span class="n">Node</span>
+
+<span class="k">var</span> _player : <span class="n">AudioStreamPlayer</span>
+<span class="k">var</span> _click  : <span class="n">AudioStream</span> = <span class="k">null</span>
+
+<span class="k">func</span> <span class="f">_ready</span>() -> <span class="k">void</span>:
+    _player = <span class="n">AudioStreamPlayer</span>.new()
+    _player.bus = <span class="s">"Master"</span>
+    add_child(_player)
+    <span class="k">var</span> p := <span class="s">"res://assets/sfx/click.wav"</span>
+    <span class="k">if</span> ResourceLoader.exists(p):
+        _click = load(p)
+
+<span class="k">func</span> <span class="f">click</span>(pitch : <span class="k">float</span> = 1.0) -> <span class="k">void</span>:
+    <span class="k">if</span> _click == <span class="k">null</span>: <span class="k">return</span>
+    _player.stream = _click
+    _player.pitch_scale = randf_range(0.94, 1.08) * pitch
+    _player.volume_db = -6.0
+    _player.play()
+</pre>
+
+<!-- ════════════════ JUICY BUTTON ════════════════ -->
+<h2 class="sec" id="juicy">Step 2 — JuicyButton Script</h2>
+<p>A drop-in script for any <code>Button</code>. Gives <strong>hover scale-up</strong>, <strong>pixel press-down (squash)</strong>, and <strong>click sound</strong>. Works inside VBoxContainers because it uses <code>scale</code> (which containers don't touch) rather than <code>position</code>.</p>
+
+<pre><span class="c"># JuicyButton.gd
+# Usage: set this as a Button's script, OR call _juice(btn) from code.</span>
+<span class="k">class_name</span> <span class="n">JuicyButton</span>
+<span class="k">extends</span> <span class="n">Button</span>
+
+<span class="k">@export var</span> press_squash  : <span class="k">float</span> = 0.88   <span class="c"># Y scale on press</span>
+<span class="k">@export var</span> hover_scale   : <span class="k">float</span> = 1.05   <span class="c"># uniform scale on hover</span>
+<span class="k">@export var</span> anim_secs     : <span class="k">float</span> = 0.07
+<span class="k">@export var</span> play_sound    : <span class="k">bool</span>  = <span class="k">true</span>
+
+<span class="k">var</span> _tw : <span class="n">Tween</span>
+
+<span class="k">func</span> <span class="f">_ready</span>() -> <span class="k">void</span>:
+    <span class="f">_centre_pivot</span>()
+    resized.connect(_centre_pivot)
+    mouse_entered.connect(_hover)
+    mouse_exited.connect(_unhover)
+    button_down.connect(_down)
+    button_up.connect(_up)
+
+<span class="k">func</span> <span class="f">_centre_pivot</span>() -> <span class="k">void</span>:
+    pivot_offset = size * 0.5
+
+<span class="k">func</span> <span class="f">_go</span>(target_scale : <span class="n">Vector2</span>, trans := <span class="n">Tween</span>.TRANS_BACK, ease := <span class="n">Tween</span>.EASE_OUT) -> <span class="k">void</span>:
+    <span class="k">if</span> _tw: _tw.kill()
+    _tw = create_tween().set_trans(trans).set_ease(ease)
+    _tw.tween_property(<span class="k">self</span>, <span class="s">"scale"</span>, target_scale, anim_secs)
+
+<span class="k">func</span> <span class="f">_hover</span>()   -> <span class="k">void</span>: <span class="k">if not</span> disabled: <span class="f">_go</span>(<span class="n">Vector2</span>.ONE * hover_scale)
+<span class="k">func</span> <span class="f">_unhover</span>() -> <span class="k">void</span>: <span class="f">_go</span>(<span class="n">Vector2</span>.ONE, <span class="n">Tween</span>.TRANS_EXPO)
+<span class="k">func</span> <span class="f">_down</span>()    -> <span class="k">void</span>:
+    <span class="k">if</span> play_sound: <span class="n">Sfx</span>.<span class="f">click</span>()
+    <span class="f">_go</span>(<span class="n">Vector2</span>(1.03, press_squash), <span class="n">Tween</span>.TRANS_QUAD, <span class="n">Tween</span>.EASE_IN)
+<span class="k">func</span> <span class="f">_up</span>()      -> <span class="k">void</span>: <span class="f">_go</span>(<span class="n">Vector2</span>.ONE * (<span class="f">hover_scale if is_hovered</span>() <span class="k">else</span> 1.0))
+</pre>
+
+<!-- ════════════════ UITHEME HOOK ════════════════ -->
+<h2 class="sec" id="uitheme">Step 3 — Wire it into UITheme (one change, all menus)</h2>
+<p>Your <code>UITheme.gd</code> already walks every node via <code>_style_children_recursive</code>. Add the juice call inside the <code>node is Button</code> branch so every existing and future menu gets it for free:</p>
+
+<pre><span class="c"># In UITheme.gd — _style_children_recursive()</span>
+<span class="k">elif</span> node <span class="k">is</span> <span class="n">Button</span>:
+    style_button(node, _auto_button_color(node))
+    <span class="f">_juice_button</span>(node)   <span class="c"># ← ADD THIS LINE</span>
+
+<span class="c"># Add this static function to UITheme.gd:</span>
+<span class="k">static func</span> <span class="f">_juice_button</span>(btn : <span class="n">Button</span>) -> <span class="k">void</span>:
+    <span class="k">if</span> btn.has_meta(<span class="s">"juiced"</span>): <span class="k">return</span>
+    btn.set_meta(<span class="s">"juiced"</span>, <span class="k">true</span>)
+    btn.call_deferred(<span class="s">"_do_juice"</span>)   <span class="c"># deferred so size is known</span>
+
+<span class="c"># Helper that runs after layout so pivot is correct:</span>
+<span class="k">static func</span> <span class="f">_do_juice_on</span>(btn : <span class="n">Button</span>) -> <span class="k">void</span>:
+    btn.pivot_offset = btn.size * 0.5
+    btn.resized.connect(<span class="k">func</span>(): btn.pivot_offset = btn.size * 0.5)
+    btn.mouse_entered.connect(<span class="k">func</span>():
+        <span class="k">if</span> btn.disabled: <span class="k">return</span>
+        var tw := btn.create_tween().set_trans(<span class="n">Tween</span>.TRANS_BACK).set_ease(<span class="n">Tween</span>.EASE_OUT)
+        tw.tween_property(btn, <span class="s">"scale"</span>, <span class="n">Vector2</span>.ONE * 1.05, 0.10))
+    btn.mouse_exited.connect(<span class="k">func</span>():
+        var tw := btn.create_tween()
+        tw.tween_property(btn, <span class="s">"scale"</span>, <span class="n">Vector2</span>.ONE, 0.08))
+    btn.button_down.connect(<span class="k">func</span>():
+        <span class="n">Sfx</span>.<span class="f">click</span>()
+        var tw := btn.create_tween().set_trans(<span class="n">Tween</span>.TRANS_QUAD).set_ease(<span class="n">Tween</span>.EASE_IN)
+        tw.tween_property(btn, <span class="s">"scale"</span>, <span class="n">Vector2</span>(1.03, 0.88), 0.06))
+    btn.button_up.connect(<span class="k">func</span>():
+        var tw := btn.create_tween().set_trans(<span class="n">Tween</span>.TRANS_BACK).set_ease(<span class="n">Tween</span>.EASE_OUT)
+        tw.tween_property(btn, <span class="s">"scale"</span>, <span class="n">Vector2</span>.ONE, 0.10))
+</pre>
+
+<div class="callout">
+<strong>Note:</strong> In the <code>_juice_button</code> static func, calling <code>btn.call_deferred("_do_juice")</code> won't work because <code>_do_juice</code> doesn't exist on <code>Button</code>. Instead call <code>_do_juice_on(btn)</code> wrapped in a deferred lambda: <code>btn.call_deferred(func(): UITheme._do_juice_on(btn))</code> — or simply call it directly if you know the layout has resolved.
+</div>
+
+<!-- ════════════════ PIXEL BUTTON STYLE ════════════════ -->
+<h2 class="sec" id="pixelbtn">Step 4 — style_pixel_button() — New Palette Styling</h2>
+<p>Replace calls to <code>UITheme.style_button(btn, color)</code> with this new function wherever you want the full new-UI pixel look. Or call it from the UITheme hook above. The trick is a thick bottom border that gets thinner on press, making the button visually sink.</p>
+
+<pre><span class="c"># Add to UITheme.gd</span>
+<span class="k">const</span> CLR_INK      := Color(<span class="s">"#493333"</span>)
+<span class="k">const</span> CLR_TAN      := Color(<span class="s">"#e5b67f"</span>)
+<span class="k">const</span> CLR_TAN_HI   := Color(<span class="s">"#f0cb97"</span>)
+<span class="k">const</span> CLR_TAN_DRK  := Color(<span class="s">"#c7895d"</span>)
+<span class="k">const</span> CLR_GRAY     := Color(<span class="s">"#c6b09b"</span>)
+<span class="k">const</span> CLR_GRAY_DRK := Color(<span class="s">"#8a7868"</span>)
+
+<span class="k">static func</span> <span class="f">style_pixel_button</span>(btn : <span class="n">Button</span>, secondary : <span class="k">bool</span> = <span class="k">false</span>) -> <span class="k">void</span>:
+    <span class="k">var</span> f := <span class="f">get_pixel_font</span>()
+    <span class="k">if</span> f: btn.add_theme_font_override(<span class="s">"font"</span>, f)
+    btn.add_theme_color_override(<span class="s">"font_color"</span>,         CLR_INK)
+    btn.add_theme_color_override(<span class="s">"font_hover_color"</span>,   CLR_INK)
+    btn.add_theme_color_override(<span class="s">"font_pressed_color"</span>, CLR_INK)
+
+    <span class="k">var</span> fill     := CLR_GRAY    <span class="k">if</span> secondary <span class="k">else</span> CLR_TAN
+    <span class="k">var</span> fill_hi  := CLR_GRAY    <span class="k">if</span> secondary <span class="k">else</span> CLR_TAN_HI
+    <span class="k">var</span> fill_drk := CLR_GRAY_DRK <span class="k">if</span> secondary <span class="k">else</span> CLR_TAN_DRK
+
+    btn.add_theme_stylebox_override(<span class="s">"normal"</span>,   <span class="f">_pxsb</span>(fill,     fill_drk, 8))
+    btn.add_theme_stylebox_override(<span class="s">"hover"</span>,    <span class="f">_pxsb</span>(fill_hi,  fill_drk, 8))
+    btn.add_theme_stylebox_override(<span class="s">"pressed"</span>,  <span class="f">_pxsb</span>(fill.darkened(0.06), fill_drk, 2))
+    btn.add_theme_stylebox_override(<span class="s">"disabled"</span>, <span class="f">_pxsb</span>(fill.darkened(0.3), fill_drk, 0))
+
+<span class="k">static func</span> <span class="f">_pxsb</span>(fill : <span class="n">Color</span>, shadow : <span class="n">Color</span>, depth : <span class="k">int</span>) -> <span class="n">StyleBoxFlat</span>:
+    <span class="k">var</span> sb := <span class="n">StyleBoxFlat</span>.new()
+    sb.bg_color         = fill
+    sb.border_color     = CLR_INK
+    sb.border_width_top    = 3
+    sb.border_width_left   = 3
+    sb.border_width_right  = 3
+    sb.border_width_bottom = 3 + depth          <span class="c"># thick bottom = 3-D base</span>
+    sb.anti_aliasing       = <span class="k">false</span>             <span class="c"># crisp pixel edges</span>
+    sb.set_corner_radius_all(0)                  <span class="c"># sharp = pixel art</span>
+    sb.content_margin_left   = 18
+    sb.content_margin_right  = 18
+    sb.content_margin_top    = 12
+    sb.content_margin_bottom = 12 + (8 - depth) <span class="c"># shrinks on press = sinks</span>
+    <span class="k">return</span> sb
+</pre>
+
+<!-- ════════════════ MENU TABLE ════════════════ -->
+<h2 class="sec" id="menu-table">All 11 Menus — Mapping Table</h2>
+
+<table>
+<tr><th>New UI Folder</th><th>Game Scene / Script</th><th>Title</th><th>Buttons / Key Content</th></tr>
+<tr><td>FINAL OPENING MENU</td><td><code>MainMenu.tscn</code><br><code>MainMenu.gd</code></td><td>"My Little Buddy"</td><td>Continue Game · Start New Game · Settings</td></tr>
+<tr><td>FINAL DOG CHOOSER MENU</td><td><code>PetSelect.tscn</code><br><code>PetSelect.gd</code></td><td>"Choose Your Buddy"</td><td>◀ Prev · dog sprite preview · breed name · ▶ Next · Choose This Buddy</td></tr>
+<tr><td>FINAL PET NAME</td><td><code>PetName.tscn</code><br><code>PetName.gd</code></td><td>"Name Your Buddy"</td><td>Dog AnimatedSprite2D preview · LineEdit (letters+space) · Continue</td></tr>
+<tr><td>FINAL PET NEEDS</td><td><code>needs_menu.gd</code></td><td>"Pet Needs"</td><td>HUNGER · THIRST · ENERGY · HEALTH bars (0–100) + X close</td></tr>
+<tr><td>FINAL PET SUPPLIES</td><td><code>supplies_menu.gd</code></td><td>"Pet Supplies"</td><td>Food: N days left · Water: N days left · Medication: none/name + X close</td></tr>
+<tr><td>FINAL TAXI</td><td><code>taxi_menu.gd</code></td><td>"Call a Taxi"</td><td>Home · Store · Vet · Park (each shows $taxi_cost) + X close</td></tr>
+<tr><td>FINAL NOTIFICATIONS</td><td><code>notification_panel.gd</code></td><td>"Notifications"</td><td>Scrollable rows: icon + type + Day N + message + → + dismiss X</td></tr>
+<tr><td>FINAL FINANCIAL HUB</td><td><code>FinanceMenu.tscn</code><br><code>finance_menu.gd</code></td><td>"Financial Hub"</td><td>5 tabs: Overview · Budget Planner · Weekly Report · Loans · All-Time History</td></tr>
+<tr><td>FINAL SETTINGS</td><td><code>SettingsMenu.gd</code></td><td>"Settings"</td><td>AUDIO (Music Vol, SFX, Mute) · GAME (3 toggles) · DISPLAY (2 toggles) · Keybinds + X close</td></tr>
+<tr><td>FINAL PAUSE</td><td><code>PauseMenu.gd</code></td><td>"Paused"</td><td>Settings · Help · Achievements · Resume · Quit + X close</td></tr>
+<tr><td>FINAL GAME OVERVIEW</td><td><code>FinalStatsScreen.gd</code></td><td>"CONGRATULATIONS!"</td><td>6 stat rows · Savings graph · Return to Main Menu</td></tr>
+</table>
+
+<!-- ════════════════ BACKGROUND ════════════════ -->
+<h2 class="sec" id="background">Tilemap Background Integration</h2>
+
+<p>Each menu folder contains: <code>Map.tscn</code> (root composer), 2–4 <code>Layer_*.tscn</code> files (TileMapLayers), <code>tileset.tres</code> and <code>tileset.png</code>. The draw order is: <strong>highest filename-suffix = bottom-most layer</strong> (e.g. <code>Layer_0_2</code> drawn first, <code>Layer_2_0</code> on top).</p>
+
+<h3 class="sub">Node structure for each menu</h3>
+<pre><span class="c"># Every menu adopts this pattern:</span>
+<span class="n">CanvasLayer</span>           <span class="c"># your existing CanvasLayer root</span>
+└─ <span class="n">Control</span> "Root"      <span class="c"># anchor_preset = FULL_RECT</span>
+   ├─ <span class="n">Node2D</span> "Backdrop"  <span class="c"># ← NEW: instance of Map.tscn</span>
+   │    scale = <span class="n">Vector2</span>(8, 8)   <span class="c"># scale 16px tiles to fill viewport</span>
+   │    position = <span class="n">Vector2</span>(-panelOffsetX, -panelOffsetY)
+   └─ <span class="n">VBoxContainer</span>     <span class="c"># your existing content (labels, buttons)</span>
+        anchors_preset = FULL_RECT  <span class="c"># or anchored to panel region</span>
+</pre>
+
+<div class="callout blue">
+<strong>Tip:</strong> After instancing Map.tscn, open it and toggle off any pure-button TileMapLayers (the ones whose layer name ends in <code>_0</code> on top, e.g. <code>Buttons_1</code> in Dog Chooser or <code>Layer_1_0</code> in Opening). Real <code>Button</code> nodes styled with <code>style_pixel_button()</code> will replace them and look identical — but they animate and emit signals.
+</div>
+
+<h3 class="sub">Coordinate alignment</h3>
+<p>The tilemap's content starts at tile (0,0). With scale=8, tile (0,0) = pixel (0,0). The Opening Menu's title plaque spans tiles (1,1)–(12,2), which at scale=8 = pixels (128,128)–(960,160). Position your title <code>Label</code> to match. Each menu's exact tile regions are visible in the <strong>interactive prototype</strong> (open it, hover elements to see alignment).</p>
+
+<!-- ════════════════ PER-MENU STEPS ════════════════ -->
+<h2 class="sec" id="m-opening">Opening Menu (MainMenu.tscn)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL OPENING MENU/Map.tscn</div>
+<div class="items">Layers (bottom→top):<br><b>Layer_0_1</b> — maroon panel + frame<br><b>Layer_1_0</b> — title plaque + 3 button shapes<br>→ Toggle Layer_1_0 off; replace with real Buttons.</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Title Label: <b>"My Little Buddy"</b> (font_size 100)<br>
+Button 1: <b>"Continue Game"</b> → load save + MainGame<br>
+Button 2: <b>"Start New Game"</b> → delete save + IntroCutscene<br>
+Button 3: <b>"Settings"</b> → instantiate SettingsMenu.tscn<br>
+Style: <code>style_pixel_button(btn)</code> for 1&2, <code>(btn, true)</code> for Settings
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-chooser">Dog Chooser (PetSelect.tscn)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL DOG CHOOSER MENU/Map.tscn</div>
+<div class="items"><b>Background_3</b> — maroon outer frame<br><b>Foreground_2</b> — red/gold banner decor<br><b>Buttons_1</b> — ◀ ▶ arrows + bottom bar → toggle off<br><b>Decor_0</b> — top decorative layer, keep</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Prev/Next Buttons (◀▶): cycle <b>8 breeds</b><br>
+Breeds: Golden Retriever, Husky, Dalmatian,<br>
+Labrador, Rottweiler, Argentino, Pharaoh Hound, Cane Corso<br>
+Preview: <code>AnimatedSprite2D</code> playing <code>breed_id + "_idle"</code><br>
+Label: breed name (font_size 60)<br>
+Confirm: <b>"Choose This Buddy"</b> → PetName.tscn
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-petname">Pet Name (PetName.tscn)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL PET NAME/Map.tscn</div>
+<div class="items"><b>Layer_0_2</b> — maroon frame<br><b>Layer_1_1</b> — cream panel<br><b>Layer_2_0</b> — input field + button shapes → toggle off</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Title: <b>"Name Your Buddy"</b><br>
+Preview: <code>AnimatedSprite2D</code> (loaded from dog.tscn)<br>
+Input: <code>LineEdit</code> — letters + spaces only, 14 char max<br>
+Continue: saves name → <b>CostCustomization.tscn</b>
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-needs">Pet Needs (needs_menu.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL PET NEEDS/Map.tscn</div>
+<div class="items"><b>Layer_0_1</b> — cream panel bg<br><b>Layer_1_0</b> — 4 dark bar placeholders + X → toggle off<br>Replace 4 bars with real <code>ProgressBar</code> nodes</div>
+</div>
+<div class="card">
+<h4>Real content (colours from sampled palette)</h4>
+<div class="items">
+<b>HUNGER</b>: bar fill <code>#ff8c00</code> (orange)<br>
+<b>THIRST</b>: bar fill <code>#1e90ff</code> (blue)<br>
+<b>ENERGY</b>: bar fill <code>#ffd700</code> (yellow)<br>
+<b>HEALTH</b>: bar fill <code>#32cd32</code> (green)<br>
+Format: "X/100" · flash red + "!" when &lt; 30
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-supplies">Pet Supplies (supplies_menu.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL PET SUPPLIES/Map.tscn</div>
+<div class="items"><b>Layer_0_1</b> — cream panel, dividers<br><b>Layer_1_0</b> — 3 row bars + X → toggle off<br>Replace 3 rows with real <code>Label</code> nodes</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+<b>"Pet Supplies"</b> title<br>
+Row 1: Food: N days left (green, red if &lt;5)<br>
+Row 2: Water: N days left (blue, red if &lt;5)<br>
+Row 3: Medication: <code>GameState.medication</code><br>
+Show warning strip if food or water low
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-taxi">Taxi (taxi_menu.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL TAXI/Map.tscn</div>
+<div class="items"><b>Layer_0_2</b> — cream panel<br><b>Layer_1_1</b> — 4 button shapes → toggle off<br><b>Layer_2_0</b> — X close + title underline → keep</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Title: <b>"Call a Taxi"</b><br>
+4 row buttons: <b>Home · Store · Vet · Park</b><br>
+Each shows: cost label <code>"$%d" % GameState.taxi_cost</code><br>
+News Boy pathway: cost = $0<br>
+Warning if not near road
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-notif">Notifications (notification_panel.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL NOTIFICATIONS/Map.tscn</div>
+<div class="items"><b>Layer_0_2</b> — cream full bg<br><b>Layer_2_1</b> — 4 row dividers (keep as-is)<br><b>Layer_3_0</b> — X close + title area → keep outline</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Title: <b>"Notifications"</b><br>
+Counter: "N Notifications"<br>
+Per row: icon (! / ★ / •) · type+day · message · → · dismiss X<br>
+Click row → taxi dialog / finance / achievements
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-finance">Financial Hub (finance_menu.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL FINANCIAL HUB/Map.tscn</div>
+<div class="items"><b>Layer_0_2</b> — maroon frame<br><b>Layer_1_1</b> — 5 tab dashes (keep, or replace with TabContainer)<br><b>Layer_2_0</b> — pink pie-chart area + cream close btn → toggle off buttons</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Title: <b>"Financial Hub" + "DAY N · WEEK N"</b><br>
+5 tabs: Overview · Budget Planner · Weekly Report · Loans · All-Time History<br>
+Overview: pie chart (Food/Vet/Travel) + balances + deposit/withdraw<br>
+Colors: Food <code>#4caf50</code> · Vet <code>#4a90d9</code> · Travel <code>#ffa726</code>
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-settings">Settings (SettingsMenu.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL SETTINGS/Map.tscn</div>
+<div class="items"><b>Layer_0_2</b> — cream side panel (right-anchored)<br><b>Layer_1_1</b> — section dividers + toggle placeholders<br><b>Layer_2_0</b> — X close + 2 bottom buttons → toggle off</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Sections: <b>AUDIO · GAME · DISPLAY · CONTROLS</b><br>
+AUDIO: Music Volume (HSlider) · SFX (HSlider) · Mute All<br>
+GAME: Notifications · Inflation Active · Random Events<br>
+DISPLAY: Tooltips · Fullscreen<br>
+CONTROLS: Keybinds button
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-pause">Pause (PauseMenu.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL PAUSE/Map.tscn</div>
+<div class="items"><b>Layer_0_2</b> — cream panel bg<br><b>Layer_1_1</b> — 5 row-button shapes → toggle off<br><b>Layer_2_0</b> — X close + title strip → keep</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Title: <b>"Paused"</b><br>
+<b>Settings</b> (blue) · <b>Help</b> (cyan) · <b>Achievements</b> (gold)<br>
+<b>Resume</b> (green) · <b>Quit</b> (red)<br>
+X close → resume (same as Resume btn)
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-overview">Game Overview / Final Stats (FinalStatsScreen.gd)</h2>
+<div class="card-grid">
+<div class="card">
+<h4>New UI backdrop</h4>
+<div class="map">new ui/FINAL GAME OVERVIEW/Map.tscn</div>
+<div class="items"><b>Layer_0_2</b> — maroon outer frame<br><b>Layer_1_1</b> — cream title plaque + pink chart area<br><b>Layer_2_0</b> — 3 stat row bars + tan close btn → toggle off</div>
+</div>
+<div class="card">
+<h4>Real content</h4>
+<div class="items">
+Title: <b>"CONGRATULATIONS!"</b> (gold)<br>
+Subtitle: "You purchased the home for [pet_name]!"<br>
+Stats: Player Name · Buddy's Name · Days Played ·<br>Starting Cash · Ending Cash · Ending Savings<br>
+Right panel: savings line graph + tab charts<br>
+Bottom: <b>"Return to Main Menu"</b>
+</div>
+</div>
+</div>
+
+<h2 class="sec" id="m-charcreator">Character Creator / Player Editor (CharacterCustomize.gd)</h2>
+
+<p>Unlike the 11 tilemap menus, the <strong>Character Creator is built 100% in code</strong> — <code>_build_ui()</code> constructs every node with <code>StyleBoxFlat</code> overrides and a blue-checker shader background. There is no <code>Map.tscn</code> for it in <code>/new ui/</code>, so re-skinning it means <strong>swapping the colours and styleboxes in the script</strong> to match the new maroon pixel-art theme. No layout changes needed — just colours, borders, and the background.</p>
+
+<div class="callout blue">
+<strong>What changes:</strong> the blue checker background → maroon; gray/blue tabs → tan/orange; tile panels → cream &amp; deep-maroon; the gray bottom bar → cream with an ink border. The 4-direction preview, carousel, grid, name field, and checkboxes all keep their exact positions and behaviour.
+</div>
+
+<h3 class="sub">Step A — Maroon background (replace the blue checker shader)</h3>
+<p>In <code>_create_checker_bg()</code>, swap the two shader colours to the new maroon pair (keeps the subtle checker texture):</p>
+<pre><span class="c"># _create_checker_bg() — change the two uniforms</span>
+uniform vec4 color1 : source_color = vec4(0.718, 0.357, 0.373, 1.0); <span class="c"># #b75b5f maroon</span>
+uniform vec4 color2 : source_color = vec4(0.612, 0.263, 0.318, 1.0); <span class="c"># #9c4351 deep</span>
+</pre>
+
+<h3 class="sub">Step B — Title colour to cream</h3>
+<pre><span class="c"># In _build_ui(), the title Label:</span>
+title.add_theme_color_override(<span class="s">"font_color"</span>, <span class="n">Color</span>(<span class="s">"#ffd7a8"</span>))    <span class="c"># cream</span>
+title.add_theme_color_override(<span class="s">"font_shadow_color"</span>, <span class="n">Color</span>(<span class="s">"#9c4351"</span>)) <span class="c"># maroon-deep drop</span>
+</pre>
+
+<h3 class="sub">Step C — Tab buttons → tan / orange-active</h3>
+<p>In <code>_create_tab_button()</code>, replace the stylebox colours and square the corners:</p>
+<pre><span class="c"># normal (inactive)</span>
+sb.bg_color     = <span class="n">Color</span>(<span class="s">"#8a7868"</span>)   <span class="c"># gray-dark</span>
+sb.border_color = <span class="n">Color</span>(<span class="s">"#493333"</span>)   <span class="c"># ink</span>
+sb.set_corner_radius_all(0)                <span class="c"># sharp pixel corners</span>
+<span class="c"># hover</span>
+sb_hover.bg_color = <span class="n">Color</span>(<span class="s">"#9c8975"</span>)
+<span class="c"># active (selected tab)</span>
+sb_active.bg_color     = <span class="n">Color</span>(<span class="s">"#ffa34d"</span>)  <span class="c"># orange</span>
+sb_active.border_color = <span class="n">Color</span>(<span class="s">"#493333"</span>)  <span class="c"># ink</span>
+<span class="c"># set active tab's font to ink so it reads on orange:</span>
+sb_active.set_corner_radius_all(0)
+</pre>
+
+<h3 class="sub">Step D — Grid tiles → cream / deep-maroon, gold selection</h3>
+<p>In <code>_build_tile()</code>, swap the selected/unselected colours:</p>
+<pre>sb.bg_color     = <span class="n">Color</span>(<span class="s">"#493333"</span>) <span class="k">if</span> is_selected <span class="k">else</span> <span class="n">Color</span>(<span class="s">"#c6b09b"</span>)
+sb.border_color = <span class="n">Color</span>(<span class="s">"#ffd071"</span>) <span class="k">if</span> is_selected <span class="k">else</span> <span class="n">Color</span>(<span class="s">"#493333"</span>)
+sb.set_corner_radius_all(0)
+<span class="c"># put a deep-maroon PanelContainer (#9c4351) behind the GridContainer</span>
+<span class="c"># so the grid reads as a framed tray like the prototype.</span>
+</pre>
+
+<h3 class="sub">Step E — Bottom bar → cream with ink border</h3>
+<pre><span class="c"># _create_bottom_bar() — the panel StyleBoxFlat:</span>
+sb.bg_color         = <span class="n">Color</span>(<span class="s">"#ffd7a8"</span>)  <span class="c"># cream</span>
+sb.border_color     = <span class="n">Color</span>(<span class="s">"#493333"</span>)  <span class="c"># ink</span>
+sb.border_width_top = 6
+<span class="c"># NAME label + checkbox text already dark — reads fine on cream</span>
+</pre>
+
+<h3 class="sub">Step F — Buttons use the new pixel style + juice</h3>
+<p>The Character Creator builds buttons via its own <code>_create_styled_button()</code>. Two options:</p>
+<div class="step"><div class="step-n">1</div><div class="step-body"><p><strong>Quick:</strong> change the <code>bg_color</code> args passed in — BACK → <code>#c6b09b</code> (gray), RANDOMIZE → <code>#ffa34d</code> (orange), CONTINUE → <code>#4caf50</code> (green). Inside <code>_create_styled_button()</code> set <code>sb.set_corner_radius_all(0)</code> and bump <code>sb.border_width_bottom = 6</code> to fake the pixel base.</p></div></div>
+<div class="step"><div class="step-n">2</div><div class="step-body"><p><strong>Best:</strong> after building each button call <code>UITheme._do_juice_on(btn)</code> (from <a href="#uitheme">Step 3</a>) so the direction arrows, BACK, RANDOMIZE, CONTINUE — and every grid tile — get hover-scale + press-squash + <code>Sfx.click()</code>. For tiles, call it inside <code>_build_tile()</code> right before <code>return btn</code>.</p></div></div>
+
+<div class="callout">
+<strong>Selected-tile label:</strong> the <code>"%s %02d"</code> footer (e.g. "BODY 01") already uses the pixel font + white text — on the new dark-selected tile it stays readable. No change needed.
+</div>
+
+<h3 class="sub">Content reference (unchanged words &amp; assets)</h3>
+<table>
+<tr><th>Element</th><th>Value</th></tr>
+<tr><td>Title</td><td><code>"CHARACTER CREATOR"</code></td></tr>
+<tr><td>Tabs</td><td>BODY · HAIR · ACCESSORIES · OUTFIT · EYES</td></tr>
+<tr><td>Categories (internal)</td><td>Body · Hairstyle · Accessory · Outfit · Eyes</td></tr>
+<tr><td>Directions</td><td>LEFT · FRONT · BACK · RIGHT (carousel ◀ ▶)</td></tr>
+<tr><td>Bottom-left</td><td>BACK · RANDOMIZE</td></tr>
+<tr><td>Bottom-center</td><td>NAME: [LineEdit · letters+spaces · 25 max]</td></tr>
+<tr><td>Bottom-right</td><td>5 visibility checkboxes + CONTINUE</td></tr>
+<tr><td>Sprites</td><td><code>res://assets/sprites/Character Components/{Body,Hairstyle,…}/</code> — 48×96 frames, atlas <code>Rect2(864,96,48,96)</code> = FRONT idle</td></tr>
+<tr><td>Continue →</td><td><code>PetSelect.tscn</code> · Back → <code>IntroCutscene.tscn</code></td></tr>
+</table>
+
+<div class="callout green" style="margin-top:40px">
+<strong>Quick checklist before shipping each menu:</strong><br>
+☐ Map.tscn instanced as Backdrop Node2D, scale = 8, texture filter = Nearest<br>
+☐ Button layer(s) toggled off (replaced by real Control Buttons)<br>
+☐ <code>style_pixel_button(btn)</code> applied via UITheme.apply_theme / apply_overlay_theme<br>
+☐ <code>UITheme._juice_button(btn)</code> wired (or <code>JuicyButton</code> script attached)<br>
+☐ <code>Sfx.click()</code> autoload registered in Project Settings<br>
+☐ click.wav present at <code>res://assets/sfx/click.wav</code><br>
+☐ Project default texture filter = Nearest
+</div>
+
+<p style="margin-top:48px;color:var(--muted);font-size:12px">Generated from full analysis of constanlyupdate/ · Godot 4.6.2 · GDScript 2</p>
+
+</main>
+</div>
+</body>
+</html>

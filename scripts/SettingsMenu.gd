@@ -22,6 +22,14 @@ const CLR_DIM        := UITheme.CLR_GRAY_DRK
 var mute_btn: Button = null
 var is_muted: bool = false
 
+# Volume memory for restore-on-unmute.
+var _pre_mute_music: float = 70.0
+var _pre_mute_sfx:   float = 70.0
+
+# SFX row refs (set by _make_sfx_slider_row).
+var sfx_slider:    HSlider = null
+var sfx_pct_label: Label   = null
+
 # Toggle state (wired to GameState properties if present).
 var _toggles : Dictionary = {}  # name → Button
 
@@ -37,6 +45,8 @@ func _ready() -> void:
 	var initial_volume = GameState.get("master_volume") if "master_volume" in GameState else 70
 	volume_slider.value = initial_volume
 	volume_value_label.text = str(int(initial_volume)) + "%"
+	_pre_mute_music = initial_volume
+	_pre_mute_sfx   = initial_volume
 	_style_slider(volume_slider)
 	volume_slider.value_changed.connect(_on_volume_changed)
 
@@ -64,24 +74,77 @@ func _on_volume_changed(value: float) -> void:
 	var db: float = linear_to_db(value / 100.0)
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), db)
 	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), value == 0)
+	# Sliding music up while muted → auto-unmute.
+	if is_muted and value > 0:
+		is_muted = false
+		_update_mute_label()
 
 func _on_close_pressed() -> void:
 	settings_closed.emit()
 	queue_free()
 
-func _on_mute_toggled(pressed: bool) -> void:
-	is_muted = pressed
-	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), is_muted)
+# Called when the Mute/Unmute button is pressed.
+func _on_mute_button_pressed() -> void:
+	_set_muted(not is_muted)
+
+func _set_muted(should_mute: bool) -> void:
+	is_muted = should_mute
 	if is_muted:
-		volume_slider.value = 0
+		# Save current levels so we can restore on unmute.
+		_pre_mute_music = volume_slider.value
+		_pre_mute_sfx   = sfx_slider.value if sfx_slider else volume_slider.value
+		# Silence both sliders without firing value_changed.
+		volume_slider.set_value_no_signal(0)
+		if sfx_slider: sfx_slider.set_value_no_signal(0)
 		volume_value_label.text = "0%"
+		if sfx_pct_label: sfx_pct_label.text = "0%"
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
+	else:
+		# Restore saved levels.
+		volume_slider.set_value_no_signal(_pre_mute_music)
+		if sfx_slider: sfx_slider.set_value_no_signal(_pre_mute_sfx)
+		volume_value_label.text = str(int(_pre_mute_music)) + "%"
+		if sfx_pct_label: sfx_pct_label.text = str(int(_pre_mute_sfx)) + "%"
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), false)
+		var db: float = linear_to_db(_pre_mute_music / 100.0)
+		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), db)
 		if "master_volume" in GameState:
-			GameState.master_volume = 0
+			GameState.master_volume = int(_pre_mute_music)
 	_update_mute_label()
+
+# Kept for backward compatibility — delegates to _set_muted.
+func _on_mute_toggled(pressed: bool) -> void:
+	_set_muted(pressed)
 
 func _update_mute_label() -> void:
 	if not mute_btn: return
-	mute_btn.text = "Unmute" if is_muted else "Mute"
+	var pf := UITheme.get_pixel_font()
+	if is_muted:
+		mute_btn.text = "Unmute"
+		var sb := StyleBoxFlat.new()
+		sb.bg_color     = UITheme.CLR_GREEN
+		sb.border_color = UITheme.CLR_INK
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(0)
+		mute_btn.add_theme_stylebox_override("normal",  sb)
+		mute_btn.add_theme_stylebox_override("hover",   sb)
+		mute_btn.add_theme_stylebox_override("pressed", sb)
+		mute_btn.add_theme_color_override("font_color",       Color.WHITE)
+		mute_btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	else:
+		mute_btn.text = "Mute"
+		var sb := StyleBoxFlat.new()
+		sb.bg_color     = UITheme.CLR_CREAM_LT
+		sb.border_color = UITheme.CLR_INK
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(0)
+		mute_btn.add_theme_stylebox_override("normal",  sb)
+		mute_btn.add_theme_stylebox_override("hover",   sb)
+		mute_btn.add_theme_stylebox_override("pressed", sb)
+		mute_btn.add_theme_color_override("font_color",       UITheme.CLR_MAROON_D)
+		mute_btn.add_theme_color_override("font_hover_color", UITheme.CLR_MAROON_D)
+	if pf: mute_btn.add_theme_font_override("font", pf)
+	mute_btn.add_theme_font_size_override("font_size", 22)
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  STYLING
@@ -112,6 +175,7 @@ func _style_existing_header_row() -> void:
 		volume_value_label.add_theme_font_size_override("font_size", 30)
 
 ## Apply slider track/fill style per spec.
+## Emil Kowalski principle: grabber scales slightly on hover for press feedback.
 func _style_slider(slider: HSlider) -> void:
 	var track := StyleBoxFlat.new()
 	track.bg_color = UITheme.CLR_MAROON_D
@@ -140,9 +204,15 @@ func _style_slider(slider: HSlider) -> void:
 	grabber.content_margin_top = 10
 	grabber.content_margin_bottom = 10
 	slider.add_theme_stylebox_override("grabber", grabber)
-	slider.add_theme_stylebox_override("grabber_highlight", grabber)
 
-## Drop a dark card background + sky-blue left accent behind a row.
+	# Grabber highlight: slightly larger on hover for press feedback (Emil Kowalski).
+	var grabber_hi := grabber.duplicate() as StyleBoxFlat
+	grabber_hi.bg_color = UITheme.CLR_CREAM_LT
+	grabber_hi.content_margin_top    = 12
+	grabber_hi.content_margin_bottom = 12
+	slider.add_theme_stylebox_override("grabber_highlight", grabber_hi)
+
+## Drop a card background + accent behind a row.
 func _wrap_row_in_card(row: HBoxContainer, accent: Color) -> void:
 	var bg := ColorRect.new()
 	bg.color = CLR_BG_CARD
@@ -164,9 +234,6 @@ func _wrap_row_in_card(row: HBoxContainer, accent: Color) -> void:
 #  EXPANDED LAYOUT — build AUDIO/GAME/DISPLAY sections in script
 # ══════════════════════════════════════════════════════════════════════════════
 
-## Insert section headers + toggle rows into the existing VBox.
-## We build between VolumeContainer and CloseBtn so the original scene
-## nodes stay untouched and at their original paths.
 func _build_expanded_layout() -> void:
 	var vbox := get_node_or_null("Panel/VBox")
 	if not (vbox is VBoxContainer):
@@ -177,25 +244,19 @@ func _build_expanded_layout() -> void:
 	vbox.add_child(audio_section)
 	vbox.move_child(audio_section, 1)   # right below Title
 
-	# SFX slider row (distinct from Music Volume — shares the Master bus here
-	# so the slider visually tracks the same audio output).
+	# SFX slider row.
 	var sfx_row := _make_sfx_slider_row()
 	vbox.add_child(sfx_row)
 	vbox.move_child(sfx_row, 3)   # Title → AUDIO → VolumeContainer → SFXRow
 
-	mute_btn = _make_toggle_row(
-		"Mute All Audio",
-		"Silences music and sound effects",
-		Color("#FFA726"),
-		AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")),
-		_on_mute_toggled,
-	)
-	is_muted = mute_btn.button_pressed
+	# Mute row — labeled button (not a switch) that toggles between Mute/Unmute.
+	var mute_row := _make_mute_row()
+	is_muted = AudioServer.is_bus_mute(AudioServer.get_bus_index("Master"))
 	_update_mute_label()
-	vbox.add_child(mute_btn.get_parent())   # add the row container, not the toggle itself
-	vbox.move_child(mute_btn.get_parent(), 4)   # Title → AUDIO → Music → SFX → Mute
+	vbox.add_child(mute_row)
+	vbox.move_child(mute_row, 4)   # Title → AUDIO → Music → SFX → Mute
 
-	# GAME section.
+	# GAME section — all on by default.
 	vbox.add_child(_make_section_label("GAME"))
 	vbox.add_child(_make_toggle_row_for_state(
 		"Notifications", "Show warnings and event popups",
@@ -205,7 +266,7 @@ func _build_expanded_layout() -> void:
 		Color("#FFA726"), "inflation_enabled", true))
 	vbox.add_child(_make_toggle_row_for_state(
 		"Random Events", "Occasional surprises and challenges",
-		CLR_CYAN, "random_events_enabled", false))
+		CLR_CYAN, "random_events_enabled", true))
 
 	# DISPLAY section.
 	vbox.add_child(_make_section_label("DISPLAY"))
@@ -253,8 +314,6 @@ func _make_section_label(text: String) -> Label:
 	if font: lbl.add_theme_font_override("font", font)
 	return lbl
 
-## Read the initial toggle state from GameState (default if missing) and
-## write back on change.
 func _make_toggle_row_for_state(name: String, sub: String, accent: Color,
 		state_prop: String, default_on: bool) -> HBoxContainer:
 	var initial := default_on
@@ -275,7 +334,7 @@ func _on_fullscreen_toggled(on: bool) -> void:
 		else DisplayServer.WINDOW_MODE_WINDOWED
 	)
 
-## Build a row: card panel + icon tile + label/sub + toggle switch.
+## Build a row: card panel + icon tile + label/sub + pill toggle switch.
 ## Returns the toggle Button (call get_parent() for the row container).
 func _make_toggle_row(name: String, sub: String, accent: Color,
 		initial_on: bool, on_toggled: Callable) -> Button:
@@ -311,6 +370,7 @@ func _make_toggle_row(name: String, sub: String, accent: Color,
 	toggle.toggle_mode = true
 	toggle.button_pressed = initial_on
 	toggle.custom_minimum_size = Vector2(70, 36)
+	toggle.size_flags_horizontal = Control.SIZE_SHRINK_END
 	toggle.focus_mode = Control.FOCUS_NONE
 	toggle.text = ""
 	_apply_toggle_visual(toggle)
@@ -322,8 +382,50 @@ func _make_toggle_row(name: String, sub: String, accent: Color,
 
 	return toggle
 
-## Inject a small red "✕" close button in the top-right of the title bar so
-## players can dismiss Settings without scrolling to the footer.
+## Build the Mute All Audio row with a plain labeled button (Mute / Unmute).
+func _make_mute_row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.custom_minimum_size = Vector2(0, 60)
+	row.add_theme_constant_override("separation", 12)
+	_wrap_row_in_card(row, Color("#FFA726"))
+
+	var tile := ColorRect.new()
+	tile.color = Color(1.0, 0.655, 0.149, 0.22)
+	tile.custom_minimum_size = Vector2(36, 36)
+	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(tile)
+
+	var block := VBoxContainer.new()
+	block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	block.add_theme_constant_override("separation", 2)
+
+	var name_lbl := Label.new()
+	name_lbl.text = "Mute All Audio"
+	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
+	name_lbl.add_theme_font_size_override("font_size", 26)
+	var pf := UITheme.get_pixel_font()
+	if pf: name_lbl.add_theme_font_override("font", pf)
+	block.add_child(name_lbl)
+
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Silences music and sound effects"
+	sub_lbl.add_theme_color_override("font_color", CLR_DIM)
+	sub_lbl.add_theme_font_size_override("font_size", 18)
+	block.add_child(sub_lbl)
+
+	row.add_child(block)
+
+	mute_btn = Button.new()
+	mute_btn.toggle_mode = false
+	mute_btn.custom_minimum_size = Vector2(90, 40)
+	mute_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	mute_btn.focus_mode = Control.FOCUS_NONE
+	mute_btn.pressed.connect(_on_mute_button_pressed)
+	row.add_child(mute_btn)
+
+	return row
+
+## Inject a small red "✕" close button in the top-right of the title bar.
 func _inject_header_close_btn() -> void:
 	var title := get_node_or_null("Panel/VBox/Title")
 	if not (title is Label):
@@ -332,12 +434,10 @@ func _inject_header_close_btn() -> void:
 	if not (vbox is VBoxContainer):
 		return
 
-	# Wrap the existing title in an HBox that adds a right-aligned close ✕.
 	var header := HBoxContainer.new()
 	header.name = "HeaderRow"
 	header.add_theme_constant_override("separation", 10)
 
-	# Detach title from VBox and nest it inside the new header.
 	var title_index := title.get_index()
 	vbox.remove_child(title)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -355,8 +455,7 @@ func _inject_header_close_btn() -> void:
 	vbox.add_child(header)
 	vbox.move_child(header, title_index)
 
-## Build the SFX slider row as a card. The slider shares the Master bus so
-## changes cross-fade with the Music Volume slider for now.
+## Build the SFX slider row as a card.
 func _make_sfx_slider_row() -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.custom_minimum_size = Vector2(0, 60)
@@ -397,19 +496,45 @@ func _make_sfx_slider_row() -> HBoxContainer:
 
 	slider.value_changed.connect(func(v: float):
 		pct.text = str(int(v)) + "%"
-		# Mirror onto Master bus so SFX audibly changes; future buses can split.
 		_on_volume_changed(v)
 		volume_slider.set_value_no_signal(v)
+		# Sliding SFX up while muted → auto-unmute.
+		if is_muted and v > 0:
+			is_muted = false
+			_update_mute_label()
 	)
+
+	# Save refs so _set_muted can silence/restore this slider.
+	sfx_slider    = slider
+	sfx_pct_label = pct
+
 	return row
 
+## Pill-shaped toggle switch visual.
+## ON  → green pill, white thumb on the right.
+## OFF → cream pill with ink border, dark thumb on the left.
 func _apply_toggle_visual(btn: Button) -> void:
 	var on := btn.button_pressed
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = UITheme.CLR_GREEN if on else UITheme.CLR_CREAM_LT
 	sb.border_color = UITheme.CLR_INK
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(0)
+	sb.set_corner_radius_all(18)   # pill — half of 36px height
 	btn.add_theme_stylebox_override("normal",  sb)
 	btn.add_theme_stylebox_override("hover",   sb)
 	btn.add_theme_stylebox_override("pressed", sb)
+
+	# Thumb indicator — created once, repositioned on state change.
+	var thumb := btn.get_node_or_null("Thumb")
+	if not thumb:
+		thumb = ColorRect.new()
+		thumb.name = "Thumb"
+		thumb.custom_minimum_size = Vector2(24, 24)
+		thumb.size = Vector2(24, 24)
+		thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(thumb)
+	thumb.color    = Color.WHITE if on else UITheme.CLR_INK
+	# Hardcoded for custom_minimum_size = Vector2(70, 36).
+	# ON: right side (70 - 24 - 4 = 42, (36-24)/2 = 6)
+	# OFF: left side (4, 6)
+	thumb.position = Vector2(42.0 if on else 4.0, 6.0)

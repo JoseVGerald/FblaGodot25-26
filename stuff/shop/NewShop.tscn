@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://ceg3zx5a1u905"]
+
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_5_0.tscn" id="0_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_4_1.tscn" id="1_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_3_2.tscn" id="2_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_2_3.tscn" id="3_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_0_4.tscn" id="4_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_7_5.tscn" id="5_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_6_6.tscn" id="6_id"]
+
+[node name="newShop" type="Node2D" unique_id=1756627064]
+
+[node name="Layer_6_6" parent="." unique_id=1242889873 instance=ExtResource("6_id")]
+
+[node name="Layer_7_5" parent="." unique_id=294013787 instance=ExtResource("5_id")]
+
+[node name="Layer_0_4" parent="." unique_id=401394204 instance=ExtResource("4_id")]
+
+[node name="Layer_2_3" parent="." unique_id=1628415101 instance=ExtResource("3_id")]
+
+[node name="Layer_3_2" parent="." unique_id=959291759 instance=ExtResource("2_id")]
+
+[node name="Layer_4_1" parent="." unique_id=208575622 instance=ExtResource("1_id")]
+
+[node name="Layer_5_0" parent="." unique_id=2014045044 instance=ExtResource("0_id")]

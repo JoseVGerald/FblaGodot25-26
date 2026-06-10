@@ -46,19 +46,21 @@ const ACHIEVEMENT_DESCRIPTIONS := {
 	"Week One Down"        : "Complete all Day 1 tutorial actions",
 }
 
-# ── Colour palette ──────────────────────────────────────────────────────────────
-const CLR_NAVY       := Color("#1a2a4a")
-const CLR_NAVY_LIGHT := Color("#1e3a6e")
-const CLR_NAVY_DEEP  := Color("#0d1b36")
-const CLR_SKY        := Color("#4A90D9")
-const CLR_CYAN       := Color("#53d8fb")
+# ── Colour palette — cream/maroon identity matching SettingsMenu ─────────────
+const CLR_PANEL_BG   := UITheme.CLR_CREAM
+const CLR_ROW_UNLOCK := UITheme.CLR_CREAM_LT
+const CLR_ROW_LOCK   := Color("#e8c497")      # slightly darker cream for locked rows
+const CLR_BORDER     := UITheme.CLR_INK
+const CLR_TITLE      := UITheme.CLR_MAROON_D
+const CLR_COUNTER    := UITheme.CLR_MAROON_D
+const CLR_SEPARATOR  := UITheme.CLR_INK
 const CLR_GREEN      := Color("#4CAF50")
 const CLR_GOLD       := Color("#FFD700")
 const CLR_RED        := Color("#EF5350")
-const CLR_WHITE      := Color.WHITE
-const CLR_GREY_ICON  := Color("#666688")
-const CLR_GREY_TITLE := Color(0.6, 0.6, 0.6, 0.5)
-const CLR_GREY_DESC  := Color(0.38, 0.38, 0.38)
+const CLR_WHITE      := UITheme.CLR_INK
+const CLR_GREY_ICON  := UITheme.CLR_GRAY_DRK
+const CLR_GREY_TITLE := Color("#8a786899")   # CLR_GRAY_DRK at 60% alpha
+const CLR_GREY_DESC  := UITheme.CLR_GRAY_DRK
 
 var was_paused     : bool         = false
 var list_container : VBoxContainer = null
@@ -106,10 +108,10 @@ func _build_ui() -> void:
 	panel.modulate.a      = 1.0
 
 	var panel_sb := StyleBoxFlat.new()
-	panel_sb.bg_color     = CLR_NAVY
-	panel_sb.border_color = CLR_SKY
-	panel_sb.set_border_width_all(3)
-	panel_sb.set_corner_radius_all(10)
+	panel_sb.bg_color     = CLR_PANEL_BG
+	panel_sb.border_color = CLR_BORDER
+	panel_sb.set_border_width_all(4)
+	panel_sb.set_corner_radius_all(0)
 	panel_sb.set_content_margin_all(20)
 	panel.add_theme_stylebox_override("panel", panel_sb)
 	add_child(panel)
@@ -130,7 +132,7 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 58)
 	title.size_flags_horizontal  = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment   = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", CLR_WHITE)
+	title.add_theme_color_override("font_color", CLR_TITLE)
 	var font := UITheme.get_pixel_font()
 	if font:
 		title.add_theme_font_override("font", font)
@@ -146,7 +148,7 @@ func _build_ui() -> void:
 
 	# Separator
 	var title_sep := ColorRect.new()
-	title_sep.color                 = CLR_SKY
+	title_sep.color                 = CLR_SEPARATOR
 	title_sep.custom_minimum_size   = Vector2(0, 2)
 	title_sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(title_sep)
@@ -158,7 +160,7 @@ func _build_ui() -> void:
 	counter.text = "%d / %d Achievements Unlocked" % [unlocked_count, total_count]
 	counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	counter.add_theme_font_size_override("font_size", 32)
-	counter.add_theme_color_override("font_color", CLR_CYAN)
+	counter.add_theme_color_override("font_color", CLR_COUNTER)
 	if font:
 		counter.add_theme_font_override("font", font)
 	vbox.add_child(counter)
@@ -183,7 +185,7 @@ func _fill_list(list: VBoxContainer) -> void:
 		var description : String = ACHIEVEMENT_DESCRIPTIONS.get(achievement_name, "")
 
 		var row_bg := ColorRect.new()
-		row_bg.color = CLR_NAVY_LIGHT if is_unlocked else CLR_NAVY_DEEP
+		row_bg.color = CLR_ROW_UNLOCK if is_unlocked else CLR_ROW_LOCK
 		row_bg.custom_minimum_size   = Vector2(0, 64)
 		row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		list.add_child(row_bg)
@@ -233,7 +235,7 @@ func _fill_list(list: VBoxContainer) -> void:
 
 		# Separator
 		var sep := ColorRect.new()
-		sep.color                   = CLR_SKY
+		sep.color                   = CLR_SEPARATOR
 		sep.custom_minimum_size     = Vector2(0, 1)
 		sep.size_flags_horizontal   = Control.SIZE_EXPAND_FILL
 		list.add_child(sep)

@@ -1,12 +1,29 @@
 [gd_scene format=3 uid="uid://maingame123"]
 
 [ext_resource type="Script" uid="uid://thcfk0conjk" path="res://scripts/MainGame.gd" id="1_maingame"]
-[ext_resource type="PackedScene" uid="uid://map" path="res://scenes/maps/map (3) (1)/Map.tscn" id="2_utfc0"]
 [ext_resource type="PackedScene" uid="uid://c72hdhwbpin62" path="res://scenes/maps/shop/Shop.tscn" id="3_rl3lx"]
 [ext_resource type="PackedScene" uid="uid://ciqs30qh7j8kh" path="res://scenes/maps/House/House.tscn" id="4_p8prh"]
 [ext_resource type="PackedScene" uid="uid://4f2nlbvifihu" path="res://scenes/maps/Vet/Vet.tscn" id="5_mrp28"]
+[ext_resource type="PackedScene" uid="uid://map" path="res://scenes/maps/map (3) (1)/Map.tscn" id="8_j74j7"]
+[ext_resource type="PackedScene" uid="uid://ce50ei8k224j1" path="res://stuff/bank/bank.tscn" id="8_subro"]
+[ext_resource type="PackedScene" uid="uid://cgwj5638j76hp" path="res://stuff/burgers/burgers.tscn" id="9_j74j7"]
+[ext_resource type="PackedScene" uid="uid://cquzb81sq112v" path="res://stuff/house/NewHouse.tscn" id="10_xgklt"]
+[ext_resource type="PackedScene" uid="uid://cvc7kilcqslvu" path="res://stuff/post office/post.tscn" id="11_gy3b1"]
+[ext_resource type="PackedScene" uid="uid://ceg3zx5a1u905" path="res://stuff/shop/NewShop.tscn" id="12_nwshp"]
 [ext_resource type="Script" uid="uid://dwn2snim0omos" path="res://scripts/catch_area.gd" id="catch_area_script"]
 [ext_resource type="Script" uid="uid://djopbckuyqam2" path="res://scripts/interaction_area.gd" id="interaction_area_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8ht4s"]
+size = Vector2(28, 38.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_subro"]
+size = Vector2(28, 53)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_j74j7"]
+size = Vector2(28, 162)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xgklt"]
+size = Vector2(125, 28)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_331gq"]
 size = Vector2(52, 52)
@@ -99,16 +116,23 @@ size = Vector2(99.3125, 60)
 y_sort_enabled = true
 script = ExtResource("1_maingame")
 
-[node name="Background" type="ColorRect" parent="." unique_id=230480670]
-offset_left = -7182.0
-offset_top = -3797.0
-offset_right = 7313.0
-offset_bottom = 5869.0
+[node name="Background2" type="ColorRect" parent="." unique_id=1359324232]
+offset_left = -117363.0
+offset_top = -40572.0
+offset_right = 64684.0
+offset_bottom = 55238.0
 mouse_filter = 2
 color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
 
-[node name="world" parent="." unique_id=1163188942 instance=ExtResource("2_utfc0")]
-y_sort_enabled = true
+[node name="Background" type="ColorRect" parent="." unique_id=230480670]
+offset_left = 18908.0
+offset_top = -25363.0
+offset_right = 200955.0
+offset_bottom = 70447.0
+mouse_filter = 2
+color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
+
+[node name="world" parent="." unique_id=1163188942 instance=ExtResource("8_j74j7")]
 position = Vector2(-733, -298)
 
 [node name="Shop" parent="." unique_id=906636356 groups=["buildings"] instance=ExtResource("3_rl3lx")]
@@ -120,6 +144,63 @@ scale = Vector2(2, 2)
 
 [node name="Vet" parent="." unique_id=227832104 groups=["buildings"] instance=ExtResource("5_mrp28")]
 position = Vector2(-1819, 2470)
+
+[node name="bank collisons" type="Node" parent="." unique_id=1422599128]
+
+[node name="plants" type="StaticBody2D" parent="bank collisons" unique_id=1083749259]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/plants" unique_id=174630635]
+position = Vector2(3985, 1033.25)
+shape = SubResource("RectangleShape2D_8ht4s")
+
+[node name="plants2" type="StaticBody2D" parent="bank collisons" unique_id=138810883]
+position = Vector2(94, 2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/plants2" unique_id=450759271]
+position = Vector2(3985, 1033.25)
+shape = SubResource("RectangleShape2D_8ht4s")
+
+[node name="plants3" type="StaticBody2D" parent="bank collisons" unique_id=1735528591]
+position = Vector2(223, -176)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/plants3" unique_id=1370852932]
+position = Vector2(3985, 1031.5)
+shape = SubResource("RectangleShape2D_subro")
+
+[node name="plants4" type="StaticBody2D" parent="bank collisons" unique_id=2029876252]
+position = Vector2(286, -175)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/plants4" unique_id=1726114002]
+position = Vector2(3985, 1031.5)
+shape = SubResource("RectangleShape2D_subro")
+
+[node name="chairs" type="StaticBody2D" parent="bank collisons" unique_id=147113822]
+position = Vector2(319, -153)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/chairs" unique_id=179873382]
+position = Vector2(3985, 1086)
+shape = SubResource("RectangleShape2D_j74j7")
+
+[node name="chairs2" type="StaticBody2D" parent="bank collisons" unique_id=1148582393]
+position = Vector2(221, -145)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/chairs2" unique_id=1212879768]
+position = Vector2(4033.5, 1153)
+shape = SubResource("RectangleShape2D_xgklt")
+
+[node name="plants5" type="StaticBody2D" parent="bank collisons" unique_id=392169401]
+position = Vector2(191, -111)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/plants5" unique_id=209848341]
+position = Vector2(3985, 1031.5)
+shape = SubResource("RectangleShape2D_subro")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="bank collisons" unique_id=835598588]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="bank collisons/StaticBody2D" unique_id=97490377]
+position = Vector2(3245, -420)
+build_mode = 1
+polygon = PackedVector2Array(722, 1341, 708, 1482, 841, 1484, 841, 1540, 959, 1540, 952, 1452, 1086, 1458, 1079, 1232, 943, 1224, 947, 1344)
 
 [node name="Interaction areas" type="Node" parent="." unique_id=1849057895]
 
@@ -406,3 +487,23 @@ polygon = PackedVector2Array(-103, -1007, 285, -1003, 287, -769, -98, -772)
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1380951137]
 build_mode = 1
 polygon = PackedVector2Array(2666, 2885, 2664, -175, -716, -179, -714, 2912)
+
+[node name="map" parent="." unique_id=659678687 instance=ExtResource("8_subro")]
+position = Vector2(3934, 797)
+scale = Vector2(2, 2)
+
+[node name="map2" parent="." unique_id=1206902706 instance=ExtResource("9_j74j7")]
+position = Vector2(-9024, 2772)
+scale = Vector2(2, 2)
+
+[node name="map3" parent="." unique_id=2056631131 instance=ExtResource("10_xgklt")]
+position = Vector2(3541, 9804)
+scale = Vector2(2, 2)
+
+[node name="map4" parent="." unique_id=570977186 instance=ExtResource("11_gy3b1")]
+position = Vector2(-8594, -4017)
+scale = Vector2(2, 2)
+
+[node name="map5" parent="." unique_id=1361788123 instance=ExtResource("12_nwshp")]
+position = Vector2(642, -6155)
+scale = Vector2(2, 2)

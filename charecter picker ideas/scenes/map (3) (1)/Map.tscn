@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://map"]
+[gd_scene format=4]
 
 [ext_resource type="PackedScene" path="res://scenes/map (3) (1)/Layer_32_0.tscn" id="0_id"]
 [ext_resource type="PackedScene" path="res://scenes/map (3) (1)/Middle_Tree_Layer_23.tscn" id="23_id"]
