@@ -95,8 +95,18 @@ func _interact() -> void:
 			launcher.open_for_work()
 		else:
 			_show_dialogue([GameState.complete_work_shift()])
+	elif location_key == "bank":
+		# The Loan Decision Desk mini-game IS the shift; it credits commission
+		# on completion and can only be played once per in-game day.
+		var loan_launcher = get_node_or_null("/root/LoanLauncher")
+		if loan_launcher and loan_launcher.has_method("open_for_work"):
+			if hint_instance:
+				hint_instance.hide_hint()
+			loan_launcher.open_for_work()
+		else:
+			_show_dialogue([GameState.complete_work_shift()])
 	else:
-		# Bank / Paper Boy: no mini-game yet — run the shift and confirm.
+		# Paper Boy: no mini-game yet — run the shift and confirm.
 		_show_dialogue([GameState.complete_work_shift()])
 
 

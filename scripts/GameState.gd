@@ -113,6 +113,11 @@ var job_promo_chance: Dictionary = {"news_boy": 0.0, "burger_cashier": 0.0, "ban
 # How much each promotion boosts pay/earnings, as a percent of base pay.
 # Editable in the Cost Customizer. Rank pay = base * (1 + boost% * (rank-1)).
 var promotion_boost_percent: float = 40.0
+# Bank job (Loan Decision Desk mini-game): how many desk days the player has
+# finished (drives the mini-game's difficulty ramp), and the in-game day of the
+# last shift so the desk can only be worked once per in-game day.
+var bank_days_completed: int = 0
+var bank_last_shift_day: int = -1
 
 # Customizable Costs
 var food_cost: int = 20
@@ -717,6 +722,30 @@ func complete_burger_work_shift(earnings: float, tips: float) -> void:
 	_advance_promotion_progress(job)
 
 
+## Credit a finished Loan Decision Desk shift. earnings is the player's total
+## commission from the desk; bonus is the streak-bonus portion of it. Both scale
+## by the promotion-rank multiplier. Records the shift so the desk can't be
+## re-played until the next in-game day, and advances promotion standing.
+func complete_bank_work_shift(earnings: float, bonus: float) -> void:
+	var job := "bank_accountant"
+	if active_job != job:
+		return
+	var mult := get_promotion_multiplier(job)
+	var bonus_credit := snappedf(max(0.0, bonus) * mult, 0.01)
+	var base_credit := snappedf(max(0.0, earnings - bonus) * mult, 0.01)
+	money += base_credit + bonus_credit
+	total_tips_earned += bonus_credit
+	days_worked_this_week += 1
+	bank_days_completed += 1
+	bank_last_shift_day = current_day
+	record_transaction("Bank Shift", base_credit, "Income")
+	if bonus_credit > 0.0:
+		record_transaction("Commission: Bank", bonus_credit, "Income")
+	event_triggered.emit("Shift done! Earned $%.2f ($%.2f commission) at the desk." % [base_credit + bonus_credit, bonus_credit])
+	budget_updated.emit()
+	_advance_promotion_progress(job)
+
+
 ## Random tip for a shift, rounded to cents, from the level's tip range.
 func _roll_tip(level_data: Dictionary) -> float:
 	var tmax: float = float(level_data.get("tip_max", 0.0))
@@ -866,6 +895,9 @@ func start_job(job: String) -> void:
 	weeks_worked_at_current_job = 0
 	weeks_quota_missed_row = 0
 	days_worked_this_week = 0
+	if job == "bank_accountant":
+		bank_days_completed = 0
+		bank_last_shift_day = -1
 
 
 ## Max shifts the player may work per week (teens are capped at 3).
@@ -880,6 +912,10 @@ func weekly_shift_limit() -> int:
 func shift_block_reason() -> String:
 	if active_job == "none":
 		return "You don't work here."
+	# The Loan Decision Desk runs one day per in-game day — finish today's loans
+	# and you can't open the next day until you've slept and a new day begins.
+	if active_job == "bank_accountant" and bank_last_shift_day == current_day:
+		return "You've balanced today's books at the desk. Come back tomorrow for the next day's loans."
 	if days_worked_this_week >= weekly_shift_limit():
 		if selected_pathway == "teenager":
 			return "Whoa there — you've already worked your 3 days this week. You're still a teen, so no more than that. Head home and rest!"
@@ -978,11 +1014,14 @@ func get_manager_dialogue_lines(location_key: String) -> Array:
 			"bank_accountant":
 				return [
 					"Welcome to %s. I'm %s, the branch manager." % [place, info["manager"]],
-					"Come see me when you're ready to work a shift. You'll start as a %s and can rise to %s, then %s." % [levels[0]["title"], levels[1]["title"], levels[2]["title"]],
-					"Pay climbs with rank — $%d a shift, then $%d, then $%d." % [p1, p2, p3],
+					"Your job is the Loan Decision Desk. Townsfolk line up with loan applications — APPROVE the ones the bank can trust and DENY the risky ones before the day's clock runs out.",
+					"Four rules decide every loan. One: keep debt-to-income at 40 percent or less. Two: require a credit score of 600 or more, unless the loan is secured by collateral worth at least the amount. Three: never fund gambling or get-rich schemes. Four: if it passes all three, approve it.",
+					"Approve a good loan and we earn interest, and your commission grows with a streak of good calls. Approve a bad one and the borrower defaults, costing the bank real capital. Let the vault hit zero and the day's over.",
+					"Tips to do well: read the two gauges on every file, watch each applicant's patience bar so nobody storms off, and tap the POLICY button any time for a refresher. A streak of correct calls pays bonus commission.",
+					"You'll start as a %s and can rise to %s, then %s. Pay climbs with rank — $%d a shift, then $%d, then $%d." % [levels[0]["title"], levels[1]["title"], levels[2]["title"], p1, p2, p3],
 					"Our perk is your savings — we waive the early-withdrawal penalty and pay strong interest, %d, %d, then %d percent as you rise." % [int(levels[0]["interest"] * 100), int(levels[1]["interest"] * 100), int(levels[2]["interest"] * 100)],
 					"Promotions come from steady good work — more shifts and more weeks improve your odds, though each rank is harder to reach and your odds reset after each promotion.",
-					"You can also ask me for a raise or promotion at your Work button, but a weak track record means a real risk of being fired. Welcome aboard!",
+					"You can also ask me for a raise or promotion at your Work button, but a weak track record means a real risk of being fired. You can only work the desk once a day, so make every call count. Welcome aboard!",
 				]
 			"news_boy":
 				return [
@@ -1077,6 +1116,8 @@ func reset_all() -> void:
 	promotion_boost_percent = 40.0
 	manager_briefed_jobs = []
 	total_tips_earned = 0.0
+	bank_days_completed = 0
+	bank_last_shift_day = -1
 	rent_timer = 28
 	monthly_rent = 200.0
 	house_owned = false
@@ -1243,6 +1284,8 @@ func save_game(dog_data: Dictionary = {}):
 		"promotion_boost_percent": promotion_boost_percent,
 		"manager_briefed_jobs": manager_briefed_jobs,
 		"total_tips_earned": total_tips_earned,
+		"bank_days_completed": bank_days_completed,
+		"bank_last_shift_day": bank_last_shift_day,
 		"rent_timer": rent_timer,
 		"monthly_rent": monthly_rent,
 		"house_owned": house_owned,
@@ -1357,6 +1400,8 @@ func load_game() -> bool:
 	promotion_boost_percent = save_data.get("promotion_boost_percent", 40.0)
 	manager_briefed_jobs = save_data.get("manager_briefed_jobs", [])
 	total_tips_earned = save_data.get("total_tips_earned", 0.0)
+	bank_days_completed = int(save_data.get("bank_days_completed", 0))
+	bank_last_shift_day = int(save_data.get("bank_last_shift_day", -1))
 	rent_timer = save_data.get("rent_timer", 28)
 	monthly_rent = save_data.get("monthly_rent", 200.0)
 	house_owned = save_data.get("house_owned", false)
