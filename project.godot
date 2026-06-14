@@ -30,6 +30,11 @@ Npc="*res://scripts/npc.gd"
 DialogueManager="*res://addons/dialogue_manager/dialogue_manager.gd"
 Sfx="*res://scripts/Sfx.gd"
 
+[debug]
+
+shapes/collision/visible=false
+shapes/collision/draw_2d_outlines=false
+
 [display]
 
 window/size/viewport_width=2560

@@ -285,6 +285,9 @@ signal vet_talk_finished
 signal open_shop_requested
 signal job_selection_requested
 
+func _enter_tree():
+	get_tree().debug_collisions_hint = false
+
 func _ready():
 	get_tree().debug_collisions_hint = false
 	apply_volume()
