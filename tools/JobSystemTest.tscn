@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://jobsystest01"]
+
+[ext_resource type="Script" path="res://tools/job_system_test.gd" id="1_jst"]
+
+[node name="JobSystemTest" type="Node"]
+script = ExtResource("1_jst")

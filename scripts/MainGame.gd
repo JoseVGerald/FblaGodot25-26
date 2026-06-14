@@ -26,6 +26,7 @@ func _ready():
 	spawn_dog()
 	setup_hud()
 	spawn_mother_npc()
+	spawn_manager_npcs()
 	# Dressed to the Nines: all 5 layers are non-default
 	if GameState.uses_component_system:
 		var comps := GameState.get_character_components()
@@ -393,5 +394,93 @@ func spawn_mother_npc():
 	
 	add_child(mother)
 	print("[MainGame] Mother NPC successfully spawned at (565, -640) facing left.")
+
+
+# Job-location managers. Each is a layered component character (same system as
+# the player/customizer) with a themed accessory, stationed inside its building.
+# Talking to one opens the vet-style dialogue box; see scripts/manager_npc.gd.
+func spawn_manager_npcs() -> void:
+	var managers := [
+		{
+			"location": "burger", "pos": Vector2(-8800, 3020),
+			# Chef Tony — chef's hat (accessory 78)
+			"layers": {"body": 2, "eyes": 1, "outfit": 8, "hairstyle": 5, "accessory": 78},
+		},
+		{
+			"location": "bank", "pos": Vector2(4200, 9554),
+			# Ms. Vault — glasses (accessory 64)
+			"layers": {"body": 4, "eyes": 3, "outfit": 30, "hairstyle": 8, "accessory": 64},
+		},
+		{
+			"location": "post", "pos": Vector2(-8225, -3725),
+			# Postmaster Gus — cap (accessory 27)
+			"layers": {"body": 6, "eyes": 5, "outfit": 20, "hairstyle": 45, "accessory": 27},
+		},
+	]
+	for m in managers:
+		_spawn_one_manager(m["location"], m["pos"], m["layers"])
+
+
+func _spawn_one_manager(location_key: String, pos: Vector2, layers: Dictionary) -> void:
+	var npc := CharacterBody2D.new()
+	npc.name = "Manager_" + location_key
+	npc.global_position = pos
+	npc.scale = Vector2(0.75, 0.75)
+	npc.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	npc.input_pickable = true
+
+	# Layered sprites in draw order: Body → Eyes → Outfit → Hairstyle → Accessory
+	var layer_order := ["body", "eyes", "outfit", "hairstyle", "accessory"]
+	for category in layer_order:
+		var option: int = int(layers.get(category, 1))
+		var sf: SpriteFrames = GameState.get_component_sprite_frames(category, option)
+		if sf:
+			var sprite := AnimatedSprite2D.new()
+			sprite.name = category.capitalize()
+			sprite.sprite_frames = sf
+			sprite.position = Vector2(0, -4.26)
+			if sf.has_animation("idle_down"):
+				sprite.animation = "idle_down"
+				sprite.play("idle_down")
+			npc.add_child(sprite)
+
+	# Solid body so the player can't walk through the manager.
+	var collision := CollisionPolygon2D.new()
+	collision.polygon = PackedVector2Array([
+		Vector2(0, -5.28), Vector2(-3.52, -5.28), Vector2(-3.08, 6.6),
+		Vector2(0, 9.25), Vector2(3.08, 6.6), Vector2(3.52, -5.28)
+	])
+	npc.add_child(collision)
+
+	# Interaction trigger — generous box so "Press E to talk" is easy to find.
+	var area := Area2D.new()
+	area.name = "InteractionArea"
+	var area_col := CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(90, 90)
+	area_col.shape = shape
+	area.add_child(area_col)
+	npc.add_child(area)
+
+	# Floating name tag with the manager's name.
+	var name_tag := Label.new()
+	var job_id: String = GameState.JOB_FOR_LOCATION.get(location_key, "")
+	name_tag.text = GameState.get_job_manager_name(job_id)
+	name_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_tag.custom_minimum_size = Vector2(120, 20)
+	var label_settings := LabelSettings.new()
+	label_settings.font_size = 16
+	label_settings.outline_size = 3
+	label_settings.outline_color = Color.BLACK
+	name_tag.label_settings = label_settings
+	name_tag.scale = Vector2(1.0 / npc.scale.x, 1.0 / npc.scale.y)
+	name_tag.position = Vector2(-60 * name_tag.scale.x, -34 * name_tag.scale.y)
+	name_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	npc.add_child(name_tag)
+
+	npc.set_script(load("res://scripts/manager_npc.gd"))
+	npc.set("location_key", location_key)
+	add_child(npc)
+	print("[MainGame] Manager NPC '%s' spawned at %s." % [location_key, str(pos)])
 
 # Updated on 2026-05-24

@@ -22,6 +22,8 @@ var technical_slide_index = 6
 
 func _ready():
 	UITheme.apply_theme(self)
+	# Lore text sits directly on the checker — needs cream + outline to read.
+	UITheme.style_checker_label(label, 12)
 	technical_panel.hide()
 	continue_button.hide()
 	show_slide(0)

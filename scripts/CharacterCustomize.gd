@@ -119,8 +119,10 @@ func _build_ui() -> void:
 	title.text = "CHARACTER CREATOR"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 52)
-	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-	title.add_theme_color_override("font_shadow_color", UITheme.CLR_CREAM_LT)
+	title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+	title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	title.add_theme_constant_override("outline_size", 12)
+	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.35))
 	title.add_theme_constant_override("shadow_offset_x", 3)
 	title.add_theme_constant_override("shadow_offset_y", 3)
 	if pixel_font:
@@ -220,7 +222,9 @@ func _build_left_panel() -> VBoxContainer:
 	direction_label = Label.new()
 	direction_label.text = DIRECTION_LABELS[active_direction]
 	direction_label.add_theme_font_size_override("font_size", 28)
-	direction_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	direction_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+	direction_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	direction_label.add_theme_constant_override("outline_size", 8)
 	direction_label.custom_minimum_size.x = 140
 	direction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pixel_font:
@@ -308,8 +312,9 @@ func _create_tab_button(category: String) -> Button:
 	btn.custom_minimum_size = Vector2(0, 48)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn.add_theme_font_size_override("font_size", 22)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	# Ink on cream (inactive); _refresh_tab_styles flips to white when active.
+	btn.add_theme_color_override("font_color", UITheme.CLR_INK)
+	btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
 	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
 	if pixel_font:
 		btn.add_theme_font_override("font", pixel_font)
@@ -413,7 +418,9 @@ func _create_bottom_bar() -> PanelContainer:
 	var name_label := Label.new()
 	name_label.text = "NAME:"
 	name_label.add_theme_font_size_override("font_size", 42)  # was 28
-	name_label.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
+	name_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+	name_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	name_label.add_theme_constant_override("outline_size", 8)
 	if pixel_font:
 		name_label.add_theme_font_override("font", pixel_font)
 	name_box.add_child(name_label)
@@ -455,7 +462,11 @@ func _create_bottom_bar() -> PanelContainer:
 		check.text = TAB_LABELS[cat]
 		check.button_pressed = true
 		check.add_theme_font_size_override("font_size", 27)  # was 18
-		check.add_theme_color_override("font_color", Color(0.25, 0.25, 0.25))
+		check.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+		check.add_theme_color_override("font_hover_color", Color.WHITE)
+		check.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
+		check.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+		check.add_theme_constant_override("outline_size", 6)
 		if pixel_font:
 			check.add_theme_font_override("font", pixel_font)
 		check.toggled.connect(_on_visibility_toggled.bind(cat))
@@ -593,8 +604,12 @@ func _refresh_tab_styles() -> void:
 		if not tab_buttons.has(cat):
 			continue
 		var b: Button = tab_buttons[cat]
-		var sb: StyleBoxFlat = b.get_meta("active_stylebox") if cat == active_category else b.get_meta("inactive_stylebox")
+		var is_active: bool = (cat == active_category)
+		var sb: StyleBoxFlat = b.get_meta("active_stylebox") if is_active else b.get_meta("inactive_stylebox")
 		b.add_theme_stylebox_override("normal", sb)
+		var fc: Color = Color.WHITE if is_active else UITheme.CLR_INK
+		b.add_theme_color_override("font_color", fc)
+		b.add_theme_color_override("font_hover_color", fc)
 
 
 func _refresh_grid() -> void:

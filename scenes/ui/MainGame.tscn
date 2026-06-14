@@ -127,6 +127,24 @@ size = Vector2(57.3125, 56)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mu1ml"]
 size = Vector2(99.3125, 60)
 
+[sub_resource type="Curve2D" id="Curve2D_j74j7"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 740, 367, 0, 0, 0, 0, 1121, 396, 0, 0, 0, 0, 1172, 678, 0, 0, 0, 0, 1168, 863, 0, 0, 0, 0, 1164, 1170, 0, 0, 0, 0, 1122, 1194, 0, 0, 0, 0, 896, 1158, 0, 0, 0, 0, 724, 1152, 0, 0, 0, 0, 394, 1135, 0, 0, 0, 0, -63, 1178, 0, 0, 0, 0, -145, 1251, 0, 0, 0, 0, -218, 1322, 0, 0, 0, 0, -244, 1428, 0, 0, 0, 0, -236, 1522, 0, 0, 0, 0, -184, 1575, 0, 0, 0, 0, -125, 1633, 0, 0, 0, 0, -511, 2362, 0, 0, 0, 0, -1, 2269)
+}
+point_count = 18
+
+[sub_resource type="Curve2D" id="Curve2D_xgklt"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 740, 367, 0, 0, 0, 0, 1121, 396, 0, 0, 0, 0, 1172, 678, 0, 0, 0, 0, 1168, 863, 0, 0, 0, 0, 1164, 1170, 0, 0, 0, 0, 1122, 1194, 0, 0, 0, 0, 896, 1158, 0, 0, 0, 0, 724, 1152, 0, 0, 0, 0, 394, 1135, 0, 0, 0, 0, -63, 1178, 0, 0, 0, 0, -145, 1251, 0, 0, 0, 0, -218, 1322, 0, 0, 0, 0, -244, 1428, 0, 0, 0, 0, -236, 1522, 0, 0, 0, 0, -184, 1575, 0, 0, 0, 0, -125, 1633, 0, 0, 0, 0, -69, 1687, 0, 0, 0, 0, -9, 1681, 0, 0, 0, 0, 175, 1727, 0, 0, 0, 0, 307, 1703)
+}
+point_count = 20
+
+[sub_resource type="Curve2D" id="Curve2D_gy3b1"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 740, 367, 0, 0, 0, 0, 1121, 396, 0, 0, 0, 0, 1172, 678, 0, 0, 0, 0, 1168, 863, 0, 0, 0, 0, 1164, 1170, 0, 0, 0, 0, 1122, 1194, 0, 0, 0, 0, 896, 1158, 0, 0, 0, 0, 724, 1152, 0, 0, 0, 0, 394, 1135, 0, 0, 0, 0, -63, 1178, 0, 0, 0, 0, -145, 1251, 0, 0, 0, 0, -218, 1322, 0, 0, 0, 0, -244, 1428, 0, 0, 0, 0, -236, 1522, 0, 0, 0, 0, -184, 1575, 0, 0, 0, 0, -125, 1633, 0, 0, 0, 0, -69, 1687, 0, 0, 0, 0, -9, 1681, 0, 0, 0, 0, 175, 1727, 0, 0, 0, 0, 744, 1678, 0, 0, 0, 0, 747, 1778)
+}
+point_count = 21
+
 [node name="MainGame" type="Node2D" unique_id=2141790877]
 y_sort_enabled = true
 script = ExtResource("1_maingame")
@@ -394,9 +412,7 @@ shape = SubResource("RectangleShape2D_gcspp")
 
 [node name="Burger enter" type="Area2D" parent="Interaction areas" unique_id=2054590385]
 script = ExtResource("interaction_area_script")
-hint_text = "Press E to enter the house"
-target_position = Vector2(500, -650)
-is_house = true
+hint_text = "Press E to enter the burger shop"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Burger enter" unique_id=485382266]
 position = Vector2(-532, 2305)
@@ -404,9 +420,8 @@ shape = SubResource("RectangleShape2D_331gq")
 
 [node name="Burger exit" type="Area2D" parent="Interaction areas" unique_id=1321111364]
 script = ExtResource("interaction_area_script")
-hint_text = "Press E to enter the house"
-target_position = Vector2(500, -650)
-is_house = true
+hint_text = "Press E to exit the burger shop"
+is_exit = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Burger exit" unique_id=1622483771]
 position = Vector2(-8835, 3121)
@@ -414,9 +429,8 @@ shape = SubResource("RectangleShape2D_hk16l")
 
 [node name="post exit" type="Area2D" parent="Interaction areas" unique_id=974423938]
 script = ExtResource("interaction_area_script")
-hint_text = "Press E to enter the house"
-target_position = Vector2(500, -650)
-is_house = true
+hint_text = "Press E to exit the post office"
+is_exit = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/post exit" unique_id=677687013]
 position = Vector2(-8322, -3547)
@@ -424,9 +438,7 @@ shape = SubResource("RectangleShape2D_hk16l")
 
 [node name="post enter" type="Area2D" parent="Interaction areas" unique_id=286542259]
 script = ExtResource("interaction_area_script")
-hint_text = "Press E to enter the house"
-target_position = Vector2(500, -650)
-is_house = true
+hint_text = "Press E to enter the post office"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/post enter" unique_id=2034712629]
 position = Vector2(735, 1678)
@@ -434,9 +446,7 @@ shape = SubResource("RectangleShape2D_x16ow")
 
 [node name="bank enter" type="Area2D" parent="Interaction areas" unique_id=2140572302]
 script = ExtResource("interaction_area_script")
-hint_text = "Press E to enter the house"
-target_position = Vector2(500, -650)
-is_house = true
+hint_text = "Press E to enter the bank"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/bank enter" unique_id=599815672]
 position = Vector2(312, 1706)
@@ -444,9 +454,8 @@ shape = SubResource("RectangleShape2D_0q8w0")
 
 [node name="bank exit" type="Area2D" parent="Interaction areas" unique_id=379450110]
 script = ExtResource("interaction_area_script")
-hint_text = "Press E to enter the house"
-target_position = Vector2(500, -650)
-is_house = true
+hint_text = "Press E to exit the bank"
+is_exit = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/bank exit" unique_id=228564610]
 position = Vector2(4151, 1093)
@@ -622,22 +631,32 @@ polygon = PackedVector2Array(-103, -1007, 285, -1003, 287, -769, -98, -772)
 build_mode = 1
 polygon = PackedVector2Array(2666, 2885, 2664, -175, -716, -179, -714, 2912)
 
-[node name="map" parent="." unique_id=659678687 instance=ExtResource("8_subro")]
+[node name="bank" parent="." unique_id=659678687 instance=ExtResource("8_subro")]
 position = Vector2(3934, 797)
 scale = Vector2(2, 2)
 
-[node name="map2" parent="." unique_id=1206902706 instance=ExtResource("9_j74j7")]
+[node name="burger" parent="." unique_id=1206902706 instance=ExtResource("9_j74j7")]
 position = Vector2(-9024, 2770)
 scale = Vector2(2, 2)
 
-[node name="map3" parent="." unique_id=2056631131 instance=ExtResource("10_xgklt")]
+[node name="new home" parent="." unique_id=2056631131 instance=ExtResource("10_xgklt")]
 position = Vector2(-7537, 690)
 scale = Vector2(2, 2)
 
-[node name="map4" parent="." unique_id=570977186 instance=ExtResource("11_gy3b1")]
+[node name="post" parent="." unique_id=570977186 instance=ExtResource("11_gy3b1")]
 position = Vector2(-8594, -4017)
 scale = Vector2(2, 2)
 
-[node name="map5" parent="." unique_id=1361788123 instance=ExtResource("12_nwshp")]
+[node name="new ship" parent="." unique_id=1361788123 instance=ExtResource("12_nwshp")]
 position = Vector2(642, -6155)
 scale = Vector2(2, 2)
+
+[node name="Burger path" type="Path2D" parent="." unique_id=998379080]
+curve = SubResource("Curve2D_j74j7")
+
+[node name="bank path" type="Path2D" parent="." unique_id=1279293398]
+curve = SubResource("Curve2D_xgklt")
+
+[node name="post path" type="Path2D" parent="." unique_id=1068607717]
+position = Vector2(0, 1)
+curve = SubResource("Curve2D_gy3b1")

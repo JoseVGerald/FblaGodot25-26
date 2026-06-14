@@ -13,16 +13,23 @@ func _ready() -> void:
 	root_control.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root_control)
 	
-	# Semi-transparent dark background overlay
+	# Semi-transparent dark background overlay.
+	# NOTE: do not call UITheme.apply_theme here — it deletes full-rect
+	# ColorRects (this overlay) and replaces them with the maroon checker.
 	var bg_overlay := ColorRect.new()
 	bg_overlay.color = Color(0, 0, 0, 0.75)
 	bg_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root_control.add_child(bg_overlay)
-	
-	# Apply overall theme
-	UITheme.apply_theme(root_control)
+
 	var pf := UITheme.get_pixel_font()
 	
+	# Single centered column keeps everything centered at any window size.
+	var layout := VBoxContainer.new()
+	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layout.alignment = BoxContainer.ALIGNMENT_CENTER
+	layout.add_theme_constant_override("separation", 14)
+	root_control.add_child(layout)
+
 	# Title
 	var title := Label.new()
 	title.text = "SELECT YOUR JOB"
@@ -30,69 +37,98 @@ func _ready() -> void:
 	title.add_theme_color_override("font_color", Color("#53d8fb")) # cyan neon
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pf: title.add_theme_font_override("font", pf)
-	title.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	title.offset_top = 60
-	title.offset_bottom = 140
-	root_control.add_child(title)
-	
-	# Subtitle
+	layout.add_child(title)
+
+	# Every job and the talking points shown on its card. Each starts at its
+	# entry rank — managers explain the promotion ladder once you're hired.
+	var all_jobs := [
+		{
+			"id": "news_boy", "title": "Mail Carrier", "emoji": "🗞️", "accent": Color("#4CAF50"),
+			"desc": "Run the route out of the Post Office!\n\n" +
+				"• Start Pay: $10.00 / shift\n" +
+				"• Ranks: Paper Boy → Route Captain → Postmaster\n\n" +
+				"Benefit: Every taxi ride is FREE. Pay climbs with each promotion.",
+		},
+		{
+			"id": "burger_cashier", "title": "Burger Cashier", "emoji": "🍔", "accent": Color("#FFA726"),
+			"desc": "Cook and serve at the Burger Barn!\n\n" +
+				"• Start Pay: $15.00 / shift + tips\n" +
+				"• Ranks: Trainee → Hard Worker → Grill Master\n\n" +
+				"Benefit: TIPS go straight to your cash, plus a free employee meal. Both grow with rank.",
+		},
+		{
+			"id": "bank_accountant", "title": "Bank Accountant", "emoji": "🏦", "accent": Color("#EF5350"),
+			"desc": "Handle the ledgers at First City Bank!\n\n" +
+				"• Start Pay: $25.00 / shift\n" +
+				"• Ranks: Bank Teller → Loan Officer → Branch Manager\n\n" +
+				"Benefit: No savings withdrawal penalty and rising interest (6% → 10%).",
+		},
+	]
+
+	# Only jobs you haven't been fired from are still open. Each firing drops
+	# the number of available cards (3 → 2 → 1 → 0).
+	var available := []
+	for job in all_jobs:
+		if not job["id"] in GameState.fired_jobs_history:
+			available.append(job)
+
+	# Subtitle reflects how many positions are left in town.
 	var subtitle := Label.new()
-	subtitle.text = "Earn cash to buy supplies & save for your pet's future!"
+	if available.is_empty():
+		subtitle.text = "You've been fired from every job in town."
+	elif available.size() < all_jobs.size():
+		subtitle.text = "%d position(s) still open — choose carefully, firings close doors for good!" % available.size()
+	else:
+		subtitle.text = "Earn cash to buy supplies & save for your pet's future!"
 	subtitle.add_theme_font_size_override("font_size", 20)
 	subtitle.add_theme_color_override("font_color", Color("#a0b2d6"))
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pf: subtitle.add_theme_font_override("font", pf)
-	subtitle.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	subtitle.offset_top = 130
-	subtitle.offset_bottom = 170
-	root_control.add_child(subtitle)
-	
-	# HBoxContainer for 3 Job Cards
+	layout.add_child(subtitle)
+
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(0, 12)
+	layout.add_child(gap)
+
+	# HBoxContainer for the remaining Job Cards
 	var card_row := HBoxContainer.new()
 	card_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	card_row.add_theme_constant_override("separation", 30)
-	card_row.set_anchors_preset(Control.PRESET_CENTER)
-	card_row.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	card_row.grow_vertical = Control.GROW_DIRECTION_BOTH
-	card_row.custom_minimum_size = Vector2(960, 420)
-	card_row.position = Vector2(160, 180)
-	root_control.add_child(card_row)
-	
-	# Card 1: News Boy
-	_create_job_card(card_row, "news_boy", "News Boy", "🗞️", 
-		"Deliver morning papers around town!\n\n" +
-		"• Day Pay: $10.00 / day\n" +
-		"• Commute Cost: FREE\n\n" +
-		"Benefit: Taxi travel is 100% free! Save cash on every trip to town.", Color("#4CAF50"))
-		
-	# Card 2: Burger Cashier
-	_create_job_card(card_row, "burger_cashier", "Burger Cashier", "🍔", 
-		"Serve juicy burgers at the Diner!\n\n" +
-		"• Day Pay: $15.00 / day\n" +
-		"• Daily Shift Limit applies\n\n" +
-		"Benefit: Free Employee Meal! Gain 3 food supply for every 7 days worked.", Color("#FFA726"))
-		
-	# Card 3: Bank Accountant
-	_create_job_card(card_row, "bank_accountant", "Bank Accountant", "🏦", 
-		"Manage ledgers & financial assets!\n\n" +
-		"• Day Pay: $25.00 / day\n" +
-		"• Demanding responsibilities\n\n" +
-		"Benefit: Financial Perk! Waives the 15% savings penalty & boosts interest to 7%!", Color("#EF5350"))
-		
-	# Confirm button
+	card_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	layout.add_child(card_row)
+
+	if available.is_empty():
+		# No jobs left — soft dead end. Let the player close and carry on jobless.
+		var none_lbl := Label.new()
+		none_lbl.text = "No positions are available.\nYou'll have to get by without a job for now."
+		none_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		none_lbl.add_theme_font_size_override("font_size", 22)
+		none_lbl.add_theme_color_override("font_color", Color("#f0f4ff"))
+		if pf: none_lbl.add_theme_font_override("font", pf)
+		card_row.add_child(none_lbl)
+	else:
+		for job in available:
+			_create_job_card(card_row, job["id"], job["title"], job["emoji"], job["desc"], job["accent"])
+
+	var gap2 := Control.new()
+	gap2.custom_minimum_size = Vector2(0, 12)
+	layout.add_child(gap2)
+
+	# Continue / Close button
 	var accept_btn := Button.new()
-	accept_btn.text = "Accept Job offer"
+	accept_btn.text = "CLOSE" if available.is_empty() else "CONTINUE"
 	accept_btn.add_theme_font_size_override("font_size", 28)
 	if pf: accept_btn.add_theme_font_override("font", pf)
 	accept_btn.custom_minimum_size = Vector2(300, 60)
-	accept_btn.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	accept_btn.position = Vector2(490, 630)
+	accept_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	UITheme.style_button(accept_btn, Color("#4CAF50"))
-	root_control.add_child(accept_btn)
-	accept_btn.pressed.connect(_on_accept_pressed)
-	
-	# Select News Boy by default
-	call_deferred("_select_default", card_row)
+	layout.add_child(accept_btn)
+	if available.is_empty():
+		accept_btn.pressed.connect(queue_free)
+	else:
+		accept_btn.pressed.connect(_on_accept_pressed)
+		# Select the first available job by default
+		call_deferred("_select_default", card_row)
 
 func _select_default(card_row: HBoxContainer) -> void:
 	_selected_job = "none"
@@ -106,8 +142,6 @@ func _create_job_card(parent: Control, id: String, title: String, emoji: String,
 	var panel := PanelContainer.new()
 	panel.set_meta("job_id", id)
 	panel.custom_minimum_size = Vector2(290, 380)
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	
 	# Card styling
 	var sb := StyleBoxFlat.new()
@@ -198,8 +232,10 @@ func _on_accept_pressed() -> void:
 	if _selected_job == "none" or _selected_job in GameState.fired_jobs_history:
 		return
 	GameState.active_job = _selected_job
+	# Fresh start at rank 1 — clears raises, resets the manager day-one briefing.
+	GameState.start_job(_selected_job)
 	print("[JobSelectionMenu] Player accepted job: ", _selected_job)
-	
+
 	# For teenagers, limit to 3 work days max. For Adults, default to 5, allow 1-7.
 	if GameState.selected_pathway == "teenager":
 		GameState.work_days_scheduled = 3

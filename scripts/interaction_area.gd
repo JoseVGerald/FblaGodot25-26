@@ -56,21 +56,30 @@ func teleport():
 	var player = get_tree().get_first_node_in_group("player")
 	var dog = get_tree().get_first_node_in_group("dog")
 
+	# Doors named "<Building>Enter"/"<Building>Exit" teleport to their partner
+	# door's trigger; target_position is only a fallback for unpaired areas.
+	var dest := target_position
+	var entering := not is_exit
+	var partner := _find_partner_door()
+	if partner != null:
+		dest = _area_trigger_position(partner)
+		entering = _door_info()["entering"]
+
 	# Flip the house flag BEFORE teleporting so listeners (dog routine) see
 	# the change as soon as the player commits to entering/exiting.
 	if is_house:
-		GameState.Inside_house = not is_exit
+		GameState.Inside_house = entering
 
 	if player:
 		if player is CharacterBody2D:
 			player.velocity = Vector2.ZERO
-		player.global_position = target_position
+		player.global_position = dest
 	# Leave the dog alone while it's sleeping — the player entering/exiting
 	# the house shouldn't drag the dog off its sleep spot.
 	if dog and not GameState.is_dog_sleeping:
 		if dog is CharacterBody2D:
 			dog.velocity = Vector2.ZERO
-		dog.global_position = target_position + Vector2(40, 0)
+		dog.global_position = dest + Vector2(40, 0)
 		if "path" in dog:
 			dog.path.clear()
 	
@@ -83,6 +92,40 @@ func teleport():
 	
 	# Small delay to prevent immediate re-trigger if teleporting near another area
 	player_in_area = false
+
+# --- name-based door pairing -------------------------------------------------
+# Doors pair by node name, case/space-insensitive: "HouseEnter" ↔ "HouseExit",
+# "Burger enter" ↔ "Burger exit", etc.
+
+func _door_info() -> Dictionary:
+	var n := name.to_lower().replace(" ", "").replace("_", "")
+	if n.ends_with("enter"):
+		return {"prefix": n.trim_suffix("enter"), "entering": true}
+	if n.ends_with("exit"):
+		return {"prefix": n.trim_suffix("exit"), "entering": false}
+	return {}
+
+func _find_partner_door() -> Area2D:
+	var info := _door_info()
+	if info.is_empty():
+		return null
+	var want: String = info["prefix"] + ("exit" if info["entering"] else "enter")
+	for sibling in get_parent().get_children():
+		if sibling == self or not (sibling is Area2D):
+			continue
+		var sib_name := str(sibling.name).to_lower().replace(" ", "").replace("_", "")
+		if sib_name == want:
+			return sibling
+	push_warning("interaction_area '%s': no partner door named like '%s' found" % [name, want])
+	return null
+
+static func _area_trigger_position(area: Area2D) -> Vector2:
+	# Door Area2Ds sit at the scene origin with the offset on their collision
+	# shape, so the shape's global position is the real trigger spot.
+	for child in area.get_children():
+		if child is CollisionShape2D or child is CollisionPolygon2D:
+			return (child as Node2D).global_position
+	return area.global_position
 
 func _exit_tree():
 	if hint_instance:

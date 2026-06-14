@@ -57,8 +57,8 @@ static func create_checker_bg() -> ColorRect:
 	var shader := Shader.new()
 	shader.code = """
 shader_type canvas_item;
-uniform vec4 color1 : source_color = vec4(0.718, 0.357, 0.373, 1.0);
-uniform vec4 color2 : source_color = vec4(0.612, 0.263, 0.318, 1.0);
+uniform vec4 color1 : source_color = vec4(0.639, 0.302, 0.325, 1.0);
+uniform vec4 color2 : source_color = vec4(0.600, 0.271, 0.298, 1.0);
 uniform float tile_size = 48.0;
 void fragment() {
 	vec2 pos = FRAGCOORD.xy / tile_size;
@@ -228,6 +228,20 @@ static func style_cream_panel(panel: Control) -> void:
 	elif panel is Panel:
 		panel.add_theme_stylebox_override("panel", sb)
 	panel.modulate.a = 1.0
+
+
+## Style a label that sits directly on the checker background:
+## cream fill + thick ink outline so it stays readable on maroon.
+static func style_checker_label(label: Label, outline_size: int = 10) -> void:
+	var font := get_pixel_font()
+	if font and not _has_emoji(label.text):
+		label.add_theme_font_override("font", font)
+	label.add_theme_color_override("font_color", CLR_CREAM_LT)
+	label.add_theme_color_override("font_outline_color", CLR_INK)
+	label.add_theme_constant_override("outline_size", outline_size)
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.35))
+	label.add_theme_constant_override("shadow_offset_x", 3)
+	label.add_theme_constant_override("shadow_offset_y", 3)
 
 
 static func style_label(label: Label, force_white: bool = true) -> void:

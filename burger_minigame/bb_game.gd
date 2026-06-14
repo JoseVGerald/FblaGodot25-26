@@ -24,6 +24,7 @@ var queue: Array = []
 var day_served := 0
 var day_missed := 0
 var day_earnings := 0.0
+var day_tips := 0.0
 var day_stars := 0
 var day_perfect := 0
 var best_day := 0.0
@@ -380,6 +381,7 @@ func start_day() -> void:
 	day_served = 0
 	day_missed = 0
 	day_earnings = 0.0
+	day_tips = 0.0
 	day_stars = 0
 	day_perfect = 0
 	grill_station.reset()
@@ -604,10 +606,12 @@ func serve_order() -> void:
 		tip = order["base_pay"] * 0.5 + (order["patience"] / order["patience_max"]) * 2.0
 	elif res["stars"] == 2:
 		tip = order["base_pay"] * 0.2
-	pay = snappedf(pay + maxf(0.0, tip), 0.01)
+	tip = maxf(0.0, tip)
+	pay = snappedf(pay + tip, 0.01)
 
 	money += pay
 	day_earnings += pay
+	day_tips += tip
 	score += res["points"]
 	day_served += 1
 	day_stars += res["stars"]
@@ -641,6 +645,14 @@ func end_day(reason: String) -> void:
 	playing = false
 	sfx.stop_sizzle()
 	best_day = maxf(best_day, day_earnings)
+
+	# If this was a real work shift (launched by the burger manager), hand the
+	# earnings + tips back to the main game. Tips here become real in-game tips.
+	var work_launcher = get_node_or_null("/root/BurgerLauncher")
+	if not Engine.is_editor_hint() and work_launcher and work_launcher.work_mode:
+		var gs := get_node_or_null("/root/GameState")
+		if gs and gs.has_method("complete_burger_work_shift"):
+			gs.complete_burger_work_shift(day_earnings, day_tips)
 	var total := day_served + day_missed
 	var acc := roundi(float(day_stars) / maxf(float(total * 3), 1.0) * 100.0)
 
@@ -700,14 +712,13 @@ func end_day(reason: String) -> void:
 		card.add_child(sep)
 		y += 42.0
 	y += 16.0
-	var tq := BBStyle.big_btn("EXIT", BBStyle.YELLOW, BBStyle.INK, Vector2(180, 44))
-	tq.position = Vector2(26, y)
+	# Single centered button. The "Next Day" button was removed — a new day only
+	# comes from working your next shift back in the main game.
+	var exit_text := "FINISH SHIFT" if (work_launcher and work_launcher.work_mode) else "EXIT"
+	var tq := BBStyle.big_btn(exit_text, BBStyle.GREEN, Color.WHITE, Vector2(300, 44))
+	tq.position = Vector2((card.size.x - 300.0) / 2.0, y)
 	card.add_child(tq)
 	(tq.get_meta("btn") as Button).pressed.connect(_exit_game)
-	var nx := BBStyle.big_btn("NEXT DAY →", BBStyle.GREEN, Color.WHITE, Vector2(300, 44))
-	nx.position = Vector2(234, y)
-	card.add_child(nx)
-	(nx.get_meta("btn") as Button).pressed.connect(next_day)
 
 	# entrance: scale up + fade (ease-out, 200ms)
 	card.pivot_offset = card.size / 2.0

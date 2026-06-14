@@ -30,7 +30,9 @@ func _ready():
 	if prev_btn: UITheme.style_pixel_button(prev_btn, true)
 	if next_btn: UITheme.style_pixel_button(next_btn, true)
 	if cont_btn: UITheme.style_pixel_button(cont_btn)
-	breed_label.add_theme_color_override("font_color", UITheme.CLR_TAN)
+	# Title and breed name sit directly on the checker — cream + outline.
+	UITheme.style_checker_label($VBoxContainer/Title, 14)
+	UITheme.style_checker_label(breed_label, 10)
 
 func _input(event):
 	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):

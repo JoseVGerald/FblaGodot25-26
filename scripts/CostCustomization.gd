@@ -39,6 +39,7 @@ var house_price_input: LineEdit = null
 var news_boy_input: LineEdit = null
 var burger_cashier_input: LineEdit = null
 var bank_accountant_input: LineEdit = null
+var promotion_boost_input: LineEdit = null
 
 var _selected_pathway: String = "kid"
 var pathway_cards: VBoxContainer = null
@@ -209,6 +210,23 @@ func setup_new_variables() -> void:
 	bank_accountant_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(bank_accountant_input)
 
+	# Row 3: promotion boost percent (how much each promotion raises pay/earnings)
+	var boost_lbl := Label.new()
+	boost_lbl.text = "Promotion Boost %"
+	boost_lbl.add_theme_font_size_override("font_size", 22)
+	boost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if pf: boost_lbl.add_theme_font_override("font", pf)
+	career_grid.add_child(boost_lbl)
+
+	promotion_boost_input = LineEdit.new()
+	promotion_boost_input.custom_minimum_size = Vector2(220, 56)
+	promotion_boost_input.add_theme_font_size_override("font_size", 28)
+	promotion_boost_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	career_grid.add_child(promotion_boost_input)
+
+	var boost_spacer := Control.new()
+	career_grid.add_child(boost_spacer)
+
 func populate_from_state() -> void:
 	"""Prefill inputs based on current GameState values."""
 	starting_cash_input.text = "%.2f" % GameState.starting_money
@@ -242,6 +260,8 @@ func populate_from_state() -> void:
 		burger_cashier_input.text = "%.2f" % GameState.burger_cashier_pay
 	if bank_accountant_input:
 		bank_accountant_input.text = "%.2f" % GameState.bank_accountant_pay
+	if promotion_boost_input:
+		promotion_boost_input.text = str(int(round(GameState.promotion_boost_percent)))
 
 func apply_preset(pathway: String) -> void:
 	"""Apply pathway presets to left input fields and dynamically manage visibility."""
@@ -263,6 +283,7 @@ func apply_preset(pathway: String) -> void:
 		news_boy_input.text = "10.00"
 		burger_cashier_input.text = "15.00"
 		bank_accountant_input.text = "25.00"
+		promotion_boost_input.text = "40"
 	elif pathway == "adult":
 		starting_cash_input.text = "150.00"
 		starting_savings_input.text = "200.00"
@@ -273,6 +294,7 @@ func apply_preset(pathway: String) -> void:
 		news_boy_input.text = "10.00"
 		burger_cashier_input.text = "15.00"
 		bank_accountant_input.text = "25.00"
+		promotion_boost_input.text = "40"
 
 func _update_field_visibilities(pathway: String) -> void:
 	"""Selectively toggles grid elements so pathway-ineligible variables remain clean and hidden."""
@@ -482,6 +504,10 @@ func _on_continue_pressed() -> void:
 		burger_pay = float(burger_cashier_input.text)
 	if bank_accountant_input and bank_accountant_input.visible and not bank_accountant_input.text.is_empty():
 		bank_pay = float(bank_accountant_input.text)
+
+	var promo_boost := GameState.promotion_boost_percent
+	if promotion_boost_input and promotion_boost_input.visible and not promotion_boost_input.text.is_empty():
+		promo_boost = clampf(float(promotion_boost_input.text), 0.0, 500.0)
 	
 	# Apply to GameState variables
 	GameState.selected_pathway = _selected_pathway
@@ -511,6 +537,7 @@ func _on_continue_pressed() -> void:
 	GameState.news_boy_pay = news_boy_pay
 	GameState.burger_cashier_pay = burger_pay
 	GameState.bank_accountant_pay = bank_pay
+	GameState.promotion_boost_percent = promo_boost
 	
 	# Reset state balances
 	GameState.money = starting_cash

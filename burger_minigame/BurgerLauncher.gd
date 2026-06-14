@@ -6,6 +6,11 @@ const BURGER_GAME_SCENE: PackedScene = preload("res://burger_minigame/BurgerBlit
 
 var _layer: CanvasLayer = null
 
+## When true the open game is a real work shift: BBGame credits GameState with
+## the shift's earnings + tips on completion. The L-key practice mode leaves
+## this false so practicing never pays out.
+var work_mode: bool = false
+
 
 func _ready() -> void:
 	# Must keep processing while the tree is paused, or L could never close it.
@@ -29,6 +34,14 @@ func toggle() -> void:
 		close()
 
 
+## Open the game as a paid work shift (called by the burger manager NPC).
+func open_for_work() -> void:
+	if _layer != null:
+		return
+	work_mode = true
+	open()
+
+
 func open() -> void:
 	if _layer != null:
 		return
@@ -47,4 +60,5 @@ func close() -> void:
 		return
 	_layer.queue_free()
 	_layer = null
+	work_mode = false
 	get_tree().paused = false

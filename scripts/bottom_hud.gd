@@ -208,13 +208,15 @@ func _update_hud_status_label():
 		if GameState.active_job == "news_boy": job_str = "News Boy"
 		elif GameState.active_job == "burger_cashier": job_str = "Burger Cashier"
 		elif GameState.active_job == "bank_accountant": job_str = "Bank Accountant"
+		if GameState.active_job != "none": job_str += " (" + GameState.get_job_title(GameState.active_job) + ")"
 		status_lbl.text = "Job: %s | Work: %d/3 days" % [job_str, GameState.days_worked_this_week]
 	elif GameState.selected_pathway == "adult":
 		var job_str = "No Job"
 		if GameState.active_job == "news_boy": job_str = "News Boy"
 		elif GameState.active_job == "burger_cashier": job_str = "Burger Cashier"
 		elif GameState.active_job == "bank_accountant": job_str = "Bank Accountant"
-		
+		if GameState.active_job != "none": job_str += " (" + GameState.get_job_title(GameState.active_job) + ")"
+
 		var rent_str = "Rent Due: %d days" % GameState.rent_timer if not GameState.house_owned else "Home Owned!"
 		status_lbl.text = "Job: %s\nWork: %d/%d days | %s" % [
 			job_str, 
@@ -224,23 +226,24 @@ func _update_hud_status_label():
 		]
 	
 	if is_instance_valid(work_btn):
+		# Visible whenever the player holds a job. It stays enabled even after
+		# the weekly shift quota is hit so they can still ask for a raise or
+		# promotion — the popup gates the "Work a Shift" option itself.
 		var show_work = GameState.selected_pathway != "kid" and GameState.active_job != "none"
-		var can_work_more = true
-		if GameState.selected_pathway == "teenager" and GameState.days_worked_this_week >= 3:
-			can_work_more = false
-		elif GameState.selected_pathway == "adult" and GameState.days_worked_this_week >= GameState.work_days_scheduled:
-			can_work_more = false
-		
 		work_btn.visible = show_work
-		work_btn.disabled = not can_work_more
+		work_btn.disabled = false
 
 func _on_work_btn_pressed():
 	if GameState.active_job == "none":
 		show_notification("You do not have a job yet! Talk to Mother or choose a job first.", CLR_RED)
 		return
-	
-	# Simulate a work shift:
-	GameState.work_shift()
+
+	# Open the work-action popup: work a shift, or gamble on a raise/promotion.
+	if get_tree().root.has_node("WorkActionMenu"):
+		return
+	var menu = load("res://scripts/work_action_menu.gd").new()
+	menu.name = "WorkActionMenu"
+	get_tree().root.add_child(menu)
 
 	# Top-right HUD — Finances and Pause both get a dark-blue tinted box.
 	finance_btn.text = "Finances"

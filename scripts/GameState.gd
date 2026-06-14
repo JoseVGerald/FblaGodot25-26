@@ -44,6 +44,76 @@ var news_boy_pay: float = 10.0
 var burger_cashier_pay: float = 15.0
 var bank_accountant_pay: float = 25.0
 
+# ──────────────────────────────────────────────────────────────────────────
+#  CAREER PROGRESSION (promotion ladders, per-job benefits, tips)
+# ──────────────────────────────────────────────────────────────────────────
+# Each job has 3 ranks. Benefits scale with rank. Managers (NPCs at each
+# building) explain these on the first day of a new job. The player asks for a
+# raise or promotion from the Work button — both carry a firing risk.
+#
+# Fields per level:
+#   title           — rank name shown to the player
+#   pay             — cash earned per work shift at this rank
+#   weeks_to_promote— full work-weeks required before a promotion can be earned
+#   manager         — (job-level) the manager NPC's display name
+#   food_bonus      — (burger) food supply gained per shift
+#   tip_min/tip_max — (burger) random tip range added to cash per shift
+#   interest        — (bank) daily savings interest rate at this rank
+const JOB_PROGRESSION := {
+	"news_boy": {
+		"manager": "Postmaster Gus",
+		"location": "Post Office",
+		"levels": [
+			{"title": "Paper Boy",     "pay": 10.0, "weeks_to_promote": 1},
+			{"title": "Route Captain", "pay": 16.0, "weeks_to_promote": 2},
+			{"title": "Postmaster",    "pay": 24.0, "weeks_to_promote": -1},
+		],
+	},
+	"burger_cashier": {
+		"manager": "Chef Tony",
+		"location": "Burger Barn",
+		"levels": [
+			{"title": "Trainee",      "pay": 15.0, "weeks_to_promote": 1, "food_bonus": 1, "tip_min": 0.0, "tip_max": 3.0},
+			{"title": "Hard Worker",  "pay": 22.0, "weeks_to_promote": 2, "food_bonus": 2, "tip_min": 2.0, "tip_max": 7.0},
+			{"title": "Grill Master", "pay": 32.0, "weeks_to_promote": -1, "food_bonus": 3, "tip_min": 5.0, "tip_max": 14.0},
+		],
+	},
+	"bank_accountant": {
+		"manager": "Ms. Vault",
+		"location": "First City Bank",
+		"levels": [
+			{"title": "Bank Teller",    "pay": 25.0, "weeks_to_promote": 1, "interest": 0.06},
+			{"title": "Loan Officer",   "pay": 34.0, "weeks_to_promote": 2, "interest": 0.08},
+			{"title": "Branch Manager", "pay": 46.0, "weeks_to_promote": -1, "interest": 0.10},
+		],
+	},
+}
+
+# Maps a building/manager NPC to the job it employs you for.
+const JOB_FOR_LOCATION := {
+	"burger": "burger_cashier",
+	"bank": "bank_accountant",
+	"post": "news_boy",
+}
+
+# Current rank per job (1-based). Persisted across save/load.
+var job_levels: Dictionary = {"news_boy": 1, "burger_cashier": 1, "bank_accountant": 1}
+# Permanent per-shift pay bumps earned by successfully asking for a raise.
+var job_raise_bonus: Dictionary = {"news_boy": 0.0, "burger_cashier": 0.0, "bank_accountant": 0.0}
+# How many times the player has been fired from each job.
+var job_fired_counts: Dictionary = {"news_boy": 0, "burger_cashier": 0, "bank_accountant": 0}
+# Jobs whose manager has already given the day-one briefing.
+var manager_briefed_jobs: Array = []
+# Lifetime tips earned (burger job). Tips are added straight to cash on hand.
+var total_tips_earned: float = 0.0
+# Accumulating promotion chance per job (0..1). Grows with each shift and each
+# week worked (less impact the higher your rank), and a random roll on every
+# shift can promote you. Resets to 0 the moment you're promoted.
+var job_promo_chance: Dictionary = {"news_boy": 0.0, "burger_cashier": 0.0, "bank_accountant": 0.0}
+# How much each promotion boosts pay/earnings, as a percent of base pay.
+# Editable in the Cost Customizer. Rank pay = base * (1 + boost% * (rank-1)).
+var promotion_boost_percent: float = 40.0
+
 # Customizable Costs
 var food_cost: int = 20
 var water_cost: int = 10
@@ -288,9 +358,7 @@ func _advance_day_after_supply_decrement() -> void:
 	
 	# Banking Interest Logic
 	if savings_balance > 0:
-		var rate = savings_interest_rate
-		if active_job == "bank_accountant":
-			rate = 0.07
+		var rate = get_bank_interest_rate()
 		var interest = savings_balance * rate
 		if interest > 0.01:
 			savings_balance += interest
@@ -397,6 +465,10 @@ func reset_weekly_budgets():
 	# Career Firing Mechanic
 	if active_job != "none":
 		weeks_worked_at_current_job += 1
+		# Sticking around steadily improves promotion odds (less so higher up).
+		if not is_at_max_rank(active_job):
+			job_promo_chance[active_job] = clampf(
+				get_promotion_standing(active_job) + _promo_week_gain(get_job_level(active_job)), 0.0, 0.9)
 		var quota_met := (days_worked_this_week >= work_days_scheduled)
 		if not quota_met:
 			weeks_quota_missed_row += 1
@@ -587,31 +659,354 @@ func check_emergency_fund(cost: float, item_name: String) -> bool:
 	return false
 
 func work_shift() -> void:
+	# Back-compat shim — work now flows through the manager NPCs.
+	complete_work_shift()
+
+
+## Complete one non-minigame work shift (bank / post, or a burger fallback).
+## Pays base pay scaled by promotion rank. Returns a short summary line.
+func complete_work_shift() -> String:
 	if active_job == "none":
-		return
-	
-	var pay: float = 0.0
-	var job_name: String = ""
-	
-	if active_job == "news_boy":
-		pay = news_boy_pay
-		job_name = "News Boy"
-	elif active_job == "burger_cashier":
-		pay = burger_cashier_pay
-		job_name = "Burger Cashier"
-		# Benefit: Employee meal (+1 food day supply)
-		food += 1
-		event_triggered.emit("Burger Employee Meal: +1 Food Supply!")
-	elif active_job == "bank_accountant":
-		pay = bank_accountant_pay
-		job_name = "Bank Accountant"
-		# Benefit: interest/penalty handled dynamically in banking logic
-	
+		return "You don't have a job."
+	var job := active_job
+	var job_name := active_job_display_name
+	var pay := get_current_job_pay()
 	money += pay
 	days_worked_this_week += 1
 	record_transaction("Work Shift: " + job_name, pay, "Income")
-	event_triggered.emit("Completed work shift! Earned $%.2f" % pay)
+
+	var extra := ""
+	if job == "burger_cashier":
+		# Fallback only — normally the burger shift is the grill mini-game.
+		var level_data := get_job_level_data(job, get_job_level(job))
+		var food_bonus := int(level_data.get("food_bonus", 1))
+		food += food_bonus
+		var tip := _roll_tip(level_data) * get_promotion_multiplier(job)
+		if tip > 0.0:
+			money += tip
+			total_tips_earned += tip
+			record_transaction("Tips: " + job_name, tip, "Income")
+			extra = " +$%.2f tips, +%d food" % [tip, food_bonus]
+
+	event_triggered.emit("Completed work shift! Earned $%.2f%s" % [pay, extra])
 	budget_updated.emit()
+	_advance_promotion_progress(job)
+	return "Shift done! You earned $%.2f%s.\nPromotion standing: %d%%." % [pay, extra, int(round(get_promotion_standing(job) * 100.0))]
+
+
+## Credit a finished burger grill shift. earnings/tips come straight from the
+## mini-game; both scale by the promotion-rank multiplier. The tips here are the
+## tips the player actually earned in the mini-game.
+func complete_burger_work_shift(earnings: float, tips: float) -> void:
+	var job := "burger_cashier"
+	if active_job != job:
+		return
+	var mult := get_promotion_multiplier(job)
+	var tip_credit := snappedf(max(0.0, tips) * mult, 0.01)
+	var base_credit := snappedf(max(0.0, earnings - tips) * mult, 0.01)
+	money += base_credit + tip_credit
+	total_tips_earned += tip_credit
+	days_worked_this_week += 1
+	record_transaction("Burger Shift", base_credit, "Income")
+	if tip_credit > 0.0:
+		record_transaction("Tips: Burger Cashier", tip_credit, "Income")
+	var food_bonus := int(get_job_level_data(job, get_job_level(job)).get("food_bonus", 1))
+	food += food_bonus
+	event_triggered.emit("Shift done! Earned $%.2f ($%.2f tips), +%d food." % [base_credit + tip_credit, tip_credit, food_bonus])
+	budget_updated.emit()
+	_advance_promotion_progress(job)
+
+
+## Random tip for a shift, rounded to cents, from the level's tip range.
+func _roll_tip(level_data: Dictionary) -> float:
+	var tmax: float = float(level_data.get("tip_max", 0.0))
+	if tmax <= 0.0:
+		return 0.0
+	var tmin: float = float(level_data.get("tip_min", 0.0))
+	return round(randf_range(tmin, tmax) * 100.0) / 100.0
+
+
+# ──────────────────────────────────────────────────────────────────────────
+#  CAREER PROGRESSION HELPERS
+# ──────────────────────────────────────────────────────────────────────────
+
+func get_job_level(job: String) -> int:
+	return int(job_levels.get(job, 1))
+
+
+## Level data dictionary for a job at a 1-based rank (clamped to valid range).
+func get_job_level_data(job: String, level: int) -> Dictionary:
+	if not JOB_PROGRESSION.has(job):
+		return {}
+	var levels: Array = JOB_PROGRESSION[job]["levels"]
+	var idx: int = clampi(level - 1, 0, levels.size() - 1)
+	return levels[idx]
+
+
+func get_raise_bonus(job: String) -> float:
+	return float(job_raise_bonus.get(job, 0.0))
+
+
+## Rank-1 (base) pay for a job — set in the Cost Customizer.
+func get_job_base_pay(job: String) -> float:
+	match job:
+		"news_boy": return news_boy_pay
+		"burger_cashier": return burger_cashier_pay
+		"bank_accountant": return bank_accountant_pay
+	return 0.0
+
+
+## Pay multiplier from promotions. Each rank above 1 adds promotion_boost_percent
+## of the base. e.g. 40% boost -> rank 2 = 1.4x, rank 3 = 1.8x.
+func get_promotion_multiplier(job: String) -> float:
+	return 1.0 + (promotion_boost_percent / 100.0) * float(get_job_level(job) - 1)
+
+
+## Per-shift base pay for the active job at its current rank, including raises.
+func get_current_job_pay() -> float:
+	if active_job == "none":
+		return 0.0
+	return get_job_base_pay(active_job) * get_promotion_multiplier(active_job) + get_raise_bonus(active_job)
+
+
+## Daily savings interest rate, boosted for bank employees by rank.
+func get_bank_interest_rate() -> float:
+	if active_job == "bank_accountant":
+		var data := get_job_level_data("bank_accountant", get_job_level("bank_accountant"))
+		return float(data.get("interest", savings_interest_rate))
+	return savings_interest_rate
+
+
+## Current accumulated promotion chance for a job (0..1).
+func get_promotion_standing(job: String) -> float:
+	return float(job_promo_chance.get(job, 0.0))
+
+
+func is_at_max_rank(job: String) -> bool:
+	if not JOB_PROGRESSION.has(job):
+		return true
+	return get_job_level(job) >= JOB_PROGRESSION[job]["levels"].size()
+
+
+## Promotion-chance gained per shift. Smaller the higher your rank.
+func _promo_shift_gain(level: int) -> float:
+	match level:
+		1: return 0.07
+		2: return 0.035
+	return 0.0
+
+
+## Promotion-chance gained for each full week worked. Smaller higher up.
+func _promo_week_gain(level: int) -> float:
+	match level:
+		1: return 0.10
+		2: return 0.05
+	return 0.0
+
+
+## Earn promotion progress from a completed shift, then roll for a random
+## promotion whose odds are exactly the accumulated standing.
+func _advance_promotion_progress(job: String) -> void:
+	if is_at_max_rank(job):
+		return
+	var lvl := get_job_level(job)
+	job_promo_chance[job] = clampf(get_promotion_standing(job) + _promo_shift_gain(lvl), 0.0, 0.9)
+	if randf() < get_promotion_standing(job):
+		_do_promote(job, true)
+
+
+## Apply a promotion: bump rank, reset standing, announce it.
+func _do_promote(job: String, automatic: bool = false) -> void:
+	if is_at_max_rank(job):
+		return
+	job_levels[job] = get_job_level(job) + 1
+	job_promo_chance[job] = 0.0
+	weeks_worked_at_current_job = 0
+	var title := get_job_title(job)
+	if automatic:
+		event_triggered.emit("🎉 Your hard work paid off — promoted to %s!" % title)
+	else:
+		event_triggered.emit("🎉 Promoted to %s!" % title)
+	budget_updated.emit()
+
+
+func get_job_title(job: String) -> String:
+	var data := get_job_level_data(job, get_job_level(job))
+	return str(data.get("title", ""))
+
+
+func get_job_manager_name(job: String) -> String:
+	return str(JOB_PROGRESSION.get(job, {}).get("manager", "Manager"))
+
+
+func has_manager_briefed(job: String) -> bool:
+	return job in manager_briefed_jobs
+
+
+func mark_manager_briefed(job: String) -> void:
+	if not job in manager_briefed_jobs:
+		manager_briefed_jobs.append(job)
+
+
+## How many job openings remain (out of 3) after firings.
+func get_available_job_count() -> int:
+	var count := 0
+	for job in JOB_PROGRESSION.keys():
+		if not job in fired_jobs_history:
+			count += 1
+	return count
+
+
+## Reset rank/raise/briefing state when the player takes on a brand-new job.
+func start_job(job: String) -> void:
+	job_levels[job] = 1
+	job_raise_bonus[job] = 0.0
+	job_promo_chance[job] = 0.0
+	manager_briefed_jobs.erase(job)
+	weeks_worked_at_current_job = 0
+	weeks_quota_missed_row = 0
+	days_worked_this_week = 0
+
+
+## Max shifts the player may work per week (teens are capped at 3).
+func weekly_shift_limit() -> int:
+	if selected_pathway == "teenager":
+		return 3
+	return work_days_scheduled
+
+
+## Returns "" if the player may work another shift now, otherwise the manager's
+## reason for turning them away (e.g. a teen who tried to work a 4th day).
+func shift_block_reason() -> String:
+	if active_job == "none":
+		return "You don't work here."
+	if days_worked_this_week >= weekly_shift_limit():
+		if selected_pathway == "teenager":
+			return "Whoa there — you've already worked your 3 days this week. You're still a teen, so no more than that. Head home and rest!"
+		return "You've finished all your shifts for the week. Come back next week!"
+	return ""
+
+
+## Lose the current job: lock it out of the job menu and re-open job selection.
+func _fire_from_current_job(reason: String) -> void:
+	var job := active_job
+	if job == "none":
+		return
+	if not job in fired_jobs_history:
+		fired_jobs_history.append(job)
+	job_fired_counts[job] = int(job_fired_counts.get(job, 0)) + 1
+	var disp := active_job_display_name
+	active_job = "none"
+	event_triggered.emit("⚠️ Fired from %s! %s" % [disp, reason])
+	call_deferred("trigger_job_selection")
+
+
+## Ask the boss for a raise. The better your standing (the more good work you've
+## put in), the lower the chance you get fired for asking. Returns {ok,fired,message}.
+func request_raise() -> Dictionary:
+	if active_job == "none":
+		return {"ok": false, "fired": false, "message": "You don't have a job right now."}
+	var pc := get_promotion_standing(active_job)
+	var fire_chance := clampf(0.35 * (1.0 - pc), 0.04, 0.35)
+	if randf() < fire_chance:
+		_fire_from_current_job("They didn't appreciate you pushing for more pay.")
+		return {"ok": false, "fired": true, "message": "Bad move — the boss fired you for being greedy!"}
+	job_raise_bonus[active_job] = min(get_raise_bonus(active_job) + 2.0, 12.0)
+	budget_updated.emit()
+	var msg := "Raise approved! You now earn $%.2f per shift." % get_current_job_pay()
+	event_triggered.emit(msg)
+	return {"ok": true, "fired": false, "message": msg}
+
+
+## Ask the boss for a promotion. Success odds equal your accumulated standing,
+## and the fire chance shrinks as that standing rises. Returns {ok,fired,message}.
+func request_promotion() -> Dictionary:
+	if active_job == "none":
+		return {"ok": false, "fired": false, "message": "You don't have a job right now."}
+	if is_at_max_rank(active_job):
+		return {"ok": false, "fired": false, "message": "You're already at the top rank here!"}
+	var pc := get_promotion_standing(active_job)
+	var fire_chance := clampf(0.55 * (1.0 - pc), 0.05, 0.55)
+	if randf() < fire_chance:
+		_fire_from_current_job("You pushed for a promotion you hadn't earned.")
+		return {"ok": false, "fired": true, "message": "You overreached and got fired!"}
+	if randf() < (pc + 0.10):
+		_do_promote(active_job, false)
+		return {"ok": true, "fired": false,
+			"message": "Promoted to %s! Pay is now $%.2f per shift." % [get_job_title(active_job), get_current_job_pay()]}
+	return {"ok": false, "fired": false,
+		"message": "Not yet — your standing is only %d%%. Keep working and try again." % int(round(pc * 100.0))}
+
+
+## Build the manager NPC's dialogue (one balloon page per array entry).
+## location_key is "burger" / "bank" / "post".
+func get_manager_dialogue_lines(location_key: String) -> Array:
+	var job: String = JOB_FOR_LOCATION.get(location_key, "")
+	if job == "" or not JOB_PROGRESSION.has(job):
+		return ["...", "Sorry, I can't help you with that."]
+	var info: Dictionary = JOB_PROGRESSION[job]
+	var levels: Array = info["levels"]
+	var place: String = str(info.get("location", "work"))
+
+	# Rank pays computed from base pay + the configurable promotion boost.
+	var base := get_job_base_pay(job)
+	var b := promotion_boost_percent / 100.0
+	var p1 := int(round(base))
+	var p2 := int(round(base * (1.0 + b)))
+	var p3 := int(round(base * (1.0 + 2.0 * b)))
+	var boost_pct := int(round(promotion_boost_percent))
+
+	# Not employed here (safety — managers normally only talk to their own staff).
+	if active_job != job:
+		if job in fired_jobs_history:
+			return ["We had to let you go, remember? That position's closed."]
+		return ["Welcome to %s! Pick this job when you choose a career, then come see me." % place]
+
+	# Employed here, first day — full briefing.
+	if not has_manager_briefed(job):
+		match job:
+			"burger_cashier":
+				return [
+					"Welcome to the %s! I'm %s, your manager." % [place, info["manager"]],
+					"Talk to me whenever you're ready to work and I'll put you on the grill — that's the burger mini-game. The better you cook, the more you earn.",
+					"Tips are yours to keep. Whatever you make in tips on the grill goes straight into your pocket.",
+					"Ranks go %s, then %s, then %s. Each promotion boosts your earnings and tips by about %d percent." % [levels[0]["title"], levels[1]["title"], levels[2]["title"], boost_pct],
+					"Promotions come from steady good work — the more shifts you pull and the longer you stick around, the better your odds. It can happen on any shift.",
+					"Each rank is harder to climb, and your odds reset after every promotion.",
+					"You can also ask me for a raise or promotion from your Work button — but if your standing is low, there's a real chance I'll let you go. Now get cooking!",
+				]
+			"bank_accountant":
+				return [
+					"Welcome to %s. I'm %s, the branch manager." % [place, info["manager"]],
+					"Come see me when you're ready to work a shift. You'll start as a %s and can rise to %s, then %s." % [levels[0]["title"], levels[1]["title"], levels[2]["title"]],
+					"Pay climbs with rank — $%d a shift, then $%d, then $%d." % [p1, p2, p3],
+					"Our perk is your savings — we waive the early-withdrawal penalty and pay strong interest, %d, %d, then %d percent as you rise." % [int(levels[0]["interest"] * 100), int(levels[1]["interest"] * 100), int(levels[2]["interest"] * 100)],
+					"Promotions come from steady good work — more shifts and more weeks improve your odds, though each rank is harder to reach and your odds reset after each promotion.",
+					"You can also ask me for a raise or promotion at your Work button, but a weak track record means a real risk of being fired. Welcome aboard!",
+				]
+			"news_boy":
+				return [
+					"Morning! I'm %s. Welcome to the %s." % [info["manager"], place],
+					"Talk to me when you're ready to run the route and work a shift. You'll start as a %s and can reach %s, then %s." % [levels[0]["title"], levels[1]["title"], levels[2]["title"]],
+					"Pay rises each rank — $%d a shift, then $%d, then $%d." % [p1, p2, p3],
+					"Our perk keeps you moving — every taxi ride across town is free while you carry the mailbag.",
+					"Promotions come from steady good work — the more shifts and weeks you put in, the better your odds, though it gets harder near the top and resets after each promotion.",
+					"You can also ask me for a raise or promotion from your Work button, but pushing it with a weak record risks getting fired. Now hit the streets!",
+				]
+		return ["Welcome aboard!"]
+
+	# Employed here, already briefed — short status update.
+	var title := get_job_title(job)
+	var status: Array = ["Good to see you, %s." % title]
+	if job == "burger_cashier":
+		status.append("Your grill earnings and tips are boosted %d percent at %s rank." % [int(round((get_promotion_multiplier(job) - 1.0) * 100.0)), title])
+	else:
+		status.append("You're earning $%.2f a shift right now." % get_current_job_pay())
+	if is_at_max_rank(job):
+		status.append("You've reached the top of the ladder. Nicely done!")
+	else:
+		status.append("Promotion standing: %d percent. Keep working to raise it." % int(round(get_promotion_standing(job) * 100.0)))
+	return status
 
 func buy_home() -> bool:
 	if money >= house_price:
@@ -675,6 +1070,13 @@ func reset_all() -> void:
 	weeks_quota_missed_row = 0
 	weeks_worked_at_current_job = 0
 	fired_jobs_history = []
+	job_levels = {"news_boy": 1, "burger_cashier": 1, "bank_accountant": 1}
+	job_raise_bonus = {"news_boy": 0.0, "burger_cashier": 0.0, "bank_accountant": 0.0}
+	job_fired_counts = {"news_boy": 0, "burger_cashier": 0, "bank_accountant": 0}
+	job_promo_chance = {"news_boy": 0.0, "burger_cashier": 0.0, "bank_accountant": 0.0}
+	promotion_boost_percent = 40.0
+	manager_briefed_jobs = []
+	total_tips_earned = 0.0
 	rent_timer = 28
 	monthly_rent = 200.0
 	house_owned = false
@@ -833,6 +1235,14 @@ func save_game(dog_data: Dictionary = {}):
 		"weeks_quota_missed_row": weeks_quota_missed_row,
 		"weeks_worked_at_current_job": weeks_worked_at_current_job,
 		"fired_jobs_history": fired_jobs_history,
+		# Career progression
+		"job_levels": job_levels,
+		"job_raise_bonus": job_raise_bonus,
+		"job_fired_counts": job_fired_counts,
+		"job_promo_chance": job_promo_chance,
+		"promotion_boost_percent": promotion_boost_percent,
+		"manager_briefed_jobs": manager_briefed_jobs,
+		"total_tips_earned": total_tips_earned,
 		"rent_timer": rent_timer,
 		"monthly_rent": monthly_rent,
 		"house_owned": house_owned,
@@ -939,6 +1349,14 @@ func load_game() -> bool:
 	weeks_quota_missed_row = save_data.get("weeks_quota_missed_row", 0)
 	weeks_worked_at_current_job = save_data.get("weeks_worked_at_current_job", 0)
 	fired_jobs_history = save_data.get("fired_jobs_history", [])
+	# Career progression (restore AFTER active_job so its setter can't clobber it)
+	job_levels = save_data.get("job_levels", {"news_boy": 1, "burger_cashier": 1, "bank_accountant": 1})
+	job_raise_bonus = save_data.get("job_raise_bonus", {"news_boy": 0.0, "burger_cashier": 0.0, "bank_accountant": 0.0})
+	job_fired_counts = save_data.get("job_fired_counts", {"news_boy": 0, "burger_cashier": 0, "bank_accountant": 0})
+	job_promo_chance = save_data.get("job_promo_chance", {"news_boy": 0.0, "burger_cashier": 0.0, "bank_accountant": 0.0})
+	promotion_boost_percent = save_data.get("promotion_boost_percent", 40.0)
+	manager_briefed_jobs = save_data.get("manager_briefed_jobs", [])
+	total_tips_earned = save_data.get("total_tips_earned", 0.0)
 	rent_timer = save_data.get("rent_timer", 28)
 	monthly_rent = save_data.get("monthly_rent", 200.0)
 	house_owned = save_data.get("house_owned", false)
