@@ -1,0 +1,123 @@
+[gd_scene format=3 uid="uid://cvc7kilcqslvu"]
+
+[ext_resource type="PackedScene" path="res://stuff/post office/Layer_9_0.tscn" id="0_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Furniture_1.tscn" id="1_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Furniture_2.tscn" id="2_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Furniture_3.tscn" id="3_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Furniture_4.tscn" id="4_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Wall_Art_5.tscn" id="5_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Wall_Trim_6.tscn" id="6_id"]
+[ext_resource type="PackedScene" path="res://scenes/maps/Vet/Person_1.tscn" id="6_ir6up"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Wall_Trim_7.tscn" id="7_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Wall_8.tscn" id="8_id"]
+[ext_resource type="PackedScene" path="res://stuff/post office/Floor_9.tscn" id="9_id"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col13x1"]
+size = Vector2(208, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col12x1"]
+size = Vector2(192, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col9x1"]
+size = Vector2(144, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col1x4"]
+size = Vector2(16, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col3x3"]
+size = Vector2(48, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col3x4"]
+size = Vector2(48, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2x1"]
+size = Vector2(32, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col11x1"]
+size = Vector2(176, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col3x2"]
+size = Vector2(48, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col17x2"]
+size = Vector2(144, 32)
+
+[node name="map" type="Node2D" unique_id=1189227927]
+
+[node name="Floor_9" parent="." unique_id=1958807695 instance=ExtResource("9_id")]
+
+[node name="Wall_8" parent="." unique_id=891797833 instance=ExtResource("8_id")]
+
+[node name="Wall_Trim_7" parent="." unique_id=1443890187 instance=ExtResource("7_id")]
+
+[node name="Wall_Trim_6" parent="." unique_id=946845548 instance=ExtResource("6_id")]
+
+[node name="Wall_Art_5" parent="." unique_id=2052622178 instance=ExtResource("5_id")]
+
+[node name="Person_1" parent="." unique_id=1875781154 instance=ExtResource("6_ir6up")]
+position = Vector2(-136, 93)
+
+[node name="Furniture_4" parent="." unique_id=285212603 instance=ExtResource("4_id")]
+
+[node name="Furniture_3" parent="." unique_id=1278721929 instance=ExtResource("3_id")]
+
+[node name="Furniture_2" parent="." unique_id=1839508482 instance=ExtResource("2_id")]
+
+[node name="Furniture_1" parent="." unique_id=976507763 instance=ExtResource("1_id")]
+
+[node name="Layer_9_0" parent="." unique_id=1463545391 instance=ExtResource("0_id")]
+
+[node name="MapCollisions" type="StaticBody2D" parent="." unique_id=512334882]
+
+[node name="C0" type="CollisionShape2D" parent="MapCollisions" unique_id=1915882549]
+position = Vector2(104, 8)
+shape = SubResource("RectangleShape2D_col13x1")
+
+[node name="C1" type="CollisionShape2D" parent="MapCollisions" unique_id=338399010]
+position = Vector2(112, 24)
+shape = SubResource("RectangleShape2D_col12x1")
+
+[node name="C2" type="CollisionShape2D" parent="MapCollisions" unique_id=1117438274]
+position = Vector2(88, 40)
+shape = SubResource("RectangleShape2D_col9x1")
+
+[node name="C3" type="CollisionShape2D" parent="MapCollisions" unique_id=1236857621]
+position = Vector2(200, 64)
+shape = SubResource("RectangleShape2D_col1x4")
+
+[node name="C4" type="CollisionShape2D" parent="MapCollisions" unique_id=42549336]
+position = Vector2(40, 72)
+shape = SubResource("RectangleShape2D_col3x3")
+
+[node name="C5" type="CollisionShape2D" parent="MapCollisions" unique_id=1459610079]
+position = Vector2(136, 80)
+shape = SubResource("RectangleShape2D_col3x4")
+
+[node name="C6" type="CollisionShape2D" parent="MapCollisions" unique_id=1415729908]
+position = Vector2(32, 104)
+shape = SubResource("RectangleShape2D_col2x1")
+
+[node name="C7" type="CollisionShape2D" parent="MapCollisions" unique_id=1203137482]
+position = Vector2(264, 104)
+shape = SubResource("RectangleShape2D_col11x1")
+
+[node name="C8" type="CollisionShape2D" parent="MapCollisions" unique_id=1025145433]
+position = Vector2(40, 128)
+shape = SubResource("RectangleShape2D_col3x2")
+
+[node name="C9" type="CollisionShape2D" parent="MapCollisions" unique_id=278060692]
+position = Vector2(152, 128)
+shape = SubResource("RectangleShape2D_col17x2")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="MapCollisions" unique_id=2013407929]
+polygon = PackedVector2Array(160, 144, 157, 150, 151, 153, 143, 154, 143, 174, 32, 174, 33, 190, 45, 189, 47, 207, 112, 208, 112, 240, 105, 240, 105, 213, 25, 213, 25, 143)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="MapCollisions" unique_id=929797464]
+polygon = PackedVector2Array(193, 144, 203, 144, 204, 152, 212, 152, 214, 144, 223, 144, 222, 126, 228, 128, 228, 139, 253, 139, 253, 127, 258, 128, 258, 141, 271, 141, 331, 141, 331, 148, 323, 147, 325, 160, 331, 160, 331, 164, 324, 165, 324, 175, 331, 176, 331, 179, 323, 180, 323, 192, 318, 192, 318, 180, 258, 180, 258, 193, 252, 193, 252, 180, 252, 176, 228, 176, 228, 192, 193, 192, 185, 188, 177, 191, 179, 208, 160, 208, 160, 240, 167, 240, 167, 214, 199, 213, 199, 198, 343, 197, 342, 110, 192, 112)
+
+[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="MapCollisions" unique_id=1525946360]
+position = Vector2(32, 0)
+polygon = PackedVector2Array(261, 148, 284, 148, 282, 166, 263, 165)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="MapCollisions" unique_id=1441960249]
+polygon = PackedVector2Array(261, 148, 284, 148, 282, 166, 263, 165)

@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://cgwj5638j76hp"]
+
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_8_0.tscn" id="0_id"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_7_1.tscn" id="1_id"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_6_2.tscn" id="2_id"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_5_3.tscn" id="3_id"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_4_4.tscn" id="4_id"]
+[ext_resource type="PackedScene" path="res://scenes/maps/Vet/Person_1.tscn" id="5_125fo"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_2_5.tscn" id="5_id"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_1_6.tscn" id="6_id"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_0_7.tscn" id="7_id"]
+[ext_resource type="PackedScene" path="res://stuff/burgers/Layer_3_8.tscn" id="8_id"]
+
+[node name="map" type="Node2D" unique_id=1833814149]
+
+[node name="Layer_3_8" parent="." unique_id=1396722673 instance=ExtResource("8_id")]
+
+[node name="Layer_0_7" parent="." unique_id=1616814025 instance=ExtResource("7_id")]
+
+[node name="Layer_1_6" parent="." unique_id=467768038 instance=ExtResource("6_id")]
+
+[node name="Layer_2_5" parent="." unique_id=1573100866 instance=ExtResource("5_id")]
+
+[node name="Person_1" parent="." unique_id=504596724 instance=ExtResource("5_125fo")]
+position = Vector2(-136, 31)
+
+[node name="Layer_4_4" parent="." unique_id=1103122359 instance=ExtResource("4_id")]
+
+[node name="Layer_5_3" parent="." unique_id=1576258104 instance=ExtResource("3_id")]
+
+[node name="Layer_6_2" parent="." unique_id=1883754516 instance=ExtResource("2_id")]
+
+[node name="Layer_7_1" parent="." unique_id=907455823 instance=ExtResource("1_id")]
+
+[node name="Layer_8_0" parent="." unique_id=1881698089 instance=ExtResource("0_id")]
+
+[node name="MapCollisions" type="StaticBody2D" parent="." unique_id=1560851735]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="MapCollisions" unique_id=997026998]
+polygon = PackedVector2Array(9, 2, 183, 1, 182, 31, 176, 32, 157, 32, 157, 48, 162, 49, 162, 80, 159, 79, 160, 92, 145, 91, 143, 104, 143, 123, 130, 122, 129, 108, 44, 109, 44, 125, 46, 133, 57, 133, 59, 125, 60, 124, 61, 176, 59, 178, 59, 192, 62, 191, 81, 193, 80, 198, 9, 197)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="MapCollisions" unique_id=255603657]
+polygon = PackedVector2Array(111, 192, 111, 198, 182, 197, 183, 31, 175, 32, 176, 48, 174, 48, 174, 79, 176, 80, 177, 127, 170, 124, 170, 133, 163, 133, 157, 130, 146, 129, 140, 134, 133, 134, 133, 125, 130, 124, 130, 142, 134, 144, 134, 193)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="MapCollisions" unique_id=1163900584]
+polygon = PackedVector2Array(54, 113, 51, 115, 51, 124, 59, 124, 60, 116, 58, 113)

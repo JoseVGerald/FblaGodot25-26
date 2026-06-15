@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://ceg30x5a1va05"]
+
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_5_0.tscn" id="0_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_4_1.tscn" id="1_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_3_2.tscn" id="2_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_2_3.tscn" id="3_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_0_4.tscn" id="4_id"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_7_5.tscn" id="5_id"]
+[ext_resource type="PackedScene" path="res://scenes/maps/Vet/Person_1.tscn" id="6_gxtu7"]
+[ext_resource type="PackedScene" path="res://stuff/shop/Layer_6_6.tscn" id="6_id"]
+
+[node name="newShop" type="Node2D" unique_id=1756627064]
+
+[node name="Layer_6_6" parent="." unique_id=1242889873 instance=ExtResource("6_id")]
+
+[node name="Layer_7_5" parent="." unique_id=294013787 instance=ExtResource("5_id")]
+
+[node name="Layer_0_4" parent="." unique_id=401394204 instance=ExtResource("4_id")]
+
+[node name="Layer_2_3" parent="." unique_id=1628415101 instance=ExtResource("3_id")]
+
+[node name="Layer_3_2" parent="." unique_id=959291759 instance=ExtResource("2_id")]
+
+[node name="Person_1" parent="Layer_3_2" unique_id=292205955 instance=ExtResource("6_gxtu7")]
+position = Vector2(-18, 63)
+
+[node name="Layer_4_1" parent="." unique_id=208575622 instance=ExtResource("1_id")]
+
+[node name="Layer_5_0" parent="." unique_id=2014045044 instance=ExtResource("0_id")]
+
+[node name="MapCollisions" type="StaticBody2D" parent="." unique_id=1410584065]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="MapCollisions" unique_id=497680025]
+polygon = PackedVector2Array(9, 1, 304, 1, 304, 32, 287, 32, 288, 45, 272, 45, 274, 32, 252, 32, 252, 45, 229, 45, 229, 31, 223, 31, 222, 38, 211, 38, 208, 32, 191, 32, 191, 41, 161, 41, 161, 38, 128, 38, 128, 41, 48, 41, 48, 37, 16, 37, 16, 49, 32, 49, 32, 87, 16, 87, 16, 97, 32, 97, 32, 126, 16, 126, 16, 145, 32, 145, 32, 176, 48, 176, 48, 145, 96, 145, 96, 176, 112, 176, 112, 145, 144, 145, 144, 176, 225, 176, 225, 163, 230, 160, 235, 160, 239, 164, 239, 176, 256, 176, 256, 182, 9, 182)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="MapCollisions" unique_id=163615340]
+polygon = PackedVector2Array(256, 128, 239, 128, 239, 141, 224, 141, 220, 139, 219, 143, 181, 143, 180, 127, 176, 128, 173, 134, 145, 134, 145, 120, 161, 117, 107, 117, 107, 83, 116, 83, 113, 77, 113, 58, 115, 58, 115, 48, 156, 48, 156, 58, 158, 58, 158, 77, 164, 84, 165, 114, 176, 114, 176, 80, 182, 80, 181, 50, 204, 50, 201, 80, 216, 80, 214, 49, 235, 49, 233, 80, 247, 80, 245, 50, 268, 50, 265, 80, 273, 80, 273, 66, 277, 65, 283, 65, 287, 68, 288, 80, 304, 80, 304, 86, 183, 86, 183, 97, 256, 97)
+
+[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="MapCollisions" unique_id=1165000771]
+position = Vector2(0, 48)
+polygon = PackedVector2Array(48, 49, 48, 78, 96, 78, 96, 49)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="MapCollisions" unique_id=32065209]
+polygon = PackedVector2Array(48, 49, 48, 78, 96, 78, 96, 49)

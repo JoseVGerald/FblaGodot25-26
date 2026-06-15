@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://ce50ei8k224j1"]
+
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_9_0.tscn" id="0_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_8_1.tscn" id="1_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_7_2.tscn" id="2_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_6_3.tscn" id="3_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_5_4.tscn" id="4_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_2_5.tscn" id="5_id"]
+[ext_resource type="PackedScene" path="res://scenes/maps/Vet/Person_1.tscn" id="5_o3ep4"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_1_6.tscn" id="6_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/NPC_LAYER_HERE_7.tscn" id="7_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_4_8.tscn" id="8_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_3_9.tscn" id="9_id"]
+[ext_resource type="PackedScene" path="res://stuff/bank/Layer_0_10.tscn" id="10_id"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col13x2"]
+size = Vector2(208, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col9x2"]
+size = Vector2(129, 32)
+
+[node name="map" type="Node2D" unique_id=1801323405]
+
+[node name="Layer_0_10" parent="." unique_id=2128723088 instance=ExtResource("10_id")]
+
+[node name="Layer_3_9" parent="." unique_id=1845392573 instance=ExtResource("9_id")]
+
+[node name="Layer_4_8" parent="." unique_id=2026577298 instance=ExtResource("8_id")]
+
+[node name="NPC_LAYER_HERE_7" parent="." unique_id=1529688087 instance=ExtResource("7_id")]
+tile_map_data = PackedByteArray()
+
+[node name="Person_1" parent="." unique_id=1666298770 instance=ExtResource("5_o3ep4")]
+position = Vector2(-161, -18)
+
+[node name="Layer_1_6" parent="." unique_id=838686249 instance=ExtResource("6_id")]
+
+[node name="Layer_2_5" parent="." unique_id=743212525 instance=ExtResource("5_id")]
+
+[node name="Layer_5_4" parent="." unique_id=302128591 instance=ExtResource("4_id")]
+
+[node name="Layer_6_3" parent="." unique_id=1142188219 instance=ExtResource("3_id")]
+
+[node name="Layer_7_2" parent="." unique_id=1679539038 instance=ExtResource("2_id")]
+
+[node name="Layer_8_1" parent="." unique_id=1384809598 instance=ExtResource("1_id")]
+
+[node name="Layer_9_0" parent="." unique_id=1908757324 instance=ExtResource("0_id")]
+
+[node name="MapCollisions" type="StaticBody2D" parent="." unique_id=130346121]
+
+[node name="C0" type="CollisionShape2D" parent="MapCollisions" unique_id=638235030]
+position = Vector2(104, 16)
+shape = SubResource("RectangleShape2D_col13x2")
+
+[node name="C1" type="CollisionShape2D" parent="MapCollisions" unique_id=2050303394]
+position = Vector2(64.5, 48)
+shape = SubResource("RectangleShape2D_col9x2")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="MapCollisions" unique_id=1201006932]
+polygon = PackedVector2Array(10, 65, 10, 134, 73, 134, 73, 160, 80, 160, 80, 128, 77, 127, 80, 113, 73, 108, 65, 112, 66, 128, 29, 128, 31, 111, 21, 108, 16, 110, 15, 64, 36, 64, 34, 75, 34, 104, 41, 105, 41, 71, 49, 72, 57, 70, 55, 105, 62, 105, 61, 64, 85, 64, 83, 78, 90, 79, 91, 71, 96, 72, 103, 72, 103, 79, 111, 78, 108, 69, 108, 64, 115, 64, 117, 72, 121, 73, 125, 69, 125, 64, 130, 64, 131, 40, 134, 41, 139, 41, 141, 32, 163, 32, 164, 40, 166, 41, 171, 41, 173, 32, 181, 32, 179, 79, 179, 92, 180, 111, 173, 100, 130, 101, 128, 113, 128, 160, 134, 160, 134, 118, 199, 117, 198, 31, 125, 28, 125, 59, 102, 58, 10, 59)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="MapCollisions" unique_id=487037400]
+polygon = PackedVector2Array(149, 68, 150, 86, 170, 86, 173, 73, 170, 68)
