@@ -1,159 +1,37 @@
-[gd_scene format=3 uid="uid://cquzb81sq112v"]
+[gd_scene format=3 uid="uid://cqu0b81sq112v"]
 
-[ext_resource type="PackedScene" uid="uid://cc5dm6JvEQT" id="0_id" path="Dogs_Stuff_0.tscn"]
-[ext_resource type="PackedScene" uid="uid://cJATjCFvjS_" id="1_id" path="Furniture_1.tscn"]
-[ext_resource type="PackedScene" uid="uid://cfzipGPsJR9" id="2_id" path="Pots_2.tscn"]
-[ext_resource type="PackedScene" uid="uid://cAUXn7lUNSY" id="3_id" path="Wall_Art_3.tscn"]
-[ext_resource type="PackedScene" uid="uid://cgyl_DZFTTP" id="4_id" path="Carpets_4.tscn"]
-[ext_resource type="PackedScene" uid="uid://c2dTsO4E3Sm" id="5_id" path="Layer_3_5.tscn"]
-[ext_resource type="PackedScene" uid="uid://cQAeuJgPcQP" id="6_id" path="Layer_2_6.tscn"]
-[ext_resource type="PackedScene" uid="uid://cVxR67DMRRV" id="7_id" path="Layer_1_7.tscn"]
-[ext_resource type="PackedScene" uid="uid://ctsuobuBeTt" id="8_id" path="Layer_0_8.tscn"]
-[ext_resource type="PackedScene" uid="uid://cGz6Sz1DZSd" id="9_id" path="Layer_8_9.tscn"]
+[ext_resource type="PackedScene" path="res://stuff/house/Dogs_Stuff_0.tscn" id="0_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Furniture_1.tscn" id="1_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Pots_2.tscn" id="2_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Wall_Art_3.tscn" id="3_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Carpets_4.tscn" id="4_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Layer_3_5.tscn" id="5_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Layer_2_6.tscn" id="6_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Layer_1_7.tscn" id="7_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Layer_0_8.tscn" id="8_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/Layer_8_9.tscn" id="9_id"]
+[ext_resource type="PackedScene" path="res://stuff/house/newhouse_collisions.tscn" id="11_h6lgk"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col19x2"]
-size = Vector2(304, 32)
+[node name="map" type="Node2D" unique_id=93177291]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col6x1"]
-size = Vector2(96, 16)
+[node name="Layer_8_9" parent="." unique_id=647853009 instance=ExtResource("9_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col12x1"]
-size = Vector2(192, 16)
+[node name="Layer_0_8" parent="." unique_id=1152394686 instance=ExtResource("8_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2x1"]
-size = Vector2(32, 16)
+[node name="Layer_1_7" parent="." unique_id=877547498 instance=ExtResource("7_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col3x1"]
-size = Vector2(48, 16)
+[node name="Layer_2_6" parent="." unique_id=166743058 instance=ExtResource("6_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col4x1"]
-size = Vector2(64, 16)
+[node name="Layer_3_5" parent="." unique_id=973171163 instance=ExtResource("5_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col11x2"]
-size = Vector2(176, 32)
+[node name="Carpets_4" parent="." unique_id=1268052458 instance=ExtResource("4_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col4x2"]
-size = Vector2(64, 32)
+[node name="Wall_Art_3" parent="." unique_id=1886714578 instance=ExtResource("3_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2x2"]
-size = Vector2(32, 32)
+[node name="Pots_2" parent="." unique_id=1631627028 instance=ExtResource("2_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col3x3"]
-size = Vector2(48, 48)
+[node name="Furniture_1" parent="." unique_id=1907877939 instance=ExtResource("1_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col1x1"]
-size = Vector2(16, 16)
+[node name="Dogs_Stuff_0" parent="." unique_id=759013412 instance=ExtResource("0_id")]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col5x1"]
-size = Vector2(80, 16)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col19x1"]
-size = Vector2(304, 16)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_col2x3"]
-size = Vector2(32, 48)
-
-[node name="map" type="Node2D"]
-[node name="Layer_8_9" parent="." instance=ExtResource("9_id")]
-[node name="Layer_0_8" parent="." instance=ExtResource("8_id")]
-[node name="Layer_1_7" parent="." instance=ExtResource("7_id")]
-[node name="Layer_2_6" parent="." instance=ExtResource("6_id")]
-[node name="Layer_3_5" parent="." instance=ExtResource("5_id")]
-[node name="Carpets_4" parent="." instance=ExtResource("4_id")]
-[node name="Wall_Art_3" parent="." instance=ExtResource("3_id")]
-[node name="Pots_2" parent="." instance=ExtResource("2_id")]
-[node name="Furniture_1" parent="." instance=ExtResource("1_id")]
-[node name="Dogs_Stuff_0" parent="." instance=ExtResource("0_id")]
-[node name="MapCollisions" type="StaticBody2D" parent="."]
-
-[node name="C0" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(152.0, 16.0)
-shape = SubResource("RectangleShape2D_col19x2")
-
-[node name="C1" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(48.0, 40.0)
-shape = SubResource("RectangleShape2D_col6x1")
-
-[node name="C2" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(208.0, 40.0)
-shape = SubResource("RectangleShape2D_col12x1")
-
-[node name="C3" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(16.0, 56.0)
-shape = SubResource("RectangleShape2D_col2x1")
-
-[node name="C4" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(72.0, 56.0)
-shape = SubResource("RectangleShape2D_col3x1")
-
-[node name="C5" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(128.0, 56.0)
-shape = SubResource("RectangleShape2D_col2x1")
-
-[node name="C6" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(192.0, 56.0)
-shape = SubResource("RectangleShape2D_col2x1")
-
-[node name="C7" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(272.0, 56.0)
-shape = SubResource("RectangleShape2D_col4x1")
-
-[node name="C8" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(88.0, 80.0)
-shape = SubResource("RectangleShape2D_col11x2")
-
-[node name="C9" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(224.0, 80.0)
-shape = SubResource("RectangleShape2D_col4x2")
-
-[node name="C10" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(288.0, 80.0)
-shape = SubResource("RectangleShape2D_col2x2")
-
-[node name="C11" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(24.0, 120.0)
-shape = SubResource("RectangleShape2D_col3x3")
-
-[node name="C12" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(88.0, 104.0)
-shape = SubResource("RectangleShape2D_col1x1")
-
-[node name="C13" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(176.0, 104.0)
-shape = SubResource("RectangleShape2D_col6x1")
-
-[node name="C14" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(272.0, 112.0)
-shape = SubResource("RectangleShape2D_col4x2")
-
-[node name="C15" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(184.0, 120.0)
-shape = SubResource("RectangleShape2D_col5x1")
-
-[node name="C16" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(168.0, 136.0)
-shape = SubResource("RectangleShape2D_col1x1")
-
-[node name="C17" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(280.0, 136.0)
-shape = SubResource("RectangleShape2D_col3x1")
-
-[node name="C18" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(16.0, 152.0)
-shape = SubResource("RectangleShape2D_col2x1")
-
-[node name="C19" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(288.0, 152.0)
-shape = SubResource("RectangleShape2D_col2x1")
-
-[node name="C20" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(152.0, 168.0)
-shape = SubResource("RectangleShape2D_col19x1")
-
-[node name="C21" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(64.0, 200.0)
-shape = SubResource("RectangleShape2D_col2x3")
-
-[node name="C22" type="CollisionShape2D" parent="MapCollisions"]
-position = Vector2(128.0, 200.0)
-shape = SubResource("RectangleShape2D_col2x3")
+[node name="MapCollisions" parent="." unique_id=833521551 instance=ExtResource("11_h6lgk")]

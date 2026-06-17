@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bnrophkjmo63a"]
+[gd_scene format=3 uid="uid://c47u3ohw6ju0c"]
 
 [node name="MapCollisions" type="StaticBody2D" unique_id=36189498]
 
