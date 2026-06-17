@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dptxqfo5fubp4"]
+
+[node name="MapCollisions" type="StaticBody2D" unique_id=1820873583]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=798145010]
+polygon = PackedVector2Array(9, 1, 304, 1, 304, 32, 287, 32, 288, 45, 272, 45, 274, 32, 252, 32, 252, 45, 229, 45, 229, 31, 223, 31, 222, 38, 211, 38, 208, 32, 191, 32, 191, 41, 161, 41, 161, 38, 128, 38, 128, 41, 48, 41, 48, 37, 16, 37, 16, 49, 32, 49, 32, 87, 16, 87, 16, 97, 32, 97, 32, 126, 16, 126, 16, 145, 32, 145, 32, 176, 48, 176, 48, 145, 96, 145, 96, 176, 112, 176, 112, 145, 144, 145, 144, 176, 225, 176, 225, 163, 230, 160, 235, 160, 239, 164, 239, 176, 256, 176, 256, 182, 9, 182)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="." unique_id=1599014185]
+polygon = PackedVector2Array(256, 128, 239, 128, 239, 141, 224, 141, 220, 139, 219, 143, 181, 143, 180, 127, 176, 128, 173, 134, 145, 134, 145, 120, 161, 117, 107, 117, 107, 83, 116, 83, 113, 77, 113, 58, 115, 58, 115, 48, 156, 48, 156, 58, 158, 58, 158, 77, 164, 84, 165, 114, 176, 114, 176, 80, 182, 80, 181, 50, 204, 50, 201, 80, 216, 80, 214, 49, 235, 49, 233, 80, 247, 80, 245, 50, 268, 50, 265, 80, 273, 80, 273, 66, 277, 65, 283, 65, 287, 68, 288, 80, 304, 80, 304, 86, 183, 86, 183, 97, 256, 97)
+
+[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="." unique_id=1248721651]
+position = Vector2(0, 48)
+polygon = PackedVector2Array(48, 49, 48, 78, 96, 78, 96, 49)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="." unique_id=680621925]
+polygon = PackedVector2Array(48, 49, 48, 78, 96, 78, 96, 49)

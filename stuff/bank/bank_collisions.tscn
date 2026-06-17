@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://drg4tacpq25cl"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col13x2"]
+size = Vector2(208, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_col9x2"]
+size = Vector2(129, 32)
+
+[node name="MapCollisions" type="StaticBody2D" unique_id=390641105]
+
+[node name="C0" type="CollisionShape2D" parent="." unique_id=1762941972]
+position = Vector2(104, 16)
+shape = SubResource("RectangleShape2D_col13x2")
+
+[node name="C1" type="CollisionShape2D" parent="." unique_id=2099077512]
+position = Vector2(64.5, 48)
+shape = SubResource("RectangleShape2D_col9x2")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=788145202]
+polygon = PackedVector2Array(10, 65, 10, 134, 73, 134, 73, 160, 80, 160, 80, 128, 77, 127, 80, 113, 73, 108, 65, 112, 66, 128, 29, 128, 31, 111, 21, 108, 16, 110, 15, 64, 36, 64, 34, 75, 34, 104, 41, 105, 41, 71, 49, 72, 57, 70, 55, 105, 62, 105, 61, 64, 85, 64, 83, 78, 90, 79, 91, 71, 96, 72, 103, 72, 103, 79, 111, 78, 108, 69, 108, 64, 115, 64, 117, 72, 121, 73, 125, 69, 125, 64, 130, 64, 131, 40, 134, 41, 139, 41, 141, 32, 163, 32, 164, 40, 166, 41, 171, 41, 173, 32, 181, 32, 179, 79, 179, 92, 180, 111, 173, 100, 130, 101, 128, 113, 128, 160, 134, 160, 134, 118, 199, 117, 198, 31, 125, 28, 125, 59, 102, 58, 10, 59)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="." unique_id=1082086689]
+polygon = PackedVector2Array(149, 68, 150, 86, 170, 86, 173, 73, 170, 68)
