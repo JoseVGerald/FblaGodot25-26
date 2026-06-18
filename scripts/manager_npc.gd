@@ -86,6 +86,15 @@ func _interact() -> void:
 		_show_dialogue([block])
 		return
 
+	# Dog-at-work check: if dog is in the scene and wasn't sent to daycare, punish.
+	if not GameState.dog_at_daycare and get_tree().get_nodes_in_group("dog").size() > 0:
+		_show_dialogue([
+			"Hey — is that your dog?",
+			"Don't bring your dog to work. You're getting a fine.",
+			GameState.apply_dog_at_work_penalty()
+		])
+		return
+
 	if location_key == "burger":
 		# The grill mini-game IS the shift; it credits cash + tips on completion.
 		var launcher = get_node_or_null("/root/BurgerLauncher")
@@ -93,8 +102,10 @@ func _interact() -> void:
 			if hint_instance:
 				hint_instance.hide_hint()
 			launcher.open_for_work()
+			GameState.worked_today = true
 		else:
 			_show_dialogue([GameState.complete_work_shift()])
+			GameState.worked_today = true
 	elif location_key == "bank":
 		# The Loan Decision Desk mini-game IS the shift; it credits commission
 		# on completion and can only be played once per in-game day.
@@ -103,11 +114,14 @@ func _interact() -> void:
 			if hint_instance:
 				hint_instance.hide_hint()
 			loan_launcher.open_for_work()
+			GameState.worked_today = true
 		else:
 			_show_dialogue([GameState.complete_work_shift()])
+			GameState.worked_today = true
 	else:
 		# Paper Boy: no mini-game yet — run the shift and confirm.
 		_show_dialogue([GameState.complete_work_shift()])
+		GameState.worked_today = true
 
 
 ## Show one or more lines in the vet-style bottom balloon.

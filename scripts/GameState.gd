@@ -270,6 +270,15 @@ var catch_played_today: bool = false
 var catch_last_played_day: int = -1
 var catch_total_earnings: int = 0
 
+# Daycare system
+enum DaycareTier { NONE, CHEAP, PREMIUM }
+var dog_at_daycare: bool = false
+var daycare_used_today: bool = false
+var daycare_tier_today: DaycareTier = DaycareTier.NONE
+var daycare_cheap_price: float = 15.0
+var daycare_premium_price: float = 30.0
+var worked_today: bool = false
+
 signal event_triggered(message: String)
 signal achievement_unlocked(name: String)
 
@@ -284,6 +293,9 @@ signal vet_talk_finished
 @warning_ignore("unused_signal")
 signal open_shop_requested
 signal job_selection_requested
+
+func _enter_tree():
+	get_tree().debug_collisions_hint = false
 
 func _ready():
 	get_tree().debug_collisions_hint = false
@@ -357,9 +369,27 @@ func _advance_day_after_supply_decrement() -> void:
 	
 	# Wake up dog
 	is_dog_sleeping = false
-	
+
+	# Apply daycare stat effects before resetting flags
+	if daycare_tier_today != DaycareTier.NONE:
+		if daycare_tier_today == DaycareTier.CHEAP:
+			dog_health = clampf(dog_health + randf_range(-8.0, 3.0), 0.0, 100.0)
+		# Both tiers: top off hunger/thirst/energy via the live dog node
+		var dogs := get_tree().get_nodes_in_group("dog")
+		if dogs.size() > 0:
+			var d = dogs[0]
+			if d.get("hunger") != null: d.hunger = minf(100.0, d.hunger + 50.0)
+			if d.get("thirst") != null: d.thirst = minf(100.0, d.thirst + 50.0)
+			if d.get("energy") != null: d.energy = minf(100.0, d.energy + 50.0)
+
 	# Reset catch minigame availability
 	catch_played_today = false
+
+	# Reset daycare flags and worked_today
+	dog_at_daycare = false
+	daycare_used_today = false
+	daycare_tier_today = DaycareTier.NONE
+	worked_today = false
 	
 	# Banking Interest Logic
 	if savings_balance > 0:
@@ -907,6 +937,15 @@ func weekly_shift_limit() -> int:
 	return work_days_scheduled
 
 
+## Called when player arrives at work with dog (no daycare). Docks $25 and
+## reduces promotion standing — lower standing already raises fire risk.
+func apply_dog_at_work_penalty() -> String:
+	money -= 25.0
+	if active_job != "none" and active_job in job_promo_chance:
+		job_promo_chance[active_job] = maxf(0.0, job_promo_chance[active_job] - 0.15)
+	return "$25 fine. Your standing took a hit."
+
+
 ## Returns "" if the player may work another shift now, otherwise the manager's
 ## reason for turning them away (e.g. a teen who tried to work a 4th day).
 func shift_block_reason() -> String:
@@ -1144,6 +1183,11 @@ func reset_all() -> void:
 	is_in_house = false; is_dialogue_active = false
 	# Catch minigame
 	catch_played_today = false; catch_last_played_day = -1; catch_total_earnings = 0
+	# Daycare system
+	dog_at_daycare = false
+	daycare_used_today = false
+	daycare_tier_today = DaycareTier.NONE
+	worked_today = false
 	# Achievement trackers
 	times_fed = 0; times_watered = 0; times_medicated = 0
 	vet_visit_count = 0; taxi_ride_count = 0; total_spent = 0

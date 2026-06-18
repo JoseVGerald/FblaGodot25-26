@@ -132,11 +132,11 @@ func _apply_redesign_styling() -> void:
 	if panel is PanelContainer:
 		UITheme.style_panel(panel)
 
-	# Left header — cyan accent.
+	# Left header — dark-maroon plaque accent (matches needs_menu titles).
 	var left_header := get_node_or_null("Panel/MainHBox/LeftSection/Header")
 	if left_header is Label:
 		left_header.text = "Game Rules"
-		left_header.add_theme_color_override("font_color", Color("#4A90D9"))
+		left_header.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 
 	# Replace the existing RichTextLabel body with proper rule cards.
 	var body := get_node_or_null("Panel/MainHBox/LeftSection/Body")
@@ -152,24 +152,28 @@ func _apply_redesign_styling() -> void:
 		parent.move_child(rules_list, body.get_index())
 		body.queue_free()
 
-	# Left "Got it!" button — bold green.
+	# Left "Got it!" button — green confirm, rendered in the pixel style.
 	var got_it := get_node_or_null("Panel/MainHBox/LeftSection/CloseBtn")
 	if got_it is Button:
-		UITheme.style_button(got_it, UITheme.CLR_GREEN)
+		UITheme.style_pixel_button_colored(got_it, UITheme.CLR_GREEN)
 
-	# Right-column chat header + welcome.
+	# Right-column chat header + welcome (dark ink on the cream chat panel).
 	var chat_hdr := get_node_or_null("Panel/MainHBox/RightSection/ChatHeader")
 	if chat_hdr is Label:
-		chat_hdr.add_theme_color_override("font_color", Color("#53d8fb"))
+		chat_hdr.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	var welcome := get_node_or_null("Panel/MainHBox/RightSection/ChatContainer/ChatScroll/ChatHistory/WelcomeLabel")
 	if welcome is Label:
-		welcome.add_theme_color_override("font_color", Color("#f0f4ff"))
+		welcome.add_theme_color_override("font_color", UITheme.CLR_INK)
+
+	# "Thinking…" / error status line — readable maroon on cream.
+	if status_label:
+		status_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 
 	# FAQ label + inline input/send button.
 	var faq_label := get_node_or_null("Panel/MainHBox/RightSection/FaqLabel")
 	if faq_label is Label:
 		faq_label.text = "QUICK QUESTIONS"
-		faq_label.add_theme_color_override("font_color", Color(0.94, 0.96, 1.0, 0.55))
+		faq_label.add_theme_color_override("font_color", Color(UITheme.CLR_INK.r, UITheme.CLR_INK.g, UITheme.CLR_INK.b, 0.75))
 		faq_label.add_theme_font_size_override("font_size", 20)
 	_style_input()
 	_style_send_btn()
@@ -190,19 +194,34 @@ func _build_rule_cards() -> Array:
 func _make_rule_card(title: String, body_text: String) -> PanelContainer:
 	var card := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color     = Color("#162240")
-	sb.border_color = Color("#4A90D9", 0.35)
+	sb.bg_color     = UITheme.CLR_CREAM_LT                 # light card, ink text
+	sb.border_color = UITheme.CLR_INK
 	sb.set_border_width_all(2)
-	sb.border_width_left = 5
-	sb.set_corner_radius_all(8)
-	sb.set_content_margin_all(14)
+	sb.set_corner_radius_all(0)                            # crisp pixel edges
+	sb.content_margin_left   = 0                           # stripe owns the left edge
+	sb.content_margin_right  = 14
+	sb.content_margin_top    = 12
+	sb.content_margin_bottom = 12
 	card.add_theme_stylebox_override("panel", sb)
 
+	# Row layout: full-height orange accent bar + text column. (PanelContainer
+	# stretches its single child, so the stripe must be a real layout element,
+	# not an overlaid ColorRect — an overlay would fill the whole card.)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+
+	var stripe := ColorRect.new()
+	stripe.color = UITheme.CLR_ORANGE_PX
+	stripe.custom_minimum_size = Vector2(6, 0)
+	stripe.size_flags_vertical = Control.SIZE_FILL
+	row.add_child(stripe)
+
 	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_theme_constant_override("separation", 6)
 	var title_lbl := Label.new()
 	title_lbl.text = title
-	title_lbl.add_theme_color_override("font_color", Color("#53d8fb"))
+	title_lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	title_lbl.add_theme_font_size_override("font_size", 30)
 	var pf := UITheme.get_pixel_font()
 	if pf: title_lbl.add_theme_font_override("font", pf)
@@ -211,11 +230,12 @@ func _make_rule_card(title: String, body_text: String) -> PanelContainer:
 	var body_lbl := Label.new()
 	body_lbl.text = body_text
 	body_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body_lbl.add_theme_color_override("font_color", Color("#f0f4ff"))
+	body_lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
 	body_lbl.add_theme_font_size_override("font_size", 24)
 	vbox.add_child(body_lbl)
 
-	card.add_child(vbox)
+	row.add_child(vbox)
+	card.add_child(row)
 	return card
 
 func _style_faq_buttons() -> void:
@@ -225,14 +245,16 @@ func _style_faq_buttons() -> void:
 			_style_faq_btn(child)
 
 func _style_faq_btn(btn: Button) -> void:
-	btn.add_theme_color_override("font_color", Color("#4A90D9"))
+	btn.add_theme_color_override("font_color", UITheme.CLR_INK)
+	btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
+	btn.add_theme_color_override("font_pressed_color", UITheme.CLR_INK)
 	btn.add_theme_font_size_override("font_size", 22)
 	var pf := UITheme.get_pixel_font()
 	if pf: btn.add_theme_font_override("font", pf)
 	var sb := StyleBoxFlat.new()
-	sb.bg_color     = Color("#4A90D9", 0.1)
-	sb.border_color = Color("#4A90D9", 0.3)
-	sb.set_border_width_all(1)
+	sb.bg_color     = UITheme.CLR_TAN                      # tan pill, ink text
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(20)
 	sb.content_margin_left = 14
 	sb.content_margin_right = 14
@@ -240,31 +262,32 @@ func _style_faq_btn(btn: Button) -> void:
 	sb.content_margin_bottom = 8
 	btn.add_theme_stylebox_override("normal", sb)
 	var sb_h: StyleBoxFlat = sb.duplicate()
-	sb_h.bg_color = Color("#4A90D9", 0.2)
+	sb_h.bg_color = UITheme.CLR_TAN_HI
 	btn.add_theme_stylebox_override("hover", sb_h)
+	var sb_p: StyleBoxFlat = sb.duplicate()
+	sb_p.bg_color = UITheme.CLR_TAN_DRK
+	btn.add_theme_stylebox_override("pressed", sb_p)
 
 func _style_input() -> void:
 	if not question_input: return
-	question_input.add_theme_color_override("font_color", Color("#f0f4ff"))
-	question_input.add_theme_color_override("font_placeholder_color", Color(0.94, 0.96, 1.0, 0.3))
-	var sb := StyleBoxFlat.new()
-	sb.bg_color     = Color("#0d1b36")
-	sb.border_color = Color("#2d6aad")
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(7)
-	sb.content_margin_left = 14
-	sb.content_margin_right = 14
-	sb.content_margin_top = 10
-	sb.content_margin_bottom = 10
-	question_input.add_theme_stylebox_override("normal", sb)
-	var sb_f: StyleBoxFlat = sb.duplicate()
-	sb_f.border_color = Color("#53d8fb")
+	# White field / black text via the shared brand helper — maximally legible.
+	UITheme.style_line_edit(question_input)
+	var sb_f := StyleBoxFlat.new()
+	sb_f.bg_color = Color.WHITE
+	sb_f.border_color = UITheme.CLR_ORANGE_PX
+	sb_f.set_border_width_all(3)
+	sb_f.border_width_bottom = 4
+	sb_f.set_corner_radius_all(4)
+	sb_f.content_margin_left = 12
+	sb_f.content_margin_right = 12
+	sb_f.content_margin_top = 6
+	sb_f.content_margin_bottom = 6
 	question_input.add_theme_stylebox_override("focus", sb_f)
 
 func _style_send_btn() -> void:
 	if not send_btn: return
 	send_btn.text = "Ask"
-	UITheme.style_button(send_btn, Color("#4A90D9"))
+	UITheme.style_pixel_button_colored(send_btn, UITheme.CLR_GREEN)
 
 func _wire_faq_buttons() -> void:
 	# Connect each FAQ button to _on_faq_pressed(key) so we can look up the
@@ -361,15 +384,15 @@ func add_chat_message(text: String, is_user: bool, is_error: bool = false):
 
 	var sb := StyleBoxFlat.new()
 	if is_user:
-		sb.bg_color     = Color("#4A90D9", 0.22)
-		sb.border_color = Color("#4A90D9", 0.5)
+		sb.bg_color     = UITheme.CLR_GOLD                 # warm "you" bubble
+		sb.border_color = UITheme.CLR_INK
 	elif is_error:
 		sb.bg_color     = Color("#EF5350", 0.18)
-		sb.border_color = Color("#EF5350", 0.5)
+		sb.border_color = Color("#EF5350")
 	else:
-		sb.bg_color     = Color("#162240")
-		sb.border_color = Color("#53d8fb", 0.3)
-	sb.set_border_width_all(1)
+		sb.bg_color     = UITheme.CLR_CREAM_LT             # assistant bubble
+		sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(12)
 	# Flatten one corner so the bubble "points" toward its speaker.
 	if is_user:
@@ -384,12 +407,10 @@ func add_chat_message(text: String, is_user: bool, is_error: bool = false):
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.custom_minimum_size.x = 220
 	label.add_theme_font_size_override("font_size", 26)
-	if is_user:
-		label.add_theme_color_override("font_color", Color("#0d1b36"))
-	elif is_error:
-		label.add_theme_color_override("font_color", Color("#EF5350"))
+	if is_error:
+		label.add_theme_color_override("font_color", Color("#b71c1c"))
 	else:
-		label.add_theme_color_override("font_color", Color("#f0f4ff"))
+		label.add_theme_color_override("font_color", UITheme.CLR_INK)
 	bubble.add_child(label)
 
 	row.add_child(bubble)

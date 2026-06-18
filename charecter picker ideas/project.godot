@@ -34,6 +34,10 @@ DialogueManager="*uid://c3rodes2l3gxb"
 
 runtime/balloon_path="res://scenes/dialogue/balloon.tscn"
 
+[debug]
+
+shapes/collision/visible=false
+
 [display]
 
 window/size/viewport_width=1920

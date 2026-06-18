@@ -6,8 +6,9 @@
 [ext_resource type="PackedScene" path="res://stuff/shop/Layer_2_3.tscn" id="3_id"]
 [ext_resource type="PackedScene" path="res://stuff/shop/Layer_0_4.tscn" id="4_id"]
 [ext_resource type="PackedScene" path="res://stuff/shop/Layer_7_5.tscn" id="5_id"]
+[ext_resource type="PackedScene" path="res://scenes/maps/shop/Person_1.tscn" id="6_gxtu7"]
 [ext_resource type="PackedScene" path="res://stuff/shop/Layer_6_6.tscn" id="6_id"]
-[ext_resource type="PackedScene" path="res://stuff/shop/newshop_collisions.tscn" id="8_gxtu7"]
+[ext_resource type="PackedScene" uid="uid://dptxqfo5fubp4" path="res://stuff/shop/newshop_collisions.tscn" id="8_gxtu7"]
 
 [node name="newShop" type="Node2D" unique_id=1756627064]
 
@@ -20,6 +21,9 @@
 [node name="Layer_2_3" parent="." unique_id=1628415101 instance=ExtResource("3_id")]
 
 [node name="Layer_3_2" parent="." unique_id=959291759 instance=ExtResource("2_id")]
+
+[node name="Person_1" parent="." unique_id=964847437 instance=ExtResource("6_gxtu7")]
+position = Vector2(-19, -30)
 
 [node name="Layer_4_1" parent="." unique_id=208575622 instance=ExtResource("1_id")]
 

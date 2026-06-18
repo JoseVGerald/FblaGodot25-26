@@ -135,6 +135,25 @@ static func style_pixel_button(btn: Button, secondary: bool = false) -> void:
 	_do_juice_on(btn)
 
 
+## Semantic colored pixel button — same 3-D pixel look as style_pixel_button but
+## with an arbitrary fill colour and white text. Use for confirm / reset / danger
+## actions (green / orange / red) so the colour cue survives the maroon rebrand.
+static func style_pixel_button_colored(btn: Button, fill: Color) -> void:
+	var f := get_pixel_font()
+	if f and not _has_emoji(btn.text):
+		btn.add_theme_font_override("font", f)
+	btn.add_theme_color_override("font_color",         Color.WHITE)
+	btn.add_theme_color_override("font_hover_color",   Color.WHITE)
+	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+
+	var shadow := fill.darkened(0.30)
+	btn.add_theme_stylebox_override("normal",   _pxsb(fill,                 shadow, 8))
+	btn.add_theme_stylebox_override("hover",    _pxsb(fill.lightened(0.10), shadow, 8))
+	btn.add_theme_stylebox_override("pressed",  _pxsb(fill.darkened(0.08),  shadow, 2))
+	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30),  shadow, 0))
+	_do_juice_on(btn)
+
+
 ## StyleBoxFlat factory for pixel buttons: `depth` = extra bottom border thickness.
 static func _pxsb(fill: Color, shadow: Color, depth: int) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()

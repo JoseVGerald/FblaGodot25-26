@@ -31,6 +31,11 @@ const FOOD_TARGET: Vector2 = Vector2(450, -585)
 const WATER_TARGET: Vector2 = Vector2(410, -580)
 const SLEEP_TARGET: Vector2 = Vector2(310, -590)
 
+# Where the dog snaps to the moment the player enters the house, so its
+# straight-line routine path to the food bowl doesn't have to cross walls
+# from wherever it was standing out in the world.
+const HOUSE_ENTRY_POS: Vector2 = Vector2(565, -685)
+
 var hunger: float = 80.0
 var thirst: float = 70.0
 var energy: float = 100.0
@@ -268,6 +273,11 @@ func _physics_process(delta: float) -> void:
 	# Kick off the food → water → sleep routine the moment the player enters.
 	if GameState.Inside_house and not was_in_house:
 		if GameState.is_tutorial_complete:
+			# Snap to the food approach point first so the routine's straight-line
+			# path starts clean. Never yank a sleeping dog off its spot.
+			if current_state != DogState.SLEEPING and not GameState.is_dog_sleeping:
+				global_position = HOUSE_ENTRY_POS
+				path.clear()
 			_start_evening_routine()
 	was_in_house = GameState.Inside_house
 
