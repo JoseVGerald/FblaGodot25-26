@@ -407,7 +407,7 @@ func spawn_manager_npcs() -> void:
 			"layers": {"body": 2, "eyes": 1, "outfit": 8, "hairstyle": 5, "accessory": 78},
 		},
 		{
-			"location": "bank", "pos": Vector2(4200, 9554),
+			"location": "bank", "pos": Vector2(4190, 960),
 			# Ms. Vault — glasses (accessory 64)
 			"layers": {"body": 4, "eyes": 3, "outfit": 30, "hairstyle": 8, "accessory": 64},
 		},

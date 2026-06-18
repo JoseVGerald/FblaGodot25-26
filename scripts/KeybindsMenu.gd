@@ -21,14 +21,14 @@ const ACTIONS := [
 	["sim_day",     "Skip Week"],
 ]
 
-# Design tokens shared with SettingsMenu.
-const CLR_BG_CARD    := Color("#162240")
-const CLR_BORDER_SKY := Color("#4A90D9")
-const CLR_BORDER_DIM := Color("#2d6aad")
-const CLR_CYAN       := Color("#53d8fb")
-const CLR_WHITE      := Color("#4A90D9")
-const CLR_DIM        := Color(0.94, 0.96, 1.0, 0.55)
-const CLR_AMBER      := Color("#FFA726")
+# Design tokens — maroon brand palette (sibling of needs_menu: ink-on-cream).
+const CLR_BG_CARD    := UITheme.CLR_CREAM_LT    # row background (light card)
+const CLR_BORDER_SKY := UITheme.CLR_ORANGE_PX   # row accent stripe
+const CLR_BORDER_DIM := UITheme.CLR_INK         # keycap button border
+const CLR_CYAN       := UITheme.CLR_MAROON_D     # status confirmations
+const CLR_WHITE      := UITheme.CLR_INK          # row label + keycap text
+const CLR_DIM        := Color(UITheme.CLR_INK.r, UITheme.CLR_INK.g, UITheme.CLR_INK.b, 0.7)
+const CLR_AMBER      := UITheme.CLR_ORANGE_PX    # reset btn + listening highlight
 
 # Default events captured once before any saved override is applied. Used by
 # "Reset to Defaults" and to know what to fall back to when a saved bind
@@ -108,7 +108,7 @@ func _build_layout() -> void:
 	header.add_theme_constant_override("separation", 10)
 	var title := Label.new()
 	title.text = "Keybinds"
-	title.add_theme_color_override("font_color", CLR_BORDER_SKY)
+	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	title.add_theme_font_size_override("font_size", 48)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var pf := UITheme.get_pixel_font()
@@ -119,7 +119,7 @@ func _build_layout() -> void:
 	x_btn.text = "✕"
 	x_btn.custom_minimum_size = Vector2(44, 44)
 	x_btn.focus_mode = Control.FOCUS_NONE
-	UITheme.style_button(x_btn, UITheme.CLR_RED)
+	UITheme.style_close_button(x_btn)
 	x_btn.pressed.connect(_close)
 	header.add_child(x_btn)
 	vbox.add_child(header)
@@ -163,7 +163,7 @@ func _build_layout() -> void:
 	reset_btn.custom_minimum_size = Vector2(220, 56)
 	reset_btn.add_theme_font_size_override("font_size", 24)
 	if pf: reset_btn.add_theme_font_override("font", pf)
-	UITheme.style_button(reset_btn, CLR_AMBER)
+	UITheme.style_pixel_button_colored(reset_btn, CLR_AMBER)
 	reset_btn.pressed.connect(_reset_to_defaults)
 	footer.add_child(reset_btn)
 
@@ -172,7 +172,7 @@ func _build_layout() -> void:
 	close_btn.custom_minimum_size = Vector2(180, 56)
 	close_btn.add_theme_font_size_override("font_size", 24)
 	if pf: close_btn.add_theme_font_override("font", pf)
-	UITheme.style_button(close_btn, UITheme.CLR_RED)
+	UITheme.style_close_button(close_btn)
 	close_btn.pressed.connect(_close)
 	footer.add_child(close_btn)
 
@@ -301,19 +301,25 @@ func _current_key_label(action: String) -> String:
 	return "—"
 
 func _apply_bind_button_style(btn: Button, listening: bool) -> void:
+	# Tan "keycap" look; glows orange while waiting for the next key press.
 	var sb := StyleBoxFlat.new()
-	sb.bg_color     = CLR_AMBER if listening else Color("#1e3a6e")
-	sb.border_color = CLR_AMBER if listening else CLR_BORDER_DIM
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(8)
+	sb.bg_color     = CLR_AMBER if listening else UITheme.CLR_TAN
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(3)
+	sb.border_width_bottom = 5                            # subtle 3-D keycap base
+	sb.set_corner_radius_all(0)                           # crisp pixel edges
 	sb.content_margin_left = 12
 	sb.content_margin_right = 12
 	sb.content_margin_top = 6
 	sb.content_margin_bottom = 6
 	btn.add_theme_stylebox_override("normal",  sb)
-	btn.add_theme_stylebox_override("hover",   sb)
+	var sb_h: StyleBoxFlat = sb.duplicate()
+	sb_h.bg_color = CLR_AMBER if listening else UITheme.CLR_TAN_HI
+	btn.add_theme_stylebox_override("hover",   sb_h)
 	btn.add_theme_stylebox_override("pressed", sb)
-	btn.add_theme_color_override("font_color", Color.BLACK if listening else CLR_WHITE)
+	btn.add_theme_color_override("font_color", UITheme.CLR_INK)
+	btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
+	btn.add_theme_color_override("font_pressed_color", UITheme.CLR_INK)
 
 func _close() -> void:
 	keybinds_closed.emit()

@@ -32,8 +32,8 @@ Sfx="*res://scripts/Sfx.gd"
 
 [debug]
 
-shapes/collision/visible=false
 shapes/collision/draw_2d_outlines=false
+shapes/collision/visible=false
 
 [display]
 
