@@ -86,6 +86,15 @@ func _interact() -> void:
 		_show_dialogue([block])
 		return
 
+	# Dog-at-work check: if dog is in the scene and wasn't sent to daycare, punish.
+	if not GameState.dog_at_daycare and get_tree().get_nodes_in_group("dog").size() > 0:
+		_show_dialogue([
+			"Hey — is that your dog?",
+			"Don't bring your dog to work. You're getting a fine.",
+			GameState.apply_dog_at_work_penalty()
+		])
+		return
+
 	if location_key == "burger":
 		# The grill mini-game IS the shift; it credits cash + tips on completion.
 		var launcher = get_node_or_null("/root/BurgerLauncher")
