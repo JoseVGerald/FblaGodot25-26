@@ -189,13 +189,12 @@ func _apply_redesign_styling() -> void:
 			daycare_btn.text = "🐾 Daycare"
 			daycare_btn.custom_minimum_size = Vector2(130, 60)
 			daycare_btn.add_theme_font_size_override("font_size", 22)
-			if pf: daycare_btn.add_theme_font_override("font", pf)
 			UITheme.style_pixel_button(daycare_btn)
 			left_sec.add_child(daycare_btn)
 			daycare_btn.pressed.connect(_on_daycare_btn_pressed)
 
 	# Status Indicator (Work/Rent details)
-	var left_sec = get_node_or_null("Background/Margin/MainHBox/LeftSection")
+	left_sec = get_node_or_null("Background/Margin/MainHBox/LeftSection")
 	if left_sec:
 		status_lbl = Label.new()
 		status_lbl.name = "StatusLabel"
