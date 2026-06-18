@@ -41,6 +41,11 @@ var burger_cashier_input: LineEdit = null
 var bank_accountant_input: LineEdit = null
 var promotion_boost_input: LineEdit = null
 
+var daycare_section_header: Label = null
+var daycare_grid: GridContainer = null
+var daycare_cheap_input: LineEdit = null
+var daycare_premium_input: LineEdit = null
+
 var _selected_pathway: String = "kid"
 var pathway_cards: VBoxContainer = null
 
@@ -227,6 +232,54 @@ func setup_new_variables() -> void:
 	var boost_spacer := Control.new()
 	career_grid.add_child(boost_spacer)
 
+	# HSeparator
+	var sep3 := HSeparator.new()
+	sections.add_child(sep3)
+
+	# Section header: Daycare Settings
+	daycare_section_header = Label.new()
+	daycare_section_header.text = "Daycare Settings"
+	daycare_section_header.add_theme_font_size_override("font_size", 28)
+	daycare_section_header.add_theme_color_override("font_color", Color("#53d8fb"))
+	if pf: daycare_section_header.add_theme_font_override("font", pf)
+	sections.add_child(daycare_section_header)
+
+	daycare_grid = GridContainer.new()
+	daycare_grid.columns = 3
+	daycare_grid.add_theme_constant_override("h_separation", 20)
+	daycare_grid.add_theme_constant_override("v_separation", 12)
+	sections.add_child(daycare_grid)
+
+	var dc_cheap_lbl := Label.new()
+	dc_cheap_lbl.text = "Cheap Daycare Price"
+	dc_cheap_lbl.add_theme_font_size_override("font_size", 22)
+	dc_cheap_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daycare_grid.add_child(dc_cheap_lbl)
+
+	var dc_premium_lbl := Label.new()
+	dc_premium_lbl.text = "Premium Daycare Price"
+	dc_premium_lbl.add_theme_font_size_override("font_size", 22)
+	dc_premium_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daycare_grid.add_child(dc_premium_lbl)
+
+	var dc_spacer := Control.new()
+	daycare_grid.add_child(dc_spacer)
+
+	daycare_cheap_input = LineEdit.new()
+	daycare_cheap_input.custom_minimum_size = Vector2(220, 56)
+	daycare_cheap_input.add_theme_font_size_override("font_size", 28)
+	daycare_cheap_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daycare_grid.add_child(daycare_cheap_input)
+
+	daycare_premium_input = LineEdit.new()
+	daycare_premium_input.custom_minimum_size = Vector2(220, 56)
+	daycare_premium_input.add_theme_font_size_override("font_size", 28)
+	daycare_premium_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daycare_grid.add_child(daycare_premium_input)
+
+	var dc_spacer2 := Control.new()
+	daycare_grid.add_child(dc_spacer2)
+
 func populate_from_state() -> void:
 	"""Prefill inputs based on current GameState values."""
 	starting_cash_input.text = "%.2f" % GameState.starting_money
@@ -262,6 +315,10 @@ func populate_from_state() -> void:
 		bank_accountant_input.text = "%.2f" % GameState.bank_accountant_pay
 	if promotion_boost_input:
 		promotion_boost_input.text = str(int(round(GameState.promotion_boost_percent)))
+	if daycare_cheap_input:
+		daycare_cheap_input.text = "%.2f" % GameState.daycare_cheap_price
+	if daycare_premium_input:
+		daycare_premium_input.text = "%.2f" % GameState.daycare_premium_price
 
 func apply_preset(pathway: String) -> void:
 	"""Apply pathway presets to left input fields and dynamically manage visibility."""
@@ -284,6 +341,8 @@ func apply_preset(pathway: String) -> void:
 		burger_cashier_input.text = "15.00"
 		bank_accountant_input.text = "25.00"
 		promotion_boost_input.text = "40"
+		if daycare_cheap_input: daycare_cheap_input.text = "15.00"
+		if daycare_premium_input: daycare_premium_input.text = "30.00"
 	elif pathway == "adult":
 		starting_cash_input.text = "150.00"
 		starting_savings_input.text = "200.00"
@@ -295,6 +354,8 @@ func apply_preset(pathway: String) -> void:
 		burger_cashier_input.text = "15.00"
 		bank_accountant_input.text = "25.00"
 		promotion_boost_input.text = "40"
+		if daycare_cheap_input: daycare_cheap_input.text = "15.00"
+		if daycare_premium_input: daycare_premium_input.text = "30.00"
 
 func _update_field_visibilities(pathway: String) -> void:
 	"""Selectively toggles grid elements so pathway-ineligible variables remain clean and hidden."""
@@ -320,6 +381,10 @@ func _update_field_visibilities(pathway: String) -> void:
 	# Career Settings row toggle
 	if career_section_header: career_section_header.visible = show_career
 	if career_grid: career_grid.visible = show_career
+
+	# Daycare Settings row toggle
+	if daycare_section_header: daycare_section_header.visible = show_career
+	if daycare_grid: daycare_grid.visible = show_career
 
 func setup_sidebar(parent_hbox: HBoxContainer) -> void:
 	"""Build a highly scaled-up sidebar panel on the right side of the main HBox."""
@@ -538,7 +603,18 @@ func _on_continue_pressed() -> void:
 	GameState.burger_cashier_pay = burger_pay
 	GameState.bank_accountant_pay = bank_pay
 	GameState.promotion_boost_percent = promo_boost
-	
+
+	# Daycare prices — only for teenager/adult, premium must exceed cheap by at least $5
+	if _selected_pathway in ["teenager", "adult"]:
+		var cheap_price := GameState.daycare_cheap_price
+		var premium_price := GameState.daycare_premium_price
+		if daycare_cheap_input and not daycare_cheap_input.text.is_empty():
+			cheap_price = clampf(float(daycare_cheap_input.text), 5.0, 50.0)
+		if daycare_premium_input and not daycare_premium_input.text.is_empty():
+			premium_price = clampf(float(daycare_premium_input.text), cheap_price + 5.0, 80.0)
+		GameState.daycare_cheap_price = cheap_price
+		GameState.daycare_premium_price = premium_price
+
 	# Reset state balances
 	GameState.money = starting_cash
 	GameState.savings_balance = starting_savings
