@@ -64,11 +64,11 @@ func _build_ui() -> void:
 
 	col.add_child(HSeparator.new())
 
-	_cheap_btn = _make_tier_button("Cheap Daycare", "Basic care. Health at risk.")
+	_cheap_btn = _make_tier_button()
 	_cheap_btn.pressed.connect(func(): _pick(GameState.DaycareTier.CHEAP, GameState.daycare_cheap_price))
 	col.add_child(_cheap_btn)
 
-	_premium_btn = _make_tier_button("Premium Daycare", "Safe + health protected.")
+	_premium_btn = _make_tier_button()
 	_premium_btn.pressed.connect(func(): _pick(GameState.DaycareTier.PREMIUM, GameState.daycare_premium_price))
 	col.add_child(_premium_btn)
 
@@ -84,7 +84,7 @@ func _build_ui() -> void:
 	col.add_child(cancel_btn)
 
 
-func _make_tier_button(tier_name: String, desc: String) -> Button:
+func _make_tier_button() -> Button:
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(0, 72)
 	b.add_theme_font_size_override("font_size", 22)
