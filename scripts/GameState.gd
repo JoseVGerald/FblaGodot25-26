@@ -374,7 +374,13 @@ func _advance_day_after_supply_decrement() -> void:
 	if daycare_tier_today != DaycareTier.NONE:
 		if daycare_tier_today == DaycareTier.CHEAP:
 			dog_health = clampf(dog_health + randf_range(-8.0, 3.0), 0.0, 100.0)
-		# PREMIUM: health untouched (dog is safe at premium daycare)
+		# Both tiers: top off hunger/thirst/energy via the live dog node
+		var dogs := get_tree().get_nodes_in_group("dog")
+		if dogs.size() > 0:
+			var d = dogs[0]
+			if d.get("hunger") != null: d.hunger = minf(100.0, d.hunger + 50.0)
+			if d.get("thirst") != null: d.thirst = minf(100.0, d.thirst + 50.0)
+			if d.get("energy") != null: d.energy = minf(100.0, d.energy + 50.0)
 
 	# Reset catch minigame availability
 	catch_played_today = false

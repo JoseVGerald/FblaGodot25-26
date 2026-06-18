@@ -147,7 +147,7 @@ func update_ui():
 	_apply_time_label_text()
 	_update_hud_status_label()
 	if daycare_btn:
-		daycare_btn.visible = (not GameState.daycare_used_today) and (not GameState.worked_today)
+		daycare_btn.visible = (GameState.active_job != "none") and (not GameState.daycare_used_today) and (not GameState.worked_today)
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  VISUAL REDESIGN (applied at _ready)
