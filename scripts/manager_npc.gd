@@ -93,8 +93,10 @@ func _interact() -> void:
 			if hint_instance:
 				hint_instance.hide_hint()
 			launcher.open_for_work()
+			GameState.worked_today = true
 		else:
 			_show_dialogue([GameState.complete_work_shift()])
+			GameState.worked_today = true
 	elif location_key == "bank":
 		# The Loan Decision Desk mini-game IS the shift; it credits commission
 		# on completion and can only be played once per in-game day.
@@ -103,11 +105,14 @@ func _interact() -> void:
 			if hint_instance:
 				hint_instance.hide_hint()
 			loan_launcher.open_for_work()
+			GameState.worked_today = true
 		else:
 			_show_dialogue([GameState.complete_work_shift()])
+			GameState.worked_today = true
 	else:
 		# Paper Boy: no mini-game yet — run the shift and confirm.
 		_show_dialogue([GameState.complete_work_shift()])
+		GameState.worked_today = true
 
 
 ## Show one or more lines in the vet-style bottom balloon.

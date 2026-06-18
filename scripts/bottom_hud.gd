@@ -34,6 +34,9 @@ var supplies_menu_scene     = preload("res://scenes/ui/supplies_menu.tscn")
 var taxi_menu_scene         = preload("res://scenes/ui/taxi_menu.tscn")
 var shop_menu_scene         = preload("res://scenes/ui/ShopMenu.tscn")
 var notification_panel_scene = preload("res://scripts/notification_panel.gd")
+var daycare_menu_scene = preload("res://scripts/daycare_menu.gd")
+var daycare_menu_instance = null
+var daycare_btn: Button = null
 
 var current_pause_menu     = null
 var supplies_menu_instance = null
@@ -79,6 +82,10 @@ func _ready():
 	finance_btn.pressed.connect(_on_finance_btn_pressed)
 	pause_btn.pressed.connect(_on_pause_btn_pressed)
 	home_btn.pressed.connect(_on_home_btn_pressed)
+
+	# Create daycare menu instance (teens/adults only — button gated separately)
+	daycare_menu_instance = daycare_menu_scene.new()
+	add_child(daycare_menu_instance)
 
 	# Create supplies menu instance
 	supplies_menu_instance = supplies_menu_scene.instantiate()
@@ -139,6 +146,8 @@ func update_ui():
 	money_label.text = "$%.2f" % GameState.money
 	_apply_time_label_text()
 	_update_hud_status_label()
+	if daycare_btn:
+		daycare_btn.visible = (not GameState.daycare_used_today) and (not GameState.worked_today)
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  VISUAL REDESIGN (applied at _ready)
@@ -164,6 +173,26 @@ func _apply_redesign_styling() -> void:
 	money_label.add_theme_font_size_override("font_size", 58)
 	var pf := UITheme.get_pixel_font()
 	if pf: money_label.add_theme_font_override("font", pf)
+
+	# Daycare button — teen/adult only, sits 20px right of the money label
+	if GameState.selected_pathway in ["teenager", "adult"]:
+		var left_sec = get_node_or_null("Background/Margin/MainHBox/LeftSection")
+		if left_sec:
+			# Convert LeftSection to HBoxContainer layout by adding a spacer + button
+			var spacer := Control.new()
+			spacer.custom_minimum_size = Vector2(20, 0)
+			spacer.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			left_sec.add_child(spacer)
+
+			daycare_btn = Button.new()
+			daycare_btn.name = "DaycareBtn"
+			daycare_btn.text = "🐾 Daycare"
+			daycare_btn.custom_minimum_size = Vector2(130, 60)
+			daycare_btn.add_theme_font_size_override("font_size", 22)
+			if pf: daycare_btn.add_theme_font_override("font", pf)
+			UITheme.style_pixel_button(daycare_btn)
+			left_sec.add_child(daycare_btn)
+			daycare_btn.pressed.connect(_on_daycare_btn_pressed)
 
 	# Status Indicator (Work/Rent details)
 	var left_sec = get_node_or_null("Background/Margin/MainHBox/LeftSection")
@@ -782,5 +811,9 @@ func _on_home_btn_pressed():
 		else:
 			_close_all_bottom_menus()
 			taxi_menu_instance.show_menu()
+
+func _on_daycare_btn_pressed() -> void:
+	if daycare_menu_instance:
+		daycare_menu_instance.open()
 
 # Updated on 2026-04-19
