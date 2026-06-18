@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" path="res://stuff/burgers/Layer_1_6.tscn" id="6_id"]
 [ext_resource type="PackedScene" path="res://stuff/burgers/Layer_0_7.tscn" id="7_id"]
 [ext_resource type="PackedScene" path="res://stuff/burgers/Layer_3_8.tscn" id="8_id"]
-[ext_resource type="PackedScene" path="res://stuff/burgers/bank_collisions.tscn" id="10_125fo"]
+[ext_resource type="PackedScene" uid="uid://c47u3ohw6ju0c" path="res://stuff/burgers/bank_collisions.tscn" id="10_125fo"]
 
 [node name="map" type="Node2D" unique_id=1833814149]
 
@@ -32,3 +32,4 @@
 [node name="Layer_8_0" parent="." unique_id=1881698089 instance=ExtResource("0_id")]
 
 [node name="MapCollisions" parent="." unique_id=36189498 instance=ExtResource("10_125fo")]
+metadata/_edit_lock_ = true
