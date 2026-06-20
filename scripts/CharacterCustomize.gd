@@ -424,8 +424,8 @@ func _build_right_sidebar() -> VBoxContainer:
 	sidebar.add_theme_constant_override("separation", 20)
 
 	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
-	randomize_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	randomize_btn.custom_minimum_size = Vector2(0, 80)
+	randomize_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	randomize_btn.custom_minimum_size = Vector2(260, 90)
 	randomize_btn.add_theme_font_size_override("font_size", 32)
 	randomize_btn.pressed.connect(_on_randomize_pressed)
 	sidebar.add_child(randomize_btn)
