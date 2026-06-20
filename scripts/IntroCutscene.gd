@@ -28,7 +28,7 @@ const SECTION_LABELS = [
 	"Pet Emotions & Growth",
 	"Customization & Programming Learning",
 ]
-const SECTION_ICONS = ["📊", "💰", "❤️", "⌨️"]
+const SECTION_ICONS = ["", "", "", ""]
 var open_section: int = -1
 
 func _ready():

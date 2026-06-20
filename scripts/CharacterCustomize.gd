@@ -124,7 +124,7 @@ func _build_ui() -> void:
 		
 		# Add a safety margin of 20px
 		var avail_h := viewport_h - (other_h + 20.0)
-		sprite_scale = clamp(avail_h / 96.0, 5.5, 12.5)
+		sprite_scale = clamp(avail_h / 96.0, 5.5, (viewport_h * 0.35) / 96.0)
 
 
 	# ── Root vertical: title, middle split, bottom bar ──
@@ -184,7 +184,7 @@ func _build_ui() -> void:
 	var right := _build_right_panel()
 	
 	var right_wrapper := HBoxContainer.new()
-	right_wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_wrapper.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	right_wrapper.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right_wrapper.add_theme_constant_override("separation", 0)
 
@@ -205,12 +205,9 @@ func _build_ui() -> void:
 	split.add_child(right_wrapper)
 
 
-	# Right spacer mirrors the left preview column width so the tab/grid
-	# block in the middle sits in the true horizontal center of the screen.
-	var right_spacer := Control.new()
-	right_spacer.custom_minimum_size = Vector2(540, 0)
-	right_spacer.size_flags_horizontal = Control.SIZE_SHRINK_END
-	split.add_child(right_spacer)
+	# Right sidebar: RANDOMIZE + visibility checkboxes (replaces the old balancing spacer)
+	var right_sidebar := _build_right_sidebar()
+	split.add_child(right_sidebar)
 
 	# ── Bottom bar (unchanged) ──
 	root.add_child(_create_bottom_bar())
@@ -243,6 +240,7 @@ func _build_left_panel() -> MarginContainer:
 	main_preview_root = Control.new()
 	main_preview_root.custom_minimum_size = Vector2(preview_w, preview_h)
 	main_preview_root.clip_contents = true
+	main_preview_root.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	preview_unit.add_child(main_preview_root)
 
 	var layer_order := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
@@ -268,8 +266,8 @@ func _build_left_panel() -> MarginContainer:
 
 	# ── Bottom strip container (VBoxContainer wrapped in MarginContainer for 8px padding) ──
 	var strip_container := MarginContainer.new()
-	strip_container.add_theme_constant_override("margin_top", 8)
-	strip_container.add_theme_constant_override("margin_bottom", 8)
+	strip_container.add_theme_constant_override("margin_top", 18)
+	strip_container.add_theme_constant_override("margin_bottom", 18)
 	preview_unit.add_child(strip_container)
 
 	var strip_box := VBoxContainer.new()
@@ -293,14 +291,14 @@ func _build_left_panel() -> MarginContainer:
 	strip_box.add_child(carousel)
 
 	var prev_dir := _create_styled_button("<", Color(0.42, 0.48, 0.54))
-	prev_dir.custom_minimum_size = Vector2(48, 48)
+	prev_dir.custom_minimum_size = Vector2(52, 52)
 	prev_dir.add_theme_font_size_override("font_size", 28)
 	prev_dir.pressed.connect(_on_direction_step.bind(-1))
 	carousel.add_child(prev_dir)
 
 	direction_label = Label.new()
 	direction_label.text = DIRECTION_LABELS[active_direction]
-	direction_label.add_theme_font_size_override("font_size", 22)
+	direction_label.add_theme_font_size_override("font_size", 24)
 	direction_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	direction_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	direction_label.add_theme_constant_override("outline_size", 8)
@@ -311,7 +309,7 @@ func _build_left_panel() -> MarginContainer:
 	carousel.add_child(direction_label)
 
 	var next_dir := _create_styled_button(">", Color(0.42, 0.48, 0.54))
-	next_dir.custom_minimum_size = Vector2(48, 48)
+	next_dir.custom_minimum_size = Vector2(52, 52)
 	next_dir.add_theme_font_size_override("font_size", 28)
 	next_dir.pressed.connect(_on_direction_step.bind(1))
 	carousel.add_child(next_dir)
@@ -328,7 +326,7 @@ func _build_left_panel() -> MarginContainer:
 # ── 4 small non-interactive direction thumbnails under the big preview ──
 func _build_mini_direction_preview(direction: String) -> Control:
 	var mini := Control.new()
-	var mini_scale := 1.5
+	var mini_scale := 2.25
 	if sprite_scale < 8.0:
 		mini_scale = 1.2
 	var mini_w := int(48 * mini_scale)
@@ -363,11 +361,24 @@ func _build_mini_direction_preview(direction: String) -> Control:
 
 
 # ── Right panel: tab bar + scrollable thumbnail grid ──
-func _build_right_panel() -> VBoxContainer:
+func _build_right_panel() -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var panel_sb := StyleBoxFlat.new()
+	panel_sb.bg_color = Color(0.96, 0.88, 0.72, 1)
+	panel_sb.set_corner_radius_all(0)
+	panel_sb.content_margin_left = 8
+	panel_sb.content_margin_right = 8
+	panel_sb.content_margin_top = 8
+	panel_sb.content_margin_bottom = 8
+	panel.add_theme_stylebox_override("panel", panel_sb)
+
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 12)
+	panel.add_child(col)
 
 	# ── Tab strip (centered above the grid) ──
 	var tabs := HBoxContainer.new()
@@ -380,7 +391,7 @@ func _build_right_panel() -> VBoxContainer:
 		tabs.add_child(tab)
 		tab_buttons[cat] = tab
 
-	# ── Scrollable grid (grid itself is shrink-centered inside the scroll) ──
+	# ── Scrollable grid ──
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -391,10 +402,43 @@ func _build_right_panel() -> VBoxContainer:
 	grid_container.columns = GRID_COLUMNS
 	grid_container.add_theme_constant_override("h_separation", TILE_SPACING)
 	grid_container.add_theme_constant_override("v_separation", TILE_SPACING)
-	grid_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(grid_container)
 
-	return col
+	return panel
+
+
+# ── Right sidebar: RANDOMIZE button + 5 visibility checkboxes ──
+func _build_right_sidebar() -> VBoxContainer:
+	var sidebar := VBoxContainer.new()
+	sidebar.size_flags_horizontal = Control.SIZE_SHRINK_END
+	sidebar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	sidebar.add_theme_constant_override("separation", 12)
+
+	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
+	_scale_bottom_button(randomize_btn)
+	randomize_btn.pressed.connect(_on_randomize_pressed)
+	sidebar.add_child(randomize_btn)
+
+	var viewport_h := get_viewport_rect().size.y
+	var is_small := viewport_h < 1200
+	for cat in CATEGORIES:
+		var check := CheckBox.new()
+		check.text = TAB_LABELS[cat]
+		check.button_pressed = true
+		check.add_theme_font_size_override("font_size", 18 if is_small else 22)
+		check.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+		check.add_theme_color_override("font_hover_color", Color.WHITE)
+		check.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
+		check.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+		check.add_theme_constant_override("outline_size", 6)
+		if pixel_font:
+			check.add_theme_font_override("font", pixel_font)
+		check.toggled.connect(_on_visibility_toggled.bind(cat))
+		sidebar.add_child(check)
+		vis_checks[cat] = check
+
+	return sidebar
 
 
 func _create_tab_button(category: String) -> Button:
@@ -500,11 +544,6 @@ func _create_bottom_bar() -> PanelContainer:
 	back_btn.pressed.connect(_on_back_pressed)
 	left_cluster.add_child(back_btn)
 
-	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
-	_scale_bottom_button(randomize_btn)
-	randomize_btn.pressed.connect(_on_randomize_pressed)
-	left_cluster.add_child(randomize_btn)
-
 	# ── CENTER CLUSTER: NAME label + input ──
 	var center_wrap := CenterContainer.new()
 	center_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -562,22 +601,6 @@ func _create_bottom_bar() -> PanelContainer:
 	right_cluster.size_flags_horizontal = Control.SIZE_SHRINK_END
 	row.add_child(right_cluster)
 
-	for cat in CATEGORIES:
-		var check := CheckBox.new()
-		check.text = TAB_LABELS[cat]
-		check.button_pressed = true
-		check.add_theme_font_size_override("font_size", 18 if is_small else 27)
-		check.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
-		check.add_theme_color_override("font_hover_color", Color.WHITE)
-		check.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
-		check.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
-		check.add_theme_constant_override("outline_size", 6)
-		if pixel_font:
-			check.add_theme_font_override("font", pixel_font)
-		check.toggled.connect(_on_visibility_toggled.bind(cat))
-		right_cluster.add_child(check)
-		vis_checks[cat] = check
-
 	continue_btn = _create_styled_button("CONTINUE", Color(0.30, 0.68, 0.38))
 	_scale_bottom_button(continue_btn)
 	continue_btn.pressed.connect(_on_continue_pressed)
@@ -594,8 +617,8 @@ func _scale_bottom_button(btn: Button) -> void:
 		btn.custom_minimum_size = Vector2(200, 55)
 		btn.add_theme_font_size_override("font_size", 28)
 	else:
-		btn.custom_minimum_size = Vector2(300, 82)  # was (200, 55)
-		btn.add_theme_font_size_override("font_size", 42)  # was 28
+		btn.custom_minimum_size = Vector2(220, 60)
+		btn.add_theme_font_size_override("font_size", 32)
 
 
 func _create_styled_button(label_text: String, bg_color: Color) -> Button:

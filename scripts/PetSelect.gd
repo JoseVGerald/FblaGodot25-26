@@ -33,6 +33,11 @@ func _ready():
 	# Title and breed name sit directly on the checker — cream + outline.
 	UITheme.style_checker_label($VBoxContainer/Title, 14)
 	UITheme.style_checker_label(breed_label, 10)
+	# Lock the label to a constant width so < > arrows never shift position.
+	# SIZE_EXPAND_FILL fills all remaining space between the buttons (always
+	# the same value since the parent HBoxContainer has a fixed width).
+	breed_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	breed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 func _input(event):
 	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):
