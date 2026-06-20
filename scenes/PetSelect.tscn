@@ -53,7 +53,7 @@ scale = Vector2(4, 4)
 
 [node name="CycleContainer" type="HBoxContainer" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 50
+theme_override_constants/separation = 15
 alignment = 1
 
 [node name="PrevButton" type="Button" parent="VBoxContainer/CycleContainer"]
