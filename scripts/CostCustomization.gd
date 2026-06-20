@@ -84,7 +84,7 @@ func _style_all_inputs() -> void:
 func _style_inputs_recursive(node: Node, sb: StyleBoxFlat) -> void:
 	for child in node.get_children():
 		if child is SpinBox:
-			var le := child.get_line_edit()
+			var le: LineEdit = child.get_line_edit()
 			if le:
 				le.add_theme_stylebox_override("normal", sb)
 				le.add_theme_color_override("font_color", UITheme.CLR_INK)

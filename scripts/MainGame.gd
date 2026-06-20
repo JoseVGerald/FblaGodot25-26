@@ -19,12 +19,17 @@ var _job_path_line: Line2D = null
 @onready var original_path = $VetPath
 
 func _ready():
-	if GameState.is_day_one and not GameState.is_tutorial_complete:
-		if GameState.selected_pathway in ["kid", "teenager"]:
+	if GameState.selected_pathway in ["kid", "teenager"]:
+		if GameState.is_day_one and not GameState.is_tutorial_complete:
 			player_spawn_pos = Vector2(435, -640)
 			dog_spawn_pos = Vector2(395, -640)
 			GameState.Inside_house = true
 			GameState.is_in_house = true
+		else:
+			var pm := get_node_or_null("KidTeenPlayerSpawn")
+			var dm := get_node_or_null("KidTeenDogSpawn")
+			if pm: player_spawn_pos = pm.position
+			if dm: dog_spawn_pos = dm.position
 	spawn_player()
 	spawn_dog()
 	setup_hud()
@@ -342,7 +347,8 @@ func spawn_mother_npc():
 	if GameState.uses_component_system:
 		mother = CharacterBody2D.new()
 		mother.name = "MotherNPC"
-		mother.global_position = Vector2(565, -640)
+		var mm := get_node_or_null("KidTeenMotherSpawn")
+		mother.global_position = mm.position if mm else Vector2(565, -640)
 		mother.scale = Vector2(0.75, 0.75)
 		mother.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 		mother.input_pickable = true
@@ -386,7 +392,8 @@ func spawn_mother_npc():
 		# Fallback to legacy single sprite
 		mother = load("res://scenes/girl1.tscn").instantiate()
 		mother.name = "MotherNPC"
-		mother.global_position = Vector2(565, -640)
+		var mm := get_node_or_null("KidTeenMotherSpawn")
+		mother.global_position = mm.position if mm else Vector2(565, -640)
 		mother.scale = Vector2(0.75, 0.75)
 		
 		var anim_sprite = mother.get_node_or_null("Sprite2D") as AnimatedSprite2D
