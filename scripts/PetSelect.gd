@@ -38,6 +38,7 @@ func _ready():
 	# the same value since the parent HBoxContainer has a fixed width).
 	breed_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	breed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	breed_label.clip_text = true  # foolproof: minimum size ignores text width → arrows never shift
 
 func _input(event):
 	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):

@@ -124,7 +124,7 @@ func _build_ui() -> void:
 		
 		# Add a safety margin of 20px
 		var avail_h := viewport_h - (other_h + 20.0)
-		sprite_scale = clamp(avail_h / 96.0, 5.5, (viewport_h * 0.35) / 96.0)
+		sprite_scale = clamp(avail_h / 96.0, 5.5, 7.0)
 
 
 	# ── Root vertical: title, middle split, bottom bar ──
@@ -172,7 +172,7 @@ func _build_ui() -> void:
 	var split := HBoxContainer.new()
 	split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.add_theme_constant_override("separation", 40)
+	split.add_theme_constant_override("separation", 0)
 	split.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(split)
 
@@ -205,9 +205,16 @@ func _build_ui() -> void:
 	split.add_child(right_wrapper)
 
 
-	# Right sidebar: RANDOMIZE + visibility checkboxes (replaces the old balancing spacer)
-	var right_sidebar := _build_right_sidebar()
-	split.add_child(right_sidebar)
+	# Right sidebar: fills the right third of the screen, content centered inside
+	var right_sidebar_margin := MarginContainer.new()
+	right_sidebar_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_sidebar_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right_sidebar_margin.add_theme_constant_override("margin_left", 24)
+	right_sidebar_margin.add_theme_constant_override("margin_right", 24)
+	right_sidebar_margin.add_theme_constant_override("margin_top", 40)
+	right_sidebar_margin.add_theme_constant_override("margin_bottom", 40)
+	right_sidebar_margin.add_child(_build_right_sidebar())
+	split.add_child(right_sidebar_margin)
 
 	# ── Bottom bar (unchanged) ──
 	root.add_child(_create_bottom_bar())
@@ -216,10 +223,10 @@ func _build_ui() -> void:
 # ── Left panel: main preview + direction carousel ──
 func _build_left_panel() -> MarginContainer:
 	var container := MarginContainer.new()
-	container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	container.add_theme_constant_override("margin_left", 32)
-	container.add_theme_constant_override("margin_right", 24)
+	container.add_theme_constant_override("margin_right", 32)
 
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -231,7 +238,7 @@ func _build_left_panel() -> MarginContainer:
 	var preview_unit := VBoxContainer.new()
 	preview_unit.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	preview_unit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	preview_unit.add_theme_constant_override("separation", 12)
+	preview_unit.add_theme_constant_override("separation", 28)
 	col.add_child(preview_unit)
 
 	# ── Big composited preview (one direction) ──
@@ -266,7 +273,7 @@ func _build_left_panel() -> MarginContainer:
 
 	# ── Bottom strip container (VBoxContainer wrapped in MarginContainer for 8px padding) ──
 	var strip_container := MarginContainer.new()
-	strip_container.add_theme_constant_override("margin_top", 18)
+	strip_container.add_theme_constant_override("margin_top", 36)
 	strip_container.add_theme_constant_override("margin_bottom", 18)
 	preview_unit.add_child(strip_container)
 
@@ -291,26 +298,26 @@ func _build_left_panel() -> MarginContainer:
 	strip_box.add_child(carousel)
 
 	var prev_dir := _create_styled_button("<", Color(0.42, 0.48, 0.54))
-	prev_dir.custom_minimum_size = Vector2(52, 52)
-	prev_dir.add_theme_font_size_override("font_size", 28)
+	prev_dir.custom_minimum_size = Vector2(70, 70)
+	prev_dir.add_theme_font_size_override("font_size", 36)
 	prev_dir.pressed.connect(_on_direction_step.bind(-1))
 	carousel.add_child(prev_dir)
 
 	direction_label = Label.new()
 	direction_label.text = DIRECTION_LABELS[active_direction]
-	direction_label.add_theme_font_size_override("font_size", 24)
+	direction_label.add_theme_font_size_override("font_size", 32)
 	direction_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	direction_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	direction_label.add_theme_constant_override("outline_size", 8)
-	direction_label.custom_minimum_size.x = 140
+	direction_label.custom_minimum_size.x = 180
 	direction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pixel_font:
 		direction_label.add_theme_font_override("font", pixel_font)
 	carousel.add_child(direction_label)
 
 	var next_dir := _create_styled_button(">", Color(0.42, 0.48, 0.54))
-	next_dir.custom_minimum_size = Vector2(52, 52)
-	next_dir.add_theme_font_size_override("font_size", 28)
+	next_dir.custom_minimum_size = Vector2(70, 70)
+	next_dir.add_theme_font_size_override("font_size", 36)
 	next_dir.pressed.connect(_on_direction_step.bind(1))
 	carousel.add_child(next_dir)
 
@@ -328,7 +335,7 @@ func _build_mini_direction_preview(direction: String) -> Control:
 	var mini := Control.new()
 	var mini_scale := 2.25
 	if sprite_scale < 8.0:
-		mini_scale = 1.2
+		mini_scale = 2.0
 	var mini_w := int(48 * mini_scale)
 	var mini_h := int(96 * mini_scale)
 	mini.custom_minimum_size = Vector2(mini_w, mini_h)
@@ -411,12 +418,15 @@ func _build_right_panel() -> PanelContainer:
 # ── Right sidebar: RANDOMIZE button + 5 visibility checkboxes ──
 func _build_right_sidebar() -> VBoxContainer:
 	var sidebar := VBoxContainer.new()
-	sidebar.size_flags_horizontal = Control.SIZE_SHRINK_END
-	sidebar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	sidebar.add_theme_constant_override("separation", 12)
+	sidebar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sidebar.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sidebar.alignment = BoxContainer.ALIGNMENT_CENTER
+	sidebar.add_theme_constant_override("separation", 20)
 
 	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
-	_scale_bottom_button(randomize_btn)
+	randomize_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	randomize_btn.custom_minimum_size = Vector2(260, 90)
+	randomize_btn.add_theme_font_size_override("font_size", 32)
 	randomize_btn.pressed.connect(_on_randomize_pressed)
 	sidebar.add_child(randomize_btn)
 
@@ -426,7 +436,7 @@ func _build_right_sidebar() -> VBoxContainer:
 		var check := CheckBox.new()
 		check.text = TAB_LABELS[cat]
 		check.button_pressed = true
-		check.add_theme_font_size_override("font_size", 18 if is_small else 22)
+		check.add_theme_font_size_override("font_size", 24 if is_small else 30)
 		check.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 		check.add_theme_color_override("font_hover_color", Color.WHITE)
 		check.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
