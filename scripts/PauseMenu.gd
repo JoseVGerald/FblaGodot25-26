@@ -25,12 +25,22 @@ func _apply_redesign_styling() -> void:
 		close_btn.custom_minimum_size = Vector2(64, 64)
 		UITheme.style_close_button(close_btn)
 
-	# Style all row buttons as secondary pixel buttons
+	# Style row buttons with semantic color-coding to avoid flat gray colors
 	for node_name in ["SettingsBtn", "HelpBtn", "AchievementsBtn", "ResumeBtn", "QuitBtn"]:
 		var b := get_node_or_null("Panel/VBox/" + node_name)
 		if b is Button:
-			UITheme.style_pixel_button(b, true)
 			b.add_theme_font_size_override("font_size", 36)
+			if node_name == "ResumeBtn":
+				UITheme.style_pixel_button_colored(b, UITheme.CLR_GREEN)
+			elif node_name == "QuitBtn":
+				UITheme.style_pixel_button_colored(b, UITheme.CLR_RED)
+			elif node_name == "AchievementsBtn":
+				UITheme.style_pixel_button_colored(b, UITheme.CLR_GOLD)
+				b.add_theme_color_override("font_color", UITheme.CLR_INK)
+				b.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
+				b.add_theme_color_override("font_pressed_color", UITheme.CLR_INK)
+			else:
+				UITheme.style_pixel_button(b, false) # Primary Tan button
 
 ## Find labels that look like section headers and colour them maroon-deep.
 func _style_headers() -> void:

@@ -157,20 +157,20 @@ func update_ui():
 ## Restyle HUD nodes to match the April 2026 redesign spec.
 ## Runs once at _ready — all existing node paths are preserved.
 func _apply_redesign_styling() -> void:
-	# Background bar
+	# Background bar — dark charcoal with dark maroon top border
 	var bg := get_node_or_null("Background")
 	if bg is Panel:
 		var bg_sb := StyleBoxFlat.new()
-		bg_sb.bg_color = UITheme.CLR_CREAM
-		bg_sb.border_color = UITheme.CLR_INK
+		bg_sb.bg_color = UITheme.CLR_INK
+		bg_sb.border_color = UITheme.CLR_MAROON_D
 		bg_sb.border_width_top = 4
 		bg_sb.set_corner_radius_all(0)
 		bg.add_theme_stylebox_override("panel", bg_sb)
 		bg.self_modulate.a = 1.0
 
-	# Money label — pixel font, maroon, big.
+	# Money label — pixel font, gold, big.
 	money_label.text = "$%.2f" % GameState.money
-	money_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	money_label.add_theme_color_override("font_color", UITheme.CLR_GOLD)
 	money_label.add_theme_font_size_override("font_size", 58)
 	var pf := UITheme.get_pixel_font()
 	if pf: money_label.add_theme_font_override("font", pf)
@@ -188,9 +188,9 @@ func _apply_redesign_styling() -> void:
 			daycare_btn = Button.new()
 			daycare_btn.name = "DaycareBtn"
 			daycare_btn.text = "🐾 Daycare"
-			daycare_btn.custom_minimum_size = Vector2(130, 60)
+			daycare_btn.custom_minimum_size = Vector2(140, 80) # Sized consistent with other nav buttons
+			UITheme.style_pixel_button_colored(daycare_btn, UITheme.CLR_PINK)
 			daycare_btn.add_theme_font_size_override("font_size", 22)
-			UITheme.style_pixel_button(daycare_btn)
 			left_sec.add_child(daycare_btn)
 			daycare_btn.pressed.connect(_on_daycare_btn_pressed)
 
@@ -205,27 +205,54 @@ func _apply_redesign_styling() -> void:
 		left_sec.add_child(status_lbl)
 		status_lbl.visible = false  # job/shift info removed from HUD (visible in Work menu)
 
-	# Nav buttons — text-only labels per spec (no emoji) + tinted style.
+	# Color-code and size nav buttons
 	supplies_btn.text = "Supplies"
 	needs_btn.text    = "Needs"
 	home_btn.text     = "Taxi"
-	for b in [supplies_btn, needs_btn, home_btn, finance_btn, pause_btn]:
+	
+	supplies_btn.custom_minimum_size = Vector2(160, 80)
+	needs_btn.custom_minimum_size = Vector2(160, 80)
+	home_btn.custom_minimum_size = Vector2(160, 80)
+	
+	UITheme.style_pixel_button_colored(supplies_btn, UITheme.CLR_ORANGE_PX)
+	UITheme.style_pixel_button_colored(needs_btn, Color("#4A90D9"))
+	UITheme.style_pixel_button_colored(home_btn, UITheme.CLR_RED)
+	
+	for b in [supplies_btn, needs_btn, home_btn]:
 		b.add_theme_font_size_override("font_size", 26)
-		if b in [supplies_btn, needs_btn, home_btn]:
-			b.custom_minimum_size = Vector2(160, 80)
-		UITheme.style_pixel_button(b)
 
-	# Create Work button for Teen/Adult pathways
+	# Create Work button for Teen/Adult pathways (green highlight)
 	var right_sec = get_node_or_null("Background/Margin/MainHBox/RightSection")
 	if right_sec:
 		work_btn = Button.new()
 		work_btn.name = "WorkBtn"
 		work_btn.text = "Work"
-		work_btn.add_theme_font_size_override("font_size", 26)
 		work_btn.custom_minimum_size = Vector2(140, 80)
-		UITheme.style_pixel_button(work_btn)
+		UITheme.style_pixel_button_colored(work_btn, UITheme.CLR_GREEN)
+		work_btn.add_theme_font_size_override("font_size", 26)
 		right_sec.add_child(work_btn)
 		work_btn.pressed.connect(_on_work_btn_pressed)
+
+	# Style top-right menu icon buttons
+	var top_hud = get_node_or_null("TopRightHUD")
+	if top_hud is HBoxContainer:
+		top_hud.offset_left = -320.0
+		top_hud.offset_bottom = 120.0
+		top_hud.add_theme_constant_override("separation", 16)
+
+	finance_btn.text = "📋"
+	finance_btn.custom_minimum_size = Vector2(72, 72)
+	UITheme.style_pixel_button_colored(finance_btn, UITheme.CLR_CREAM_LT)
+	finance_btn.add_theme_color_override("font_color", UITheme.CLR_INK)
+	finance_btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
+	finance_btn.add_theme_font_size_override("font_size", 36)
+
+	pause_btn.text = "⚙️"
+	pause_btn.custom_minimum_size = Vector2(72, 72)
+	UITheme.style_pixel_button_colored(pause_btn, UITheme.CLR_CREAM_LT)
+	pause_btn.add_theme_color_override("font_color", UITheme.CLR_INK)
+	pause_btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
+	pause_btn.add_theme_font_size_override("font_size", 36)
 
 func _update_hud_status_label():
 	if not is_instance_valid(status_lbl):
@@ -302,16 +329,6 @@ func _on_work_btn_pressed():
 	menu.name = "WorkActionMenu"
 	get_tree().root.add_child(menu)
 
-	# Top-right HUD — Finances and Pause both get a dark-blue tinted box.
-	finance_btn.text = "Finances"
-	pause_btn.text   = "Pause"
-	for b in [finance_btn, pause_btn]:
-		b.add_theme_font_size_override("font_size", 22)
-		UITheme.style_pixel_button(b)
-
-	# Time label — centered with a faint chip look via BBCode already handled
-	# by _apply_time_label_text. Nothing more needed here.
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TIME LABEL — HOVER & CLICK (Week Simulation trigger)
@@ -355,10 +372,11 @@ func _apply_time_label_text() -> void:
 		if _time_label_hovered:
 			time_label.text = "[center][color=#%s][u]%s[/u][/color][/center]" % [UITheme.CLR_ORANGE_PX.to_html(false), s]
 		else:
-			time_label.text = "[center][color=#%s]%s[/color][/center]" % [UITheme.CLR_INK.to_html(false), s]
+			time_label.text = "[center][color=#%s]%s[/color][/center]" % [UITheme.CLR_CREAM_LT.to_html(false), s]
 	else:
 		time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		time_label.text = s
+		time_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 
 
 ## On hover: cyan + underline via BBCode; no size/scale changes.
@@ -768,7 +786,8 @@ func _on_open_shop_requested():
 ## Set up the notification bell button with badge overlay.
 ## Called once in _ready() after all @onready refs are available.
 func _setup_notif_button() -> void:
-	UITheme.style_pixel_button(notif_btn)
+	notif_btn.custom_minimum_size = Vector2(72, 72)
+	UITheme.style_pixel_button_colored(notif_btn, UITheme.CLR_CREAM_LT)
 	notif_btn.text = ""   # No emoji — we use a TextureRect child instead
 
 	# TextureRect icon inside the button
@@ -776,16 +795,9 @@ func _setup_notif_button() -> void:
 	_notif_icon.texture = _tex_normal
 	_notif_icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	_notif_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	
-	# Manual scaling (scaling factor of 12 as requested)
-	_notif_icon.set_anchors_preset(Control.PRESET_CENTER)
-	_notif_icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_notif_icon.grow_vertical   = Control.GROW_DIRECTION_BOTH
-	_notif_icon.custom_minimum_size = Vector2(100, 100)
-	
-	_notif_icon.pivot_offset = Vector2(50, 50)
-	_notif_icon.scale = Vector2(3.0, 3.0)
-	
+	_notif_icon.custom_minimum_size = Vector2(40, 40)
+	_notif_icon.size = Vector2(40, 40)
+	_notif_icon.position = Vector2(16, 16)
 	_notif_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	notif_btn.add_child(_notif_icon)
 
@@ -803,7 +815,7 @@ func _update_notif_badge() -> void:
 	if NotificationCenter.has_unread_warning:
 		# WARNING state: exclamation envelope icon + red pulse animation
 		_notif_icon.texture = _tex_warning
-		_notif_icon.position = Vector2(0, -2)
+		_notif_icon.position = Vector2(16, 16)
 		_notif_pulse_tween = create_tween().set_loops()
 		_notif_pulse_tween.tween_callback(
 				func(): notif_btn.modulate = UITheme.CLR_RED)
@@ -814,12 +826,12 @@ func _update_notif_badge() -> void:
 	elif NotificationCenter.has_unread:
 		# UNREAD state: red-badge envelope icon, no pulse
 		_notif_icon.texture = _tex_badge
-		_notif_icon.position = Vector2(0, -2)
+		_notif_icon.position = Vector2(16, 16)
 		notif_btn.modulate = Color.WHITE
 	else:
 		# CLEAR state: plain envelope icon
 		_notif_icon.texture = _tex_normal
-		_notif_icon.position = Vector2(-4, -4)
+		_notif_icon.position = Vector2(16, 16)
 		notif_btn.modulate = Color.WHITE
 
 ## Open the notification panel as a child of this CanvasLayer.
