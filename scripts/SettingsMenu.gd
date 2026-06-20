@@ -1,6 +1,5 @@
 # SettingsMenu.gd
-# Settings overlay — audio volume slider, mute, plus game/display toggles.
-# Redesigned 2026-04-22: new sectioned layout (AUDIO · GAME · DISPLAY).
+# Fully redesigned overlay with ScrollContainer, circular switch thumbs, and emoji icon blocks.
 extends CanvasLayer
 
 signal settings_closed
@@ -36,10 +35,84 @@ var _toggles : Dictionary = {}  # name → Button
 func _ready() -> void:
 	UITheme.apply_overlay_theme(self)
 
-	# Restyle the scene shell to the navy / sky-blue design identity.
+	# Restyle the scene shell to the design identity.
 	_style_panel_shell()
-	_style_existing_header_row()
-	_inject_header_close_btn()
+	
+	var main_vbox := get_node_or_null("Panel/VBox")
+	if main_vbox:
+		# Style existing close button at the bottom
+		UITheme.style_close_button(close_btn)
+		close_btn.pressed.connect(_on_close_pressed)
+
+		# Create header close button dynamically
+		_inject_header_close_btn()
+		
+		# Style existing title
+		var title := get_node_or_null("Panel/VBox/HeaderRow/Title")
+		if not title:
+			title = get_node_or_null("Panel/VBox/Title")
+		if title is Label:
+			title.text = "Settings"
+			var title_font := SystemFont.new()
+			title_font.font_weight = 900
+			title.add_theme_font_override("font", title_font)
+			title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+			title.add_theme_font_size_override("font_size", 64)
+			title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+			title.add_theme_constant_override("outline_size", 12)
+			title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.2))
+			title.add_theme_constant_override("shadow_offset_x", 3)
+			title.add_theme_constant_override("shadow_offset_y", 3)
+
+		# Create ScrollContainer
+		var scroll_container := ScrollContainer.new()
+		scroll_container.name = "ScrollContainer"
+		scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		
+		var scroll_vbox := VBoxContainer.new()
+		scroll_vbox.name = "ScrollVBox"
+		scroll_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		scroll_vbox.add_theme_constant_override("separation", 18)
+		scroll_container.add_child(scroll_vbox)
+		
+		# Restyle and wrap existing VolumeContainer
+		var vc := get_node_or_null("Panel/VBox/VolumeContainer")
+		var music_card: PanelContainer = null
+		if vc is HBoxContainer:
+			# Format VolumeContainer separation
+			vc.add_theme_constant_override("separation", 24)
+			if volume_slider:
+				volume_slider.custom_minimum_size = Vector2(240, 20)
+				volume_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			
+			music_card = _wrap_row_in_card(vc, CLR_BORDER_SKY, "🎵")
+			var lbl := vc.get_node_or_null("Label")
+			if lbl is Label:
+				lbl.text = "Music Volume"
+				lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
+				lbl.add_theme_font_size_override("font_size", 32)
+				var font_medium := SystemFont.new()
+				font_medium.font_weight = 500
+				lbl.add_theme_font_override("font", font_medium)
+				lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			volume_value_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+			volume_value_label.add_theme_font_size_override("font_size", 28)
+			var font_bold := SystemFont.new()
+			font_bold.font_weight = 700
+			volume_value_label.add_theme_font_override("font", font_bold)
+
+		# Inject the ScrollContainer into main_vbox
+		main_vbox.add_child(scroll_container)
+		
+		# Move the ScrollContainer below the header (header is at index 0, scrollcontainer at index 1)
+		main_vbox.move_child(scroll_container, 1)
+
+		if music_card:
+			scroll_vbox.add_child(music_card)
 
 	# Initial volume from GameState (preserves existing behaviour).
 	var initial_volume = GameState.get("master_volume") if "master_volume" in GameState else 70
@@ -49,10 +122,6 @@ func _ready() -> void:
 	_pre_mute_sfx   = initial_volume
 	_style_slider(volume_slider)
 	volume_slider.value_changed.connect(_on_volume_changed)
-
-	# Red close button.
-	UITheme.style_close_button(close_btn)
-	close_btn.pressed.connect(_on_close_pressed)
 
 	# Build expanded sections procedurally so the scene file stays tiny.
 	_build_expanded_layout()
@@ -67,7 +136,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  AUDIO LOGIC — unchanged signatures (used by external scripts / tests)
+#  AUDIO LOGIC — unchanged signatures
 # ══════════════════════════════════════════════════════════════════════════════
 
 func _on_volume_changed(value: float) -> void:
@@ -121,13 +190,17 @@ func _on_mute_toggled(pressed: bool) -> void:
 
 func _update_mute_label() -> void:
 	if not mute_btn: return
-	var pf := UITheme.get_pixel_font()
+	var font_bold := SystemFont.new()
+	font_bold.font_weight = 700
+	mute_btn.add_theme_font_override("font", font_bold)
+	mute_btn.add_theme_font_size_override("font_size", 24)
+	
 	if is_muted:
 		mute_btn.text = "Unmute"
 		var sb := StyleBoxFlat.new()
 		sb.bg_color     = UITheme.CLR_GREEN
 		sb.border_color = UITheme.CLR_INK
-		sb.set_border_width_all(2)
+		sb.set_border_width_all(3)
 		sb.set_corner_radius_all(0)
 		mute_btn.add_theme_stylebox_override("normal",  sb)
 		mute_btn.add_theme_stylebox_override("hover",   sb)
@@ -139,18 +212,16 @@ func _update_mute_label() -> void:
 		var sb := StyleBoxFlat.new()
 		sb.bg_color     = UITheme.CLR_CREAM_LT
 		sb.border_color = UITheme.CLR_INK
-		sb.set_border_width_all(2)
+		sb.set_border_width_all(3)
 		sb.set_corner_radius_all(0)
 		mute_btn.add_theme_stylebox_override("normal",  sb)
 		mute_btn.add_theme_stylebox_override("hover",   sb)
 		mute_btn.add_theme_stylebox_override("pressed", sb)
-		mute_btn.add_theme_color_override("font_color",       UITheme.CLR_MAROON_D)
-		mute_btn.add_theme_color_override("font_hover_color", UITheme.CLR_MAROON_D)
-	if pf: mute_btn.add_theme_font_override("font", pf)
-	mute_btn.add_theme_font_size_override("font_size", 44)
+		mute_btn.add_theme_color_override("font_color",       UITheme.CLR_INK)
+		mute_btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  STYLING
+#  STYLING & ICON BLOCKS
 # ══════════════════════════════════════════════════════════════════════════════
 
 func _style_panel_shell() -> void:
@@ -158,27 +229,7 @@ func _style_panel_shell() -> void:
 	if panel_node is PanelContainer:
 		UITheme.style_cream_panel(panel_node)
 
-func _style_existing_header_row() -> void:
-	var title := get_node_or_null("Panel/VBox/Title")
-	if title is Label:
-		title.text = "Settings"
-		title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-		title.add_theme_font_size_override("font_size", 96)
-
-	# Restyle the existing VolumeContainer as the first AUDIO card.
-	var vc := get_node_or_null("Panel/VBox/VolumeContainer")
-	if vc is HBoxContainer:
-		_wrap_row_in_card(vc, CLR_BORDER_SKY)
-		var lbl := vc.get_node_or_null("Label")
-		if lbl is Label:
-			lbl.text = "Music Volume"
-			lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
-			lbl.add_theme_font_size_override("font_size", 60)
-		volume_value_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-		volume_value_label.add_theme_font_size_override("font_size", 60)
-
 ## Apply slider track/fill style per spec.
-## Emil Kowalski principle: grabber scales slightly on hover for press feedback.
 func _style_slider(slider: HSlider) -> void:
 	var track := StyleBoxFlat.new()
 	track.bg_color = UITheme.CLR_MAROON_D
@@ -208,33 +259,81 @@ func _style_slider(slider: HSlider) -> void:
 	grabber.content_margin_bottom = 10
 	slider.add_theme_stylebox_override("grabber", grabber)
 
-	# Grabber highlight: slightly larger on hover for press feedback (Emil Kowalski).
 	var grabber_hi := grabber.duplicate() as StyleBoxFlat
 	grabber_hi.bg_color = UITheme.CLR_CREAM_LT
 	grabber_hi.content_margin_top    = 12
 	grabber_hi.content_margin_bottom = 12
 	slider.add_theme_stylebox_override("grabber_highlight", grabber_hi)
 
-## Drop a card background + accent behind a row.
-func _wrap_row_in_card(row: HBoxContainer, accent: Color) -> void:
-	var bg := ColorRect.new()
-	bg.color = CLR_BG_CARD
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.show_behind_parent = true
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(bg)
-	row.move_child(bg, 0)
+## Wrap the row in a stylized PanelContainer card with an accent bar and an emoji icon block.
+func _wrap_row_in_card(row: HBoxContainer, accent: Color, emoji: String) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	# Cream Panel container styling with a clean 3px ink border
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = UITheme.CLR_CREAM_LT
+	sb.border_color = UITheme.CLR_INK
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 16
+	sb.content_margin_top = 16
+	sb.content_margin_right = 16
+	sb.content_margin_bottom = 16
+	card.add_theme_stylebox_override("panel", sb)
+	
+	# Inner HBox to align everything
+	var inner_hbox := HBoxContainer.new()
+	inner_hbox.add_theme_constant_override("separation", 24)
+	inner_hbox.mouse_filter = Control.MOUSE_FILTER_PASS
+	card.add_child(inner_hbox)
+	
+	# Left accent stripe (distinguishable colored accent)
 	var stripe := ColorRect.new()
 	stripe.color = accent
-	stripe.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	stripe.offset_right = 4
-	stripe.show_behind_parent = true
+	stripe.custom_minimum_size = Vector2(10, 0)
 	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(stripe)
-	row.move_child(stripe, 1)
+	inner_hbox.add_child(stripe)
+	
+	# Icon block with emoji
+	var icon_block := _make_icon_block(emoji, accent)
+	inner_hbox.add_child(icon_block)
+	
+	# Move the row container (HBox) into the inner_hbox
+	if row.get_parent():
+		row.get_parent().remove_child(row)
+	inner_hbox.add_child(row)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	
+	return card
+
+func _make_icon_block(emoji: String, accent: Color) -> PanelContainer:
+	var container := PanelContainer.new()
+	container.custom_minimum_size = Vector2(72, 72)
+	container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(accent.r, accent.g, accent.b, 0.22)
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(0)
+	container.add_theme_stylebox_override("panel", sb)
+	
+	var label := Label.new()
+	label.text = emoji
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 36) # Big readable emoji
+	container.add_child(label)
+	
+	return container
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  EXPANDED LAYOUT — build AUDIO/GAME/DISPLAY sections in script
+#  EXPANDED LAYOUT — build AUDIO/GAME/DISPLAY/CONTROLS sections
 # ══════════════════════════════════════════════════════════════════════════════
 
 func _build_expanded_layout() -> void:
@@ -242,40 +341,43 @@ func _build_expanded_layout() -> void:
 	if not (vbox is VBoxContainer):
 		return
 
-	# AUDIO section continues with SFX + Mute rows.
+	# We created ScrollContainer in _ready(). Let's find it.
+	var scroll_container = vbox.get_node_or_null("ScrollContainer")
+	var scroll_vbox = scroll_container.get_node_or_null("ScrollVBox") if scroll_container else null
+	if not scroll_vbox:
+		scroll_vbox = vbox # Fallback if not found
+
+	# AUDIO section.
 	var audio_section := _make_section_label("AUDIO")
-	vbox.add_child(audio_section)
-	vbox.move_child(audio_section, 1)   # right below Title
+	scroll_vbox.add_child(audio_section)
 
 	# SFX slider row.
 	var sfx_row := _make_sfx_slider_row()
-	vbox.add_child(sfx_row)
-	vbox.move_child(sfx_row, 3)   # Title → AUDIO → VolumeContainer → SFXRow
+	scroll_vbox.add_child(sfx_row)
 
-	# Mute row — labeled button (not a switch) that toggles between Mute/Unmute.
+	# Mute row.
 	var mute_row := _make_mute_row()
 	is_muted = AudioServer.is_bus_mute(AudioServer.get_bus_index("Master"))
 	_update_mute_label()
-	vbox.add_child(mute_row)
-	vbox.move_child(mute_row, 4)   # Title → AUDIO → Music → SFX → Mute
+	scroll_vbox.add_child(mute_row)
 
-	# GAME section — all on by default.
-	vbox.add_child(_make_section_label("GAME"))
-	vbox.add_child(_make_toggle_row_for_state(
+	# GAME section.
+	scroll_vbox.add_child(_make_section_label("GAME"))
+	scroll_vbox.add_child(_make_toggle_row_for_state(
 		"Notifications", "Show warnings and event popups",
-		CLR_BORDER_SKY, "notifications_enabled", true))
-	vbox.add_child(_make_toggle_row_for_state(
+		CLR_BORDER_SKY, "notifications_enabled", true, "🔔"))
+	scroll_vbox.add_child(_make_toggle_row_for_state(
 		"Inflation Active", "Prices rise slowly over time",
-		Color("#FFA726"), "inflation_enabled", true))
-	vbox.add_child(_make_toggle_row_for_state(
+		Color("#FFA726"), "inflation_enabled", true, "📈"))
+	scroll_vbox.add_child(_make_toggle_row_for_state(
 		"Random Events", "Occasional surprises and challenges",
-		CLR_CYAN, "random_events_enabled", true))
+		CLR_CYAN, "random_events_enabled", true, "🎲"))
 
 	# DISPLAY section.
-	vbox.add_child(_make_section_label("DISPLAY"))
-	vbox.add_child(_make_toggle_row_for_state(
+	scroll_vbox.add_child(_make_section_label("DISPLAY"))
+	scroll_vbox.add_child(_make_toggle_row_for_state(
 		"Tooltips", "Show helpful hints on hover",
-		CLR_CYAN, "tooltips_enabled", true))
+		CLR_CYAN, "tooltips_enabled", true, "💬"))
 
 	var fs_row := _make_toggle_row(
 		"Fullscreen",
@@ -283,26 +385,64 @@ func _build_expanded_layout() -> void:
 		CLR_BORDER_SKY,
 		true,
 		_on_fullscreen_toggled,
+		"🖥️"
 	)
-	vbox.add_child(fs_row.get_parent())
+	scroll_vbox.add_child(fs_row.get_parent().get_parent()) # PanelContainer Card
 
-	# CONTROLS section — opens the Keybinds overlay.
-	vbox.add_child(_make_section_label("CONTROLS"))
-	vbox.add_child(_make_keybinds_button())
+	# CONTROLS section.
+	scroll_vbox.add_child(_make_section_label("CONTROLS"))
+	scroll_vbox.add_child(_make_keybinds_row())
 
 	# Make sure CloseBtn stays at the bottom of the VBox.
 	vbox.move_child(close_btn, vbox.get_child_count() - 1)
 
-func _make_keybinds_button() -> Button:
+func _make_keybinds_row() -> PanelContainer:
+	var row := HBoxContainer.new()
+	row.custom_minimum_size = Vector2(0, 120)
+	row.add_theme_constant_override("separation", 24)
+	var card = _wrap_row_in_card(row, CLR_CYAN, "⌨️")
+
+	var block := VBoxContainer.new()
+	block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	block.add_theme_constant_override("separation", 4)
+
+	var name_lbl := Label.new()
+	name_lbl.text = "Keybinds"
+	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
+	name_lbl.add_theme_font_size_override("font_size", 32)
+	var font_bold := SystemFont.new()
+	font_bold.font_weight = 700
+	name_lbl.add_theme_font_override("font", font_bold)
+	block.add_child(name_lbl)
+
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Customize keyboard shortcuts"
+	sub_lbl.add_theme_color_override("font_color", CLR_DIM)
+	sub_lbl.add_theme_font_size_override("font_size", 20)
+	var font_medium := SystemFont.new()
+	font_medium.font_weight = 500
+	sub_lbl.add_theme_font_override("font", font_medium)
+	block.add_child(sub_lbl)
+
+	row.add_child(block)
+
 	var btn := Button.new()
-	btn.text = "Keybinds"
-	btn.custom_minimum_size = Vector2(0, 120)
-	btn.add_theme_font_size_override("font_size", 56)
-	var pf := UITheme.get_pixel_font()
-	if pf: btn.add_theme_font_override("font", pf)
+	btn.text = "Configure"
+	btn.custom_minimum_size = Vector2(160, 64)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn.focus_mode = Control.FOCUS_NONE
+	
+	var font_btn := SystemFont.new()
+	font_btn.font_weight = 700
+	btn.add_theme_font_override("font", font_btn)
+	btn.add_theme_font_size_override("font_size", 24)
+	
 	UITheme.style_pixel_button(btn)
 	btn.pressed.connect(_on_keybinds_pressed)
-	return btn
+	row.add_child(btn)
+
+	return card
 
 func _on_keybinds_pressed() -> void:
 	var keybinds_menu = load("res://scenes/ui/KeybindsMenu.tscn").instantiate()
@@ -312,20 +452,23 @@ func _make_section_label(text: String) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-	lbl.add_theme_font_size_override("font_size", 44)
-	var font := UITheme.get_pixel_font()
-	if font: lbl.add_theme_font_override("font", font)
+	lbl.add_theme_font_size_override("font_size", 32)
+	var font_bold := SystemFont.new()
+	font_bold.font_weight = 800
+	lbl.add_theme_font_override("font", font_bold)
+	lbl.custom_minimum_size = Vector2(0, 48)
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	return lbl
 
 func _make_toggle_row_for_state(name: String, sub: String, accent: Color,
-		state_prop: String, default_on: bool) -> HBoxContainer:
+		state_prop: String, default_on: bool, emoji: String) -> PanelContainer:
 	var initial := default_on
 	if state_prop in GameState:
 		initial = bool(GameState.get(state_prop))
 	var btn := _make_toggle_row(name, sub, accent, initial,
-		func(on: bool): _apply_state_toggle(state_prop, on))
+		func(on: bool): _apply_state_toggle(state_prop, on), emoji)
 	_toggles[state_prop] = btn
-	return btn.get_parent()
+	return btn.get_parent().get_parent() as PanelContainer
 
 func _apply_state_toggle(prop: String, value: bool) -> void:
 	if prop in GameState:
@@ -337,35 +480,33 @@ func _on_fullscreen_toggled(on: bool) -> void:
 		else DisplayServer.WINDOW_MODE_WINDOWED
 	)
 
-## Build a row: card panel + icon tile + label/sub + pill toggle switch.
-## Returns the toggle Button (call get_parent() for the row container).
 func _make_toggle_row(name: String, sub: String, accent: Color,
-		initial_on: bool, on_toggled: Callable) -> Button:
+		initial_on: bool, on_toggled: Callable, emoji: String) -> Button:
 	var row := HBoxContainer.new()
 	row.custom_minimum_size = Vector2(0, 120)
 	row.add_theme_constant_override("separation", 24)
-	_wrap_row_in_card(row, accent)
-
-	var tile := ColorRect.new()
-	tile.color = Color(accent.r, accent.g, accent.b, 0.22)
-	tile.custom_minimum_size = Vector2(72, 72)
-	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(tile)
+	_wrap_row_in_card(row, accent, emoji)
 
 	var block := VBoxContainer.new()
 	block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	block.add_theme_constant_override("separation", 4)
+	
 	var name_lbl := Label.new()
 	name_lbl.text = name
 	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
-	name_lbl.add_theme_font_size_override("font_size", 52)
-	var pf := UITheme.get_pixel_font()
-	if pf: name_lbl.add_theme_font_override("font", pf)
+	name_lbl.add_theme_font_size_override("font_size", 32)
+	var font_bold := SystemFont.new()
+	font_bold.font_weight = 700
+	name_lbl.add_theme_font_override("font", font_bold)
 	block.add_child(name_lbl)
+	
 	var sub_lbl := Label.new()
 	sub_lbl.text = sub
 	sub_lbl.add_theme_color_override("font_color", CLR_DIM)
-	sub_lbl.add_theme_font_size_override("font_size", 36)
+	sub_lbl.add_theme_font_size_override("font_size", 20)
+	var font_medium := SystemFont.new()
+	font_medium.font_weight = 500
+	sub_lbl.add_theme_font_override("font", font_medium)
 	block.add_child(sub_lbl)
 	row.add_child(block)
 
@@ -374,6 +515,7 @@ func _make_toggle_row(name: String, sub: String, accent: Color,
 	toggle.button_pressed = initial_on
 	toggle.custom_minimum_size = Vector2(140, 72)
 	toggle.size_flags_horizontal = Control.SIZE_SHRINK_END
+	toggle.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	toggle.focus_mode = Control.FOCUS_NONE
 	toggle.text = ""
 	_apply_toggle_visual(toggle)
@@ -385,18 +527,11 @@ func _make_toggle_row(name: String, sub: String, accent: Color,
 
 	return toggle
 
-## Build the Mute All Audio row with a plain labeled button (Mute / Unmute).
-func _make_mute_row() -> HBoxContainer:
+func _make_mute_row() -> PanelContainer:
 	var row := HBoxContainer.new()
 	row.custom_minimum_size = Vector2(0, 120)
 	row.add_theme_constant_override("separation", 24)
-	_wrap_row_in_card(row, Color("#FFA726"))
-
-	var tile := ColorRect.new()
-	tile.color = Color(1.0, 0.655, 0.149, 0.22)
-	tile.custom_minimum_size = Vector2(72, 72)
-	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(tile)
+	var card = _wrap_row_in_card(row, Color("#FFA726"), "🔇")
 
 	var block := VBoxContainer.new()
 	block.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -405,30 +540,34 @@ func _make_mute_row() -> HBoxContainer:
 	var name_lbl := Label.new()
 	name_lbl.text = "Mute All Audio"
 	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
-	name_lbl.add_theme_font_size_override("font_size", 52)
-	var pf := UITheme.get_pixel_font()
-	if pf: name_lbl.add_theme_font_override("font", pf)
+	name_lbl.add_theme_font_size_override("font_size", 32)
+	var font_bold := SystemFont.new()
+	font_bold.font_weight = 700
+	name_lbl.add_theme_font_override("font", font_bold)
 	block.add_child(name_lbl)
 
 	var sub_lbl := Label.new()
 	sub_lbl.text = "Silences music and sound effects"
 	sub_lbl.add_theme_color_override("font_color", CLR_DIM)
-	sub_lbl.add_theme_font_size_override("font_size", 36)
+	sub_lbl.add_theme_font_size_override("font_size", 20)
+	var font_medium := SystemFont.new()
+	font_medium.font_weight = 500
+	sub_lbl.add_theme_font_override("font", font_medium)
 	block.add_child(sub_lbl)
 
 	row.add_child(block)
 
 	mute_btn = Button.new()
 	mute_btn.toggle_mode = false
-	mute_btn.custom_minimum_size = Vector2(180, 80)
+	mute_btn.custom_minimum_size = Vector2(160, 64)
 	mute_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	mute_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	mute_btn.focus_mode = Control.FOCUS_NONE
 	mute_btn.pressed.connect(_on_mute_button_pressed)
 	row.add_child(mute_btn)
 
-	return row
+	return card
 
-## Inject a small red "✕" close button in the top-right of the title bar.
 func _inject_header_close_btn() -> void:
 	var title := get_node_or_null("Panel/VBox/Title")
 	if not (title is Label):
@@ -458,30 +597,24 @@ func _inject_header_close_btn() -> void:
 	vbox.add_child(header)
 	vbox.move_child(header, title_index)
 
-## Build the SFX slider row as a card.
-func _make_sfx_slider_row() -> HBoxContainer:
+func _make_sfx_slider_row() -> PanelContainer:
 	var row := HBoxContainer.new()
 	row.custom_minimum_size = Vector2(0, 120)
 	row.add_theme_constant_override("separation", 24)
-	_wrap_row_in_card(row, CLR_CYAN)
-
-	var tile := ColorRect.new()
-	tile.color = Color(CLR_CYAN.r, CLR_CYAN.g, CLR_CYAN.b, 0.22)
-	tile.custom_minimum_size = Vector2(72, 72)
-	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(tile)
+	var card = _wrap_row_in_card(row, CLR_CYAN, "🔊")
 
 	var name_lbl := Label.new()
 	name_lbl.text = "SFX"
 	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
-	name_lbl.add_theme_font_size_override("font_size", 56)
-	var pf := UITheme.get_pixel_font()
-	if pf: name_lbl.add_theme_font_override("font", pf)
+	name_lbl.add_theme_font_size_override("font_size", 32)
+	var font_medium := SystemFont.new()
+	font_medium.font_weight = 500
+	name_lbl.add_theme_font_override("font", font_medium)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_lbl)
 
 	var slider := HSlider.new()
-	slider.custom_minimum_size = Vector2(400, 20)
+	slider.custom_minimum_size = Vector2(240, 20)
 	slider.min_value = 0
 	slider.max_value = 100
 	slider.value = volume_slider.value
@@ -492,52 +625,50 @@ func _make_sfx_slider_row() -> HBoxContainer:
 	var pct := Label.new()
 	pct.text = str(int(slider.value)) + "%"
 	pct.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-	pct.add_theme_font_size_override("font_size", 48)
-	pct.custom_minimum_size.x = 120
-	if pf: pct.add_theme_font_override("font", pf)
+	pct.add_theme_font_size_override("font_size", 28)
+	pct.custom_minimum_size.x = 100
+	var font_bold := SystemFont.new()
+	font_bold.font_weight = 700
+	pct.add_theme_font_override("font", font_bold)
 	row.add_child(pct)
 
 	slider.value_changed.connect(func(v: float):
 		pct.text = str(int(v)) + "%"
 		_on_volume_changed(v)
 		volume_slider.set_value_no_signal(v)
-		# Sliding SFX up while muted → auto-unmute.
 		if is_muted and v > 0:
 			is_muted = false
 			_update_mute_label()
 	)
 
-	# Save refs so _set_muted can silence/restore this slider.
 	sfx_slider    = slider
 	sfx_pct_label = pct
 
-	return row
+	return card
 
-## Pill-shaped toggle switch visual.
-## ON  → green pill, white thumb on the right.
-## OFF → cream pill with ink border, dark thumb on the left.
 func _apply_toggle_visual(btn: Button) -> void:
 	var on := btn.button_pressed
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = UITheme.CLR_GREEN if on else UITheme.CLR_CREAM_LT
 	sb.border_color = UITheme.CLR_INK
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(36)   # pill — half of 72px height
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(36)
 	btn.add_theme_stylebox_override("normal",  sb)
 	btn.add_theme_stylebox_override("hover",   sb)
 	btn.add_theme_stylebox_override("pressed", sb)
 
-	# Thumb indicator — created once, repositioned on state change.
-	var thumb := btn.get_node_or_null("Thumb")
+	var thumb := btn.get_node_or_null("Thumb") as Panel
 	if not thumb:
-		thumb = ColorRect.new()
+		thumb = Panel.new()
 		thumb.name = "Thumb"
 		thumb.custom_minimum_size = Vector2(48, 48)
-		thumb.size = Vector2(48, 48)
 		thumb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		btn.add_child(thumb)
-	thumb.color    = Color.WHITE if on else UITheme.CLR_INK
-	# Hardcoded for custom_minimum_size = Vector2(140, 72).
-	# ON: right side (140 - 48 - 8 = 84, (72-48)/2 = 12)
-	# OFF: left side (8, 12)
-	thumb.position = Vector2(84.0 if on else 8.0, 12.0)
+		
+	var thumb_sb := StyleBoxFlat.new()
+	thumb_sb.bg_color = Color.WHITE if on else UITheme.CLR_INK
+	thumb_sb.set_corner_radius_all(24) # Circular thumb
+	thumb_sb.anti_aliasing = false
+	thumb.add_theme_stylebox_override("panel", thumb_sb)
+	
+	thumb.position = Vector2(80.0 if on else 12.0, 12.0)
