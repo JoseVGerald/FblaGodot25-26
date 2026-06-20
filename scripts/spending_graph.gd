@@ -11,18 +11,18 @@
 extends Control
 class_name SpendingGraph
 
-# ── Colour palette ──────────────────────────────────────────────────────────────
-const CLR_BG        := Color("#0d1b36")       # Graph background
-const CLR_BORDER    := Color("#4A90D9")       # Axes + outer border
-const CLR_GRID      := Color("#1e3a6e")       # Subtle grid lines
-const CLR_ZERO      := Color("#4A90D9")       # Zero-dollar baseline
-const CLR_CASH      := Color("#53d8fb")       # Cash balance line (cyan)
+# ── Colour palette (warm maroon pixel-art identity) ──────────────────────────
+const CLR_BG        := Color("#3d1822")       # Graph background — dark warm maroon
+const CLR_BORDER    := Color("#ffd7a8")       # Axes + outer border — cream
+const CLR_GRID      := Color("#5c2830")       # Subtle grid lines — mid maroon
+const CLR_ZERO      := Color("#ffd071")       # Zero-dollar baseline — gold
+const CLR_CASH      := Color("#53d8fb")       # Cash balance line — cyan (keep for clarity)
 const CLR_SPENDING  := Color("#EF5350")       # Spending line (red, positive)
-const CLR_WHITE     := Color.WHITE
-const CLR_TOOLTIP   := Color("#4A90D9E8")     # Sky-blue tooltip box
-const CLR_BTN       := Color("#4A90D9")       # Day pill-buttons
-const CLR_BTN_HOVER := Color("#5BA3E8")       # Lightened on hover
-const CLR_GOLD      := Color("#FFD700")       # End of Day button
+const CLR_WHITE     := Color("#ffd7a8")       # Text — cream
+const CLR_TOOLTIP   := Color("#9c4351CC")     # Tooltip box — maroon
+const CLR_BTN       := Color("#c7895d")       # Day pill-buttons — tan dark
+const CLR_BTN_HOVER := Color("#f0cb97")       # Lightened on hover — tan hi
+const CLR_GOLD      := Color("#ffd071")       # End of Day button — game gold
 const CLR_GREEN     := Color("#4CAF50")
 const CLR_RED       := Color("#EF5350")
 

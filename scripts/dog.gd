@@ -270,6 +270,19 @@ func toggle_menu() -> void:
 func _physics_process(delta: float) -> void:
 	GameState.dog_health = health
 
+	# Dropped off at daycare → completely hide and deactivate the dog. This
+	# self-corrects: advance_day() resets dog_at_daycare to false, so the dog
+	# reappears the next morning.
+	if GameState.dog_at_daycare:
+		if visible:
+			visible = false
+			input_pickable = false
+			velocity = Vector2.ZERO
+		return
+	elif not visible:
+		visible = true
+		input_pickable = true
+
 	# Kick off the food → water → sleep routine the moment the player enters.
 	if GameState.Inside_house and not was_in_house:
 		if GameState.is_tutorial_complete:

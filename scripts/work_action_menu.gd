@@ -27,24 +27,24 @@ func _ready() -> void:
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(640, 0)
+	panel.custom_minimum_size = Vector2(900, 0)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = UITheme.CLR_CREAM
 	sb.border_color = UITheme.CLR_INK
 	sb.set_border_width_all(5)
 	sb.set_corner_radius_all(0)
-	sb.set_content_margin_all(28)
+	sb.set_content_margin_all(48)
 	panel.add_theme_stylebox_override("panel", sb)
 	center.add_child(panel)
 
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 14)
+	col.add_theme_constant_override("separation", 28)
 	panel.add_child(col)
 
 	var title := Label.new()
 	title.text = "YOUR CAREER"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_font_size_override("font_size", 72)
 	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if _pf: title.add_theme_font_override("font", _pf)
 	col.add_child(title)
@@ -52,8 +52,8 @@ func _ready() -> void:
 	_info_lbl = Label.new()
 	_info_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_info_lbl.custom_minimum_size = Vector2(580, 0)
-	_info_lbl.add_theme_font_size_override("font_size", 22)
+	_info_lbl.custom_minimum_size = Vector2(840, 0)
+	_info_lbl.add_theme_font_size_override("font_size", 48)
 	_info_lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
 	if _pf: _info_lbl.add_theme_font_override("font", _pf)
 	col.add_child(_info_lbl)
@@ -62,8 +62,8 @@ func _ready() -> void:
 	hint.text = "Work shifts by talking to your manager. Asking here is risky!"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
-	hint.custom_minimum_size = Vector2(580, 0)
-	hint.add_theme_font_size_override("font_size", 17)
+	hint.custom_minimum_size = Vector2(840, 0)
+	hint.add_theme_font_size_override("font_size", 34)
 	hint.add_theme_color_override("font_color", UITheme.CLR_GRAY_DRK)
 	if _pf: hint.add_theme_font_override("font", _pf)
 	col.add_child(hint)
@@ -82,8 +82,8 @@ func _ready() -> void:
 	_result_lbl = Label.new()
 	_result_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_result_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	_result_lbl.custom_minimum_size = Vector2(580, 0)
-	_result_lbl.add_theme_font_size_override("font_size", 20)
+	_result_lbl.custom_minimum_size = Vector2(840, 0)
+	_result_lbl.add_theme_font_size_override("font_size", 48)
 	_result_lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if _pf: _result_lbl.add_theme_font_override("font", _pf)
 	col.add_child(_result_lbl)
@@ -98,8 +98,8 @@ func _ready() -> void:
 func _make_button(text: String, secondary: bool = false) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(0, 64)
-	b.add_theme_font_size_override("font_size", 24)
+	b.custom_minimum_size = Vector2(0, 120)
+	b.add_theme_font_size_override("font_size", 52)
 	if _pf: b.add_theme_font_override("font", _pf)
 	UITheme.style_pixel_button(b, secondary)
 	return b

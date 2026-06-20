@@ -15,7 +15,11 @@ func _ready():
 	setup_dog()
 	setup_labels()
 	setup_buttons()
-	
+
+	# Style question label to read clearly on the checker background
+	UITheme.style_checker_label(question_label, 14)
+	question_label.add_theme_font_size_override("font_size", 42)
+
 	# Hide labels initially
 	player_label.visible = false
 	dog_label.visible = false

@@ -273,13 +273,13 @@ layout_mode = 2
 [node name="Min" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/RangeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "$0"
 
 [node name="Max" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/RangeRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "$200"
 horizontal_alignment = 2
@@ -342,13 +342,13 @@ layout_mode = 2
 [node name="Min" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/RangeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "$0"
 
 [node name="Max" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/RangeRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "$200"
 horizontal_alignment = 2
@@ -411,13 +411,13 @@ layout_mode = 2
 [node name="Min" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/RangeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "$0"
 
 [node name="Max" type="Label" parent="Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/RangeRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "$200"
 horizontal_alignment = 2
@@ -476,7 +476,7 @@ horizontal_alignment = 1
 
 [node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/IncomeStat"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "Income"
 horizontal_alignment = 1
@@ -495,7 +495,7 @@ horizontal_alignment = 1
 
 [node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/SpentStat"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "Spent"
 horizontal_alignment = 1
@@ -514,7 +514,7 @@ horizontal_alignment = 1
 
 [node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/NetStat"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "Net Change"
 horizontal_alignment = 1
@@ -533,7 +533,7 @@ horizontal_alignment = 1
 
 [node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/EmergencyStat"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "Emergency Used"
 horizontal_alignment = 1
@@ -641,7 +641,7 @@ text = "10%"
 
 [node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/RateStat"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "Weekly interest"
 
@@ -657,7 +657,7 @@ text = "$0"
 
 [node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/NextStat"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "Next charge"
 
@@ -673,7 +673,7 @@ text = "$0"
 
 [node name="Sub" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/AccruedStat"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.96, 1, 0.45)
+theme_override_colors/font_color = Color(0.541, 0.471, 0.408, 1)
 theme_override_font_sizes/font_size = 30
 text = "Interest paid"
 
@@ -738,7 +738,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Panel/VBox/Content/TabContainer/Loans/LoanWarning"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.937, 0.325, 0.314, 1)
+theme_override_colors/font_color = Color(1, 0.89, 0.784, 1)
 theme_override_font_sizes/font_size = 33
 text = "Unpaid loans compound weekly. Interest is auto-deducted from your allowance — borrow responsibly!"
 horizontal_alignment = 1

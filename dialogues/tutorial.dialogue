@@ -51,3 +51,14 @@ if GameState.selected_pathway == "kid"
 else
 	Mother: Hello dear! Make sure to complete your scheduled work shifts this week!
 => END
+
+
+~ day2_teen_wake
+Mother: Wake up, {{GameState.player_name}}! It's time to head to your job.
+Mother: And don't forget to drop your buddy off at daycare first — none of these jobs want you bringing your dog in to work with you!
+=> END
+
+~ day2_adult_wake
+Me: Ugh... morning already. Time to head to work.
+Me: I'd better drop my buddy off at daycare on the way — none of these jobs want me bringing my dog in to work.
+=> END

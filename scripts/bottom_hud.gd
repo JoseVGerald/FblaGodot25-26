@@ -137,6 +137,7 @@ func _ready():
 			"Your dog needs care! Health will drop below 50 if ignored. Visit the vet.")
 
 	update_ui()
+	call_deferred("_float_time_label_center")
 
 func _process(_delta):
 	update_ui()
@@ -193,8 +194,8 @@ func _apply_redesign_styling() -> void:
 			left_sec.add_child(daycare_btn)
 			daycare_btn.pressed.connect(_on_daycare_btn_pressed)
 
-	# Status Indicator (Work/Rent details)
-	left_sec = get_node_or_null("Background/Margin/MainHBox/LeftSection")
+	# Status Indicator (created but kept off-screen — work_btn visibility still needs it)
+	var	left_sec = get_node_or_null("Background/Margin/MainHBox/LeftSection")
 	if left_sec:
 		status_lbl = Label.new()
 		status_lbl.name = "StatusLabel"
@@ -202,6 +203,7 @@ func _apply_redesign_styling() -> void:
 		status_lbl.add_theme_font_size_override("font_size", 20)
 		if pf: status_lbl.add_theme_font_override("font", pf)
 		left_sec.add_child(status_lbl)
+		status_lbl.visible = false  # job/shift info removed from HUD (visible in Work menu)
 
 	# Nav buttons — text-only labels per spec (no emoji) + tinted style.
 	supplies_btn.text = "Supplies"
@@ -233,15 +235,15 @@ func _update_hud_status_label():
 		status_lbl.text = "Kid Pathway"
 	elif GameState.selected_pathway == "teenager":
 		var job_str = "No Job"
-		if GameState.active_job == "news_boy": job_str = "News Boy"
-		elif GameState.active_job == "burger_cashier": job_str = "Burger Cashier"
+		if GameState.active_job == "news_boy": job_str = "Mail Boy"
+		elif GameState.active_job == "burger_cashier": job_str = "The Cook"
 		elif GameState.active_job == "bank_accountant": job_str = "Bank Accountant"
 		if GameState.active_job != "none": job_str += " (" + GameState.get_job_title(GameState.active_job) + ")"
 		status_lbl.text = "Job: %s | Work: %d/3 days" % [job_str, GameState.days_worked_this_week]
 	elif GameState.selected_pathway == "adult":
 		var job_str = "No Job"
-		if GameState.active_job == "news_boy": job_str = "News Boy"
-		elif GameState.active_job == "burger_cashier": job_str = "Burger Cashier"
+		if GameState.active_job == "news_boy": job_str = "Mail Boy"
+		elif GameState.active_job == "burger_cashier": job_str = "The Cook"
 		elif GameState.active_job == "bank_accountant": job_str = "Bank Accountant"
 		if GameState.active_job != "none": job_str += " (" + GameState.get_job_title(GameState.active_job) + ")"
 
@@ -260,6 +262,33 @@ func _update_hud_status_label():
 		var show_work = GameState.selected_pathway != "kid" and GameState.active_job != "none"
 		work_btn.visible = show_work
 		work_btn.disabled = false
+
+## Reparent time_label out of the HBox so it floats centered over the full HUD width.
+## A spacer replaces it in the HBox so the flanking sections keep their layout.
+func _float_time_label_center() -> void:
+	var bg := get_node_or_null("Background")
+	if not bg or not is_instance_valid(time_label):
+		return
+	var hbox := time_label.get_parent()
+	if hbox:
+		var spacer := Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		spacer.mouse_filter          = Control.MOUSE_FILTER_IGNORE
+		hbox.add_child(spacer)
+		hbox.move_child(spacer, time_label.get_index())
+	# Re-parent to Background so it spans the full HUD width
+	time_label.reparent(bg)
+	time_label.set_anchor(SIDE_LEFT,   0.0)
+	time_label.set_anchor(SIDE_RIGHT,  1.0)
+	time_label.set_anchor(SIDE_TOP,    0.0)
+	time_label.set_anchor(SIDE_BOTTOM, 1.0)
+	time_label.offset_left   = 0.0
+	time_label.offset_right  = 0.0
+	time_label.offset_top    = 0.0
+	time_label.offset_bottom = 0.0
+	time_label.z_index       = 2
+	# MOUSE_FILTER_STOP in center — side buttons are outside this area
+	time_label.mouse_filter  = Control.MOUSE_FILTER_STOP
 
 func _on_work_btn_pressed():
 	if GameState.active_job == "none":
@@ -298,6 +327,7 @@ func _setup_time_label_interaction() -> void:
 		time_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		time_label.custom_minimum_size.x = maxf(time_label.custom_minimum_size.x, 560.0)
 		time_label.fit_content = true
+		time_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	# Create hover tooltip (hidden by default)
 	_sim_tooltip = Label.new()
@@ -323,10 +353,11 @@ func _apply_time_label_text() -> void:
 	var s := GameState.get_time_string()
 	if time_label is RichTextLabel:
 		if _time_label_hovered:
-			time_label.text = "[color=#%s][u]%s[/u][/color]" % [UITheme.CLR_ORANGE_PX.to_html(false), s]
+			time_label.text = "[center][color=#%s][u]%s[/u][/color][/center]" % [UITheme.CLR_ORANGE_PX.to_html(false), s]
 		else:
-			time_label.text = "[color=#%s]%s[/color]" % [UITheme.CLR_INK.to_html(false), s]
+			time_label.text = "[center][color=#%s]%s[/color][/center]" % [UITheme.CLR_INK.to_html(false), s]
 	else:
+		time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		time_label.text = s
 
 

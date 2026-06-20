@@ -86,11 +86,14 @@ func _interact() -> void:
 		_show_dialogue([block])
 		return
 
-	# Dog-at-work check: if dog is in the scene and wasn't sent to daycare, punish.
+	# Dog-at-work check: if dog is in the scene and wasn't sent to daycare, the
+	# boss notices and issues an escalating warning + fine (possibly a firing).
 	if not GameState.dog_at_daycare and get_tree().get_nodes_in_group("dog").size() > 0:
+		var intro := "Hey — is that your dog at work AGAIN?" if GameState.dog_at_work_offenses > 0 else "Hey — is that your dog? You can't bring your dog to work."
+		# apply_dog_at_work_penalty() increments the offense count, so read the
+		# intro first and let its return value carry the warning/fine details.
 		_show_dialogue([
-			"Hey — is that your dog?",
-			"Don't bring your dog to work. You're getting a fine.",
+			intro,
 			GameState.apply_dog_at_work_penalty()
 		])
 		return

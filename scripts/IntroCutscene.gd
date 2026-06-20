@@ -24,6 +24,8 @@ func _ready():
 	UITheme.apply_theme(self)
 	# Lore text sits directly on the checker — needs cream + outline to read.
 	UITheme.style_checker_label(label, 12)
+	label.add_theme_font_size_override("font_size", 64)  # 4x bigger lore text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	technical_panel.hide()
 	continue_button.hide()
 	show_slide(0)
@@ -65,6 +67,15 @@ func show_slide(index):
 		current_slide = index
 		slides_container.hide()
 		technical_panel.show()
+		# Clamp panel to viewport so it doesn't stick out on small screens
+		var vp := get_viewport().get_visible_rect().size
+		var pw := minf(1600.0, vp.x - 40.0)
+		var ph := minf(1000.0, vp.y - 40.0)
+		technical_panel.offset_left   = -pw * 0.5
+		technical_panel.offset_right  =  pw * 0.5
+		technical_panel.offset_top    = -ph * 0.5
+		technical_panel.offset_bottom =  ph * 0.5
+		_style_blurb_labels()
 		if continue_button.get_parent() != technical_panel.get_node("VBoxContainer"):
 			var parent = continue_button.get_parent()
 			parent.remove_child(continue_button)
@@ -99,5 +110,17 @@ func _on_toggle_pressed(toggle_index):
 			content.visible = !content.visible
 		else:
 			content.visible = false
+
+## Apply readable (non-pixel) font at larger size to the blurb content labels.
+func _style_blurb_labels() -> void:
+	var vbox = technical_panel.get_node_or_null("VBoxContainer")
+	if not vbox:
+		return
+	for i in range(1, 5):
+		var content = vbox.get_node_or_null("Section" + str(i) + "/Content")
+		if content is Label:
+			content.remove_theme_font_override("font")  # use default readable font
+			content.add_theme_font_size_override("font_size", 23)
+			content.add_theme_color_override("font_color", UITheme.CLR_INK)
 
 # Updated on 2026-04-19

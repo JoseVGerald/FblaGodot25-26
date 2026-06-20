@@ -12,6 +12,9 @@ var hud_instance: CanvasLayer = null
 var tutorial_controller: Node = null
 
 var Day1Tutorial = preload("res://scripts/day1_tutorial.gd")
+var Day2Tutorial = preload("res://scripts/day2_tutorial.gd")
+var day2_tutorial_controller: Node = null
+var _job_path_line: Line2D = null
 @onready var shop_path = $ShopPath
 @onready var original_path = $VetPath
 
@@ -103,11 +106,41 @@ func start_day1_tutorial():
 	add_child(tutorial_controller)
 	tutorial_controller.start_tutorial(dog_instance, hud_instance)
 
-func _on_day_started(_day_number: int):
+func _on_day_started(day_number: int):
 	if dog_instance:
 		dog_instance.apply_daily_health_change()
 	# Auto-save at end of each day
 	save_current_game()
+	# Day 2 (first work day) tutorial — teen/adult only, fires once.
+	if day_number == 1 \
+			and GameState.selected_pathway in ["teenager", "adult"] \
+			and GameState.is_tutorial_complete \
+			and not GameState.day_two_tutorial_done:
+		GameState.day_two_tutorial_done = true
+		start_day2_tutorial()
+
+func start_day2_tutorial():
+	day2_tutorial_controller = Day2Tutorial.new()
+	add_child(day2_tutorial_controller)
+	day2_tutorial_controller.start_tutorial(self, hud_instance)
+
+## Draw a visible guidance line over one of the named job Path2D nodes
+## ("Burger path" / "bank path" / "post path"). Mirrors _make_paths_visible().
+func show_job_path(node_name: String) -> void:
+	hide_job_path()
+	var path = get_node_or_null(node_name)
+	if path and path is Path2D and path.curve:
+		_job_path_line = Line2D.new()
+		_job_path_line.points = path.curve.get_baked_points()
+		_job_path_line.width = 6.0
+		_job_path_line.default_color = Color(1, 1, 0, 0.8) # Yellow guidance line
+		_job_path_line.z_index = 100 # Always draw above the map/buildings
+		path.add_child(_job_path_line)
+
+func hide_job_path() -> void:
+	if _job_path_line and is_instance_valid(_job_path_line):
+		_job_path_line.queue_free()
+	_job_path_line = null
 
 func _exit_tree():
 	# Save game when leaving the scene

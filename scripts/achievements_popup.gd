@@ -184,16 +184,21 @@ func _fill_list(list: VBoxContainer) -> void:
 		var is_unlocked : bool   = GameState.achievements[achievement_name]
 		var description : String = ACHIEVEMENT_DESCRIPTIONS.get(achievement_name, "")
 
-		var row_bg := ColorRect.new()
-		row_bg.color = CLR_ROW_UNLOCK if is_unlocked else CLR_ROW_LOCK
-		row_bg.custom_minimum_size   = Vector2(0, 64)
-		row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		list.add_child(row_bg)
+		# Row wrapper — background color comes from the panel stylebox
+		var row_panel := PanelContainer.new()
+		row_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var row_sb := StyleBoxFlat.new()
+		row_sb.bg_color = CLR_ROW_UNLOCK if is_unlocked else CLR_ROW_LOCK
+		row_sb.set_border_width_all(0)
+		row_sb.set_content_margin_all(10)
+		row_panel.add_theme_stylebox_override("panel", row_sb)
+		list.add_child(row_panel)
 
 		var row := HBoxContainer.new()
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.custom_minimum_size   = Vector2(0, 56)
 		row.add_theme_constant_override("separation", 18)
-		list.add_child(row)
+		row_panel.add_child(row)
 
 		# Icon
 		var icon := Label.new()
@@ -233,11 +238,11 @@ func _fill_list(list: VBoxContainer) -> void:
 			desc_label.add_theme_font_override("font", font)
 		row.add_child(desc_label)
 
-		# Separator
+		# Thin separator between rows
 		var sep := ColorRect.new()
-		sep.color                   = CLR_SEPARATOR
-		sep.custom_minimum_size     = Vector2(0, 1)
-		sep.size_flags_horizontal   = Control.SIZE_EXPAND_FILL
+		sep.color                 = Color(UITheme.CLR_INK, 0.25)
+		sep.custom_minimum_size   = Vector2(0, 1)
+		sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		list.add_child(sep)
 
 func _input(event: InputEvent) -> void:

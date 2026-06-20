@@ -69,6 +69,30 @@ func _ready() -> void:
 		continue_button.pressed.connect(_on_continue_pressed)
 		UITheme.style_button(continue_button, Color("#4CAF50"))
 
+	# Style all SpinBox/LineEdit inputs with cream background
+	call_deferred("_style_all_inputs")
+
+func _style_all_inputs() -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("#ffe3c6")  # CLR_CREAM_LT — warm cream, not white
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin_all(8)
+	_style_inputs_recursive(scroll_container, sb)
+
+func _style_inputs_recursive(node: Node, sb: StyleBoxFlat) -> void:
+	for child in node.get_children():
+		if child is SpinBox:
+			var le := child.get_line_edit()
+			if le:
+				le.add_theme_stylebox_override("normal", sb)
+				le.add_theme_color_override("font_color", UITheme.CLR_INK)
+		elif child is LineEdit:
+			child.add_theme_stylebox_override("normal", sb)
+			child.add_theme_color_override("font_color", UITheme.CLR_INK)
+		_style_inputs_recursive(child, sb)
+
 func setup_layout() -> void:
 	"""Creates a highly responsive HBox layout separating custom grids and preset sidebar."""
 	var main_hbox := HBoxContainer.new()
@@ -88,12 +112,19 @@ func setup_layout() -> void:
 	main_hbox.grow_vertical = Control.GROW_DIRECTION_BOTH
 	add_child(main_hbox)
 	
-	# Re-parent the scroll container to left side of HBox
+	# Wrap scroll container in a cream panel so form labels are readable
+	var form_panel := PanelContainer.new()
+	UITheme.style_cream_panel(form_panel)
+	form_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	form_panel.size_flags_stretch_ratio = 2.4
+	form_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_hbox.add_child(form_panel)
+
 	if scroll_container:
 		remove_child(scroll_container)
-		main_hbox.add_child(scroll_container)
+		form_panel.add_child(scroll_container)
 		scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		scroll_container.size_flags_stretch_ratio = 2.4
+		scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		scroll_container.show()
 		
 	# Setup Sidebar on the right side of HBox
@@ -115,7 +146,7 @@ func setup_new_variables() -> void:
 	adult_section_header = Label.new()
 	adult_section_header.text = "Adult Pathway Settings"
 	adult_section_header.add_theme_font_size_override("font_size", 28)
-	adult_section_header.add_theme_color_override("font_color", Color("#53d8fb"))
+	adult_section_header.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if pf: adult_section_header.add_theme_font_override("font", pf)
 	sections.add_child(adult_section_header)
 	
@@ -166,7 +197,7 @@ func setup_new_variables() -> void:
 	career_section_header = Label.new()
 	career_section_header.text = "Career Day Pay Settings"
 	career_section_header.add_theme_font_size_override("font_size", 28)
-	career_section_header.add_theme_color_override("font_color", Color("#53d8fb"))
+	career_section_header.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if pf: career_section_header.add_theme_font_override("font", pf)
 	sections.add_child(career_section_header)
 	
@@ -179,13 +210,13 @@ func setup_new_variables() -> void:
 	
 	# Row 1 Labels
 	var nb_lbl := Label.new()
-	nb_lbl.text = "News Boy Day Pay"
+	nb_lbl.text = "Mail Boy Day Pay"
 	nb_lbl.add_theme_font_size_override("font_size", 22)
 	nb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(nb_lbl)
 	
 	var bc_lbl := Label.new()
-	bc_lbl.text = "Burger Cashier Day Pay"
+	bc_lbl.text = "The Cook Day Pay"
 	bc_lbl.add_theme_font_size_override("font_size", 22)
 	bc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(bc_lbl)
@@ -240,7 +271,7 @@ func setup_new_variables() -> void:
 	daycare_section_header = Label.new()
 	daycare_section_header.text = "Daycare Settings"
 	daycare_section_header.add_theme_font_size_override("font_size", 28)
-	daycare_section_header.add_theme_color_override("font_color", Color("#53d8fb"))
+	daycare_section_header.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if pf: daycare_section_header.add_theme_font_override("font", pf)
 	sections.add_child(daycare_section_header)
 
@@ -394,8 +425,8 @@ func setup_sidebar(parent_hbox: HBoxContainer) -> void:
 	sidebar.size_flags_horizontal = Control.SIZE_SHRINK_END
 	
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#111a30")
-	sb.border_color = Color("#22335c")
+	sb.bg_color = Color("#3d1a1e")
+	sb.border_color = UITheme.CLR_INK
 	sb.border_width_bottom = 4
 	sb.border_width_top = 4
 	sb.border_width_left = 4
@@ -412,7 +443,7 @@ func setup_sidebar(parent_hbox: HBoxContainer) -> void:
 	var title := Label.new()
 	title.text = "SELECT PATHWAY"
 	title.add_theme_font_size_override("font_size", 44) # 3x scaled!
-	title.add_theme_color_override("font_color", Color("#53d8fb"))
+	title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var pf := UITheme.get_pixel_font()
 	if pf: title.add_theme_font_override("font", pf)
@@ -422,9 +453,9 @@ func setup_sidebar(parent_hbox: HBoxContainer) -> void:
 	pathway_cards.add_theme_constant_override("separation", 18)
 	vbox.add_child(pathway_cards)
 	
-	_create_sidebar_card(pathway_cards, "kid", "👶 Kid Pathway", "Allow: $100\nChore: $0.20\nRent: Free", Color("#4CAF50"))
-	_create_sidebar_card(pathway_cards, "teenager", "🎒 Teenager", "Allow: $50\nChore: $0.20\nRent: Free\nJobs: Part-Time", Color("#FFA726"))
-	_create_sidebar_card(pathway_cards, "adult", "💼 Adult", "Allow: $0\nRent: $200\nJobs: Full-Time\nGoal: Buy Home", Color("#EF5350"))
+	_create_sidebar_card(pathway_cards, "kid", "Kid Pathway", "Allow: $100\nChore: $0.20\nRent: Free", Color("#4CAF50"))
+	_create_sidebar_card(pathway_cards, "teenager", "Teenager", "Allow: $50\nChore: $0.20\nRent: Free\nJobs: Part-Time", Color("#FFA726"))
+	_create_sidebar_card(pathway_cards, "adult", "Adult", "Allow: $0\nRent: $200\nJobs: Full-Time\nGoal: Buy Home", Color("#EF5350"))
 	
 	# Select Kid by default
 	call_deferred("_select_default")
@@ -445,8 +476,8 @@ func _create_sidebar_card(parent: Control, id: String, title_text: String, stats
 	panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("#182645")
-	sb.border_color = Color("#22335c")
+	sb.bg_color = Color("#2d1215")
+	sb.border_color = UITheme.CLR_INK
 	sb.border_width_bottom = 4
 	sb.border_width_top = 4
 	sb.border_width_left = 4
@@ -476,7 +507,7 @@ func _create_sidebar_card(parent: Control, id: String, title_text: String, stats
 	var stats_lbl := Label.new()
 	stats_lbl.text = stats
 	stats_lbl.add_theme_font_size_override("font_size", 24) # 3x scaled!
-	stats_lbl.add_theme_color_override("font_color", Color("#a0b2d6"))
+	stats_lbl.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	stats_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(stats_lbl)
 	

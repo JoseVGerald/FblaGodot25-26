@@ -32,7 +32,7 @@ size = Vector2(125, 28)
 size = Vector2(332, 79.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_331gq"]
-size = Vector2(52, 52)
+size = Vector2(64, 52)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rl3lx"]
 size = Vector2(181.5, 87)
@@ -44,7 +44,7 @@ size = Vector2(292, 52)
 size = Vector2(95, 52)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xbs0w"]
-size = Vector2(118, 74)
+size = Vector2(50, 87)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_catch"]
 size = Vector2(118, 96)
@@ -90,7 +90,7 @@ point_count = 10
 
 [sub_resource type="Curve2D" id="Curve2D_p8prh"]
 _data = {
-"points": PackedVector2Array(0, 0, 0, 0, 559, -627, 0, 0, 0, 0, 509, -612, 0, 0, 0, 0, 457, -607, 0, 0, 0, 0, 450, -588)
+"points": PackedVector2Array(0, 0, 0, 0, 559, -627, 0, 0, 0, 0, 603, -706, 0, 0, 0, 0, 623, -721, 0, 0, 0, 0, 662, -742)
 }
 point_count = 4
 
@@ -118,15 +118,6 @@ size = Vector2(110, 59)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_yuljb"]
 size = Vector2(40, 59)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ekpwy"]
-size = Vector2(104.5, 54)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hvpye"]
-size = Vector2(57.3125, 56)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mu1ml"]
-size = Vector2(99.3125, 60)
-
 [sub_resource type="Curve2D" id="Curve2D_j74j7"]
 _data = {
 "points": PackedVector2Array(0, 0, 0, 0, 740, 367, 0, 0, 0, 0, 1121, 396, 0, 0, 0, 0, 1172, 678, 0, 0, 0, 0, 1168, 863, 0, 0, 0, 0, 1164, 1170, 0, 0, 0, 0, 1122, 1194, 0, 0, 0, 0, 896, 1158, 0, 0, 0, 0, 724, 1152, 0, 0, 0, 0, 394, 1135, 0, 0, 0, 0, -63, 1178, 0, 0, 0, 0, -145, 1251, 0, 0, 0, 0, -218, 1322, 0, 0, 0, 0, -244, 1428, 0, 0, 0, 0, -236, 1522, 0, 0, 0, 0, -184, 1575, 0, 0, 0, 0, -125, 1633, 0, 0, 0, 0, -511, 2362, 0, 0, 0, 0, -1, 2269)
@@ -150,10 +141,10 @@ y_sort_enabled = true
 script = ExtResource("1_maingame")
 
 [node name="Background2" type="ColorRect" parent="." unique_id=1359324232]
-offset_left = -117363.0
-offset_top = -40572.0
-offset_right = 64684.0
-offset_bottom = 55238.0
+offset_left = -117322.0
+offset_top = -40607.0
+offset_right = 64725.0
+offset_bottom = 55203.0
 mouse_filter = 2
 color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
 
@@ -172,7 +163,7 @@ position = Vector2(-733, -298)
 position = Vector2(-1806, 1048)
 
 [node name="House" parent="." unique_id=938874757 groups=["buildings"] instance=ExtResource("4_p8prh")]
-position = Vector2(264, -778)
+position = Vector2(-146, -1005)
 scale = Vector2(2, 2)
 
 [node name="Vet" parent="." unique_id=227832104 groups=["buildings"] instance=ExtResource("5_mrp28")]
@@ -314,7 +305,7 @@ is_exit = true
 is_house = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/HouseExit" unique_id=1132128830]
-position = Vector2(616, -650)
+position = Vector2(595, -646)
 shape = SubResource("RectangleShape2D_331gq")
 
 [node name="VetEnter" type="Area2D" parent="Interaction areas" unique_id=1336963313]
@@ -364,7 +355,7 @@ is_exit = true
 is_sleep = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Bed interact" unique_id=228056999]
-position = Vector2(319, -699)
+position = Vector2(916, -975.5)
 shape = SubResource("RectangleShape2D_xbs0w")
 
 [node name="CatchArea" type="Area2D" parent="Interaction areas" unique_id=440463769]
@@ -472,6 +463,7 @@ curve = SubResource("Curve2D_shop")
 curve = SubResource("Curve2D_p8prh")
 
 [node name="water path" type="Path2D" parent="." unique_id=2032795050]
+position = Vector2(242, -155)
 curve = SubResource("Curve2D_mrp28")
 
 [node name="Sleep path" type="Path2D" parent="." unique_id=2073388153]
@@ -592,39 +584,6 @@ position = Vector2(-1804, 1052)
 position = Vector2(-475, 195)
 polygon = PackedVector2Array(718, 1335, 722, 1478, 759, 1474, 762, 1337)
 
-[node name="House collisons" type="Node" parent="." unique_id=1053715235]
-
-[node name="Bed" type="StaticBody2D" parent="House collisons" unique_id=860385585]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="House collisons/Bed" unique_id=221484795]
-position = Vector2(319.75, -698)
-shape = SubResource("RectangleShape2D_ekpwy")
-
-[node name="Plant" type="StaticBody2D" parent="House collisons" unique_id=1563074626]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="House collisons/Plant" unique_id=1780677879]
-position = Vector2(618.65625, -586)
-shape = SubResource("RectangleShape2D_hvpye")
-
-[node name="Bookshelf" type="StaticBody2D" parent="House collisons" unique_id=545153525]
-
-[node name="bookshe" type="CollisionShape2D" parent="House collisons/Bookshelf" unique_id=1304206538]
-position = Vector2(616.6875, -731)
-shape = SubResource("RectangleShape2D_hvpye")
-
-[node name="Fireplace" type="StaticBody2D" parent="House collisons" unique_id=1674981585]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="House collisons/Fireplace" unique_id=1343153235]
-position = Vector2(503.34375, -728)
-shape = SubResource("RectangleShape2D_mu1ml")
-
-[node name="House Border" type="StaticBody2D" parent="House collisons" unique_id=1799103843]
-
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="House collisons/House Border" unique_id=826217825]
-position = Vector2(362, 221)
-build_mode = 1
-polygon = PackedVector2Array(-103, -1007, 285, -1003, 287, -769, -98, -772)
-
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=67586023]
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1380951137]
@@ -640,7 +599,7 @@ position = Vector2(-9024, 2770)
 scale = Vector2(2, 2)
 
 [node name="new home" parent="." unique_id=2056631131 instance=ExtResource("10_xgklt")]
-position = Vector2(-7537, 690)
+position = Vector2(402, -1050)
 scale = Vector2(2, 2)
 
 [node name="post" parent="." unique_id=570977186 instance=ExtResource("11_gy3b1")]

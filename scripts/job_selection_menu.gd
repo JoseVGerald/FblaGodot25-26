@@ -43,14 +43,14 @@ func _ready() -> void:
 	# entry rank — managers explain the promotion ladder once you're hired.
 	var all_jobs := [
 		{
-			"id": "news_boy", "title": "Mail Carrier", "emoji": "🗞️", "accent": Color("#4CAF50"),
+			"id": "news_boy", "title": "Mail Boy", "emoji": "🗞️", "accent": Color("#4CAF50"),
 			"desc": "Run the route out of the Post Office!\n\n" +
 				"• Start Pay: $10.00 / shift\n" +
 				"• Ranks: Paper Boy → Route Captain → Postmaster\n\n" +
 				"Benefit: Every taxi ride is FREE. Pay climbs with each promotion.",
 		},
 		{
-			"id": "burger_cashier", "title": "Burger Cashier", "emoji": "🍔", "accent": Color("#FFA726"),
+			"id": "burger_cashier", "title": "The Cook", "emoji": "🍔", "accent": Color("#FFA726"),
 			"desc": "Cook and serve at the Burger Barn!\n\n" +
 				"• Start Pay: $15.00 / shift + tips\n" +
 				"• Ranks: Trainee → Hard Worker → Grill Master\n\n" +

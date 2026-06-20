@@ -505,9 +505,13 @@ func _style_report_panels() -> void:
 	UITheme.style_cream_panel(week_strip)
 	UITheme.style_cream_panel(breakdown_card)
 	UITheme.style_cream_panel(events_card)
+	var font := UITheme.get_pixel_font()
 	for lbl in [breakdown_title, events_title]:
-		var font := UITheme.get_pixel_font()
 		if font: lbl.add_theme_font_override("font", font)
+		lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	# Week header label
+	if week_label:
+		week_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 
 func update_report() -> void:
 	var r    := GameState.weekly_report
@@ -550,20 +554,20 @@ func _populate_breakdown_grid(r: Dictionary) -> void:
 		pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		breakdown_grid.add_child(pill)
 
-		var spent_color := CLR_RED if spent > 0 else CLR_DIM
+		var spent_color := CLR_RED if spent > 0 else UITheme.CLR_MAROON_D
 		breakdown_grid.add_child(_make_cell("$%.2f" % spent, spent_color))
-		breakdown_grid.add_child(_make_cell("$%.2f" % limit, CLR_DIM))
+		breakdown_grid.add_child(_make_cell("$%.2f" % limit, UITheme.CLR_MAROON_D))
 
 		var remaining_color := CLR_GREEN
 		if remaining <= 0: remaining_color = CLR_RED
-		elif spent == 0:   remaining_color = CLR_CYAN
+		elif spent == 0:   remaining_color = UITheme.CLR_INK
 		breakdown_grid.add_child(_make_cell("$%.2f" % remaining, remaining_color))
 
 		var status_text: String
 		var status_color: Color
 		if spent == 0:
 			status_text = "– Unused"
-			status_color = CLR_CYAN
+			status_color = UITheme.CLR_INK
 		elif remaining <= 0:
 			status_text = "✗ Over"
 			status_color = CLR_RED
@@ -584,27 +588,27 @@ func _populate_events_grid(r: Dictionary, _week: int) -> void:
 
 	var inflation: float = GameState.inflation_rate if "inflation_rate" in GameState else 1.0
 	var inflation_pct: float = (inflation - 1.0) * 100.0
-	events_grid.add_child(_make_cell("Inflation rate", CLR_DIM))
+	events_grid.add_child(_make_cell("Inflation rate", UITheme.CLR_MAROON_D))
 	events_grid.add_child(_make_cell("%+0.1f%% on all costs" % inflation_pct, CLR_ORANGE))
 
 	var emergency: float = r.get("emergency_usage", 0.0)
 	if emergency > 0:
-		events_grid.add_child(_make_cell("Emergency coverage", CLR_DIM))
+		events_grid.add_child(_make_cell("Emergency coverage", UITheme.CLR_MAROON_D))
 		events_grid.add_child(_make_cell("-$%.2f from savings" % emergency, CLR_RED))
 
 	var income: float = r.get("income", 0.0)
 	if income > 0:
-		events_grid.add_child(_make_cell("Weekly allowance", CLR_DIM))
+		events_grid.add_child(_make_cell("Weekly allowance", UITheme.CLR_MAROON_D))
 		events_grid.add_child(_make_cell("+$%.2f income" % income, CLR_GREEN))
 
 	if GameState.loan_balance > 0:
-		events_grid.add_child(_make_cell("Active loan", CLR_DIM))
+		events_grid.add_child(_make_cell("Active loan", UITheme.CLR_MAROON_D))
 		events_grid.add_child(_make_cell("Owed: $%d" % GameState.loan_balance, CLR_RED))
 
 func _add_grid_header(grid: GridContainer, text: String) -> void:
 	var lbl := Label.new()
 	lbl.text = text
-	lbl.add_theme_color_override("font_color", CLR_DIM)
+	lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	lbl.add_theme_font_size_override("font_size", 30)
 	var font := UITheme.get_pixel_font()
 	if font: lbl.add_theme_font_override("font", font)
@@ -853,11 +857,38 @@ func _style_loan_panels() -> void:
 	if loan_input:
 		UITheme.style_line_edit(loan_input)
 
-	# Apply pixel font + shadow to key labels
+	# Apply pixel font + visible ink color to all loan labels
 	var font := UITheme.get_pixel_font()
 	for lbl in [loan_balance_label, loan_limit_label, loan_rate_label,
 				loan_accrued_label, loan_impact_label]:
 		if lbl and font: lbl.add_theme_font_override("font", font)
+		if lbl: lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
+
+	# Also style all other labels in the credit card for contrast
+	_apply_ink_to_labels(credit_card)
+
+	# Style BarHeader labels ("Credit used", limit label) — not inside credit_card
+	var credit_bar_section := get_node_or_null(
+		"Panel/VBox/Content/TabContainer/Loans/CreditBarSection")
+	if credit_bar_section:
+		_apply_ink_to_labels(credit_bar_section)
+
+	# Warning label text must be cream — it sits on the maroon tab background
+	_apply_cream_to_labels(loan_warning)
+
+## Recursively set all Labels in a container to CLR_INK for cream-bg contrast.
+func _apply_ink_to_labels(node: Node) -> void:
+	for child in node.get_children():
+		if child is Label:
+			child.add_theme_color_override("font_color", UITheme.CLR_INK)
+		_apply_ink_to_labels(child)
+
+## Recursively set all Labels to cream — for labels on the dark maroon background.
+func _apply_cream_to_labels(node: Node) -> void:
+	for child in node.get_children():
+		if child is Label:
+			child.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+		_apply_cream_to_labels(child)
 
 func _hook_credit_bar_canvas() -> void:
 	credit_bar.draw.connect(_draw_credit_bar)
@@ -889,9 +920,13 @@ func update_loans() -> void:
 	loan_balance_label.text = "$%d" % owed
 	loan_balance_label.add_theme_color_override("font_color", CLR_RED if owed > 0 else CLR_GREEN)
 	loan_limit_label.text   = "$%d / $%d available" % [owed, cap]
+	loan_limit_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	loan_rate_label.text    = "%d%%" % weekly_pct
+	loan_rate_label.add_theme_color_override("font_color", CLR_ORANGE)
 	loan_accrued_label.text = "$%d" % GameState.loan_interest_accrued
+	loan_accrued_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	loan_impact_label.text  = "$%d" % next_charge
+	loan_impact_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 
 	_credit_bar_ratio = 0.0 if cap <= 0 else float(owed) / float(cap)
 	credit_bar.queue_redraw()

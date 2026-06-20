@@ -4,6 +4,7 @@ extends CanvasLayer
 var _cheap_btn: Button
 var _premium_btn: Button
 var _pf: Font
+var panel: PanelContainer  # exposed so the Day 2 tutorial can spotlight the popup
 
 
 func _ready() -> void:
@@ -29,25 +30,25 @@ func _build_ui() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(520, 0)
+	panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(820, 0)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = UITheme.CLR_CREAM
 	sb.border_color = UITheme.CLR_INK
 	sb.set_border_width_all(5)
 	sb.set_corner_radius_all(0)
-	sb.set_content_margin_all(28)
+	sb.set_content_margin_all(52)
 	panel.add_theme_stylebox_override("panel", sb)
 	center.add_child(panel)
 
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 14)
+	col.add_theme_constant_override("separation", 28)
 	panel.add_child(col)
 
 	var title := Label.new()
 	title.text = "DOG DAYCARE"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 38)
+	title.add_theme_font_size_override("font_size", 72)
 	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if _pf: title.add_theme_font_override("font", _pf)
 	col.add_child(title)
@@ -56,8 +57,8 @@ func _build_ui() -> void:
 	sub.text = "Send your pup while you work. Pick a plan:"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD
-	sub.custom_minimum_size = Vector2(460, 0)
-	sub.add_theme_font_size_override("font_size", 20)
+	sub.custom_minimum_size = Vector2(720, 0)
+	sub.add_theme_font_size_override("font_size", 44)
 	sub.add_theme_color_override("font_color", UITheme.CLR_GRAY_DRK)
 	if _pf: sub.add_theme_font_override("font", _pf)
 	col.add_child(sub)
@@ -76,8 +77,8 @@ func _build_ui() -> void:
 
 	var cancel_btn := Button.new()
 	cancel_btn.text = "Cancel"
-	cancel_btn.custom_minimum_size = Vector2(0, 56)
-	cancel_btn.add_theme_font_size_override("font_size", 22)
+	cancel_btn.custom_minimum_size = Vector2(0, 120)
+	cancel_btn.add_theme_font_size_override("font_size", 48)
 	if _pf: cancel_btn.add_theme_font_override("font", _pf)
 	UITheme.style_pixel_button(cancel_btn, true)
 	cancel_btn.pressed.connect(func(): visible = false)
@@ -86,8 +87,8 @@ func _build_ui() -> void:
 
 func _make_tier_button() -> Button:
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(0, 72)
-	b.add_theme_font_size_override("font_size", 22)
+	b.custom_minimum_size = Vector2(0, 160)
+	b.add_theme_font_size_override("font_size", 44)
 	if _pf: b.add_theme_font_override("font", _pf)
 	UITheme.style_pixel_button(b)
 	return b

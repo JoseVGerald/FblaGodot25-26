@@ -158,6 +158,7 @@ var has_prescription: bool = false # Added to track vet orders
 
 # Tutorial state
 var is_tutorial_complete: bool = false
+var day_two_tutorial_done: bool = false # Day 2 (first work day) tutorial has run
 var is_day_one: bool = true
 var tutorial_blocks_movement: bool = false # When true, blocks movement but allows menu inputs
 var is_dog_sleeping: bool = false # Freeze needs when dog sleeps
@@ -278,6 +279,9 @@ var daycare_tier_today: DaycareTier = DaycareTier.NONE
 var daycare_cheap_price: float = 15.0
 var daycare_premium_price: float = 30.0
 var worked_today: bool = false
+# Times the player has shown up to work with the dog instead of using daycare.
+# Drives the escalating warning/fine in apply_dog_at_work_penalty().
+var dog_at_work_offenses: int = 0
 
 signal event_triggered(message: String)
 signal achievement_unlocked(name: String)
@@ -744,7 +748,7 @@ func complete_burger_work_shift(earnings: float, tips: float) -> void:
 	days_worked_this_week += 1
 	record_transaction("Burger Shift", base_credit, "Income")
 	if tip_credit > 0.0:
-		record_transaction("Tips: Burger Cashier", tip_credit, "Income")
+		record_transaction("Tips: The Cook", tip_credit, "Income")
 	var food_bonus := int(get_job_level_data(job, get_job_level(job)).get("food_bonus", 1))
 	food += food_bonus
 	event_triggered.emit("Shift done! Earned $%.2f ($%.2f tips), +%d food." % [base_credit + tip_credit, tip_credit, food_bonus])
@@ -937,13 +941,36 @@ func weekly_shift_limit() -> int:
 	return work_days_scheduled
 
 
-## Called when player arrives at work with dog (no daycare). Docks $25 and
-## reduces promotion standing — lower standing already raises fire risk.
+## Called when player arrives at work with the dog (no daycare). The boss
+## notices, warns, and fines the player. Repeat offenses escalate the fine and
+## standing hit, and a habitual offender risks being fired outright. Returns the
+## line to show in the manager's dialogue balloon.
 func apply_dog_at_work_penalty() -> String:
-	money -= 25.0
+	dog_at_work_offenses += 1
+	var fine: float
+	var standing_hit: float
+	var msg: String
+	match dog_at_work_offenses:
+		1:
+			fine = 25.0
+			standing_hit = 0.15
+			msg = "Consider this your warning — leave your buddy at daycare next time. That's a $25 fine, and your standing took a hit."
+		2:
+			fine = 50.0
+			standing_hit = 0.25
+			msg = "Second strike! I already warned you about the dog. $50 fine this time."
+		_:
+			fine = 75.0
+			standing_hit = 0.35
+			msg = "This keeps happening — you can't keep bringing your dog here! $75 fine."
+	money -= fine
 	if active_job != "none" and active_job in job_promo_chance:
-		job_promo_chance[active_job] = maxf(0.0, job_promo_chance[active_job] - 0.15)
-	return "$25 fine. Your standing took a hit."
+		job_promo_chance[active_job] = maxf(0.0, job_promo_chance[active_job] - standing_hit)
+	# Habitual offenders risk losing the job entirely.
+	if dog_at_work_offenses >= 3 and randf() < 0.5:
+		_fire_from_current_job("You kept bringing your dog to work after repeated warnings.")
+		return msg + " That's the last straw — you're fired!"
+	return msg
 
 
 ## Returns "" if the player may work another shift now, otherwise the manager's
@@ -1098,8 +1125,8 @@ func buy_home() -> bool:
 var active_job_display_name: String:
 	get:
 		match active_job:
-			"news_boy": return "News Boy"
-			"burger_cashier": return "Burger Cashier"
+			"news_boy": return "Mail Boy"
+			"burger_cashier": return "The Cook"
 			"bank_accountant": return "Bank Accountant"
 			_: return "None"
 
@@ -1179,6 +1206,7 @@ func reset_all() -> void:
 	# Day / tutorial
 	current_day = 0; day_timer = 0.0
 	is_day_one = true; is_tutorial_complete = false
+	day_two_tutorial_done = false
 	tutorial_blocks_movement = false; is_dog_sleeping = false
 	is_in_house = false; is_dialogue_active = false
 	# Catch minigame
@@ -1188,6 +1216,7 @@ func reset_all() -> void:
 	daycare_used_today = false
 	daycare_tier_today = DaycareTier.NONE
 	worked_today = false
+	dog_at_work_offenses = 0
 	# Achievement trackers
 	times_fed = 0; times_watered = 0; times_medicated = 0
 	vet_visit_count = 0; taxi_ride_count = 0; total_spent = 0
@@ -1310,7 +1339,9 @@ func save_game(dog_data: Dictionary = {}):
 		"water": water,
 		"medication": medication,
 		"is_tutorial_complete": is_tutorial_complete,
+		"day_two_tutorial_done": day_two_tutorial_done,
 		"is_day_one": is_day_one,
+		"dog_at_work_offenses": dog_at_work_offenses,
 		"master_volume": master_volume,
 		# Pathways & Jobs
 		"selected_pathway": selected_pathway,
@@ -1425,7 +1456,9 @@ func load_game() -> bool:
 	water = save_data.get("water", 0)
 	medication = save_data.get("medication", "none")
 	is_tutorial_complete = save_data.get("is_tutorial_complete", false)
+	day_two_tutorial_done = save_data.get("day_two_tutorial_done", false)
 	is_day_one = save_data.get("is_day_one", true)
+	dog_at_work_offenses = save_data.get("dog_at_work_offenses", 0)
 	master_volume = save_data.get("master_volume", 70)
 	
 	# Pathways & Jobs
