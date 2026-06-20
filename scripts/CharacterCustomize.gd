@@ -124,7 +124,7 @@ func _build_ui() -> void:
 		
 		# Add a safety margin of 20px
 		var avail_h := viewport_h - (other_h + 20.0)
-		sprite_scale = clamp(avail_h / 96.0, 5.5, (viewport_h * 0.35) / 96.0)
+		sprite_scale = clamp(avail_h / 96.0, 5.5, 12.5)
 
 
 	# ── Root vertical: title, middle split, bottom bar ──
@@ -172,7 +172,7 @@ func _build_ui() -> void:
 	var split := HBoxContainer.new()
 	split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.add_theme_constant_override("separation", 40)
+	split.add_theme_constant_override("separation", 80)
 	split.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(split)
 
