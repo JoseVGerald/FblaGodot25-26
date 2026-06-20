@@ -20,6 +20,23 @@ func _ready():
 	UITheme.style_checker_label(question_label, 14)
 	question_label.add_theme_font_size_override("font_size", 42)
 
+	# Position labels on top (above the sprites)
+	player_label.offset_top = -180
+	player_label.offset_bottom = -130
+	dog_label.offset_top = -180
+	dog_label.offset_bottom = -130
+
+	# Style labels: white text with thick outline
+	for lbl in [player_label, dog_label]:
+		lbl.add_theme_color_override("font_color", Color.WHITE)
+		lbl.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+		lbl.add_theme_constant_override("outline_size", 12)
+		
+		var font := SystemFont.new()
+		font.font_weight = 750 # Bold
+		lbl.add_theme_font_override("font", font)
+		lbl.add_theme_font_size_override("font_size", 36)
+
 	# Hide labels initially
 	player_label.visible = false
 	dog_label.visible = false
@@ -104,6 +121,9 @@ func setup_labels():
 func setup_buttons():
 	yes_button.pressed.connect(_on_yes_button_pressed)
 	no_button.pressed.connect(_on_no_button_pressed)
+	
+	UITheme.style_pixel_button_colored(yes_button, UITheme.CLR_GREEN)
+	UITheme.style_pixel_button_colored(no_button, UITheme.CLR_RED)
 
 func _on_yes_button_pressed():
 	SceneManager.change_scene("res://scenes/ui/MainGame.tscn", {"pattern": "curtains"})

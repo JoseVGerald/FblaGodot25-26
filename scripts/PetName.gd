@@ -18,8 +18,7 @@ func _ready():
 	if cont_btn: UITheme.style_pixel_button(cont_btn)
 	var title_lbl = get_node_or_null("VBoxContainer/Title")
 	if title_lbl is Label:
-		title_lbl.add_theme_color_override("font_color", UITheme.CLR_CREAM)
-		title_lbl.add_theme_color_override("font_shadow_color", UITheme.CLR_MAROON_D)
+		UITheme.style_checker_label(title_lbl, 14)
 
 func _on_pet_name_changed(new_text: String) -> void:
 	var filtered := ""
