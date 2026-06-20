@@ -40,26 +40,30 @@ func _ready() -> void:
 	
 	var main_vbox := get_node_or_null("Panel/VBox")
 	if main_vbox:
-		# Style existing close button at the bottom
-		UITheme.style_close_button(close_btn)
+		# Set tight spacing for settings contents
+		main_vbox.add_theme_constant_override("separation", 24)
+		
+		# Style existing close button at the bottom as a solid red pixel button
+		UITheme.style_pixel_button_colored(close_btn, UITheme.CLR_RED)
+		close_btn.custom_minimum_size = Vector2(240, 72)
+		close_btn.add_theme_font_size_override("font_size", 28)
 		close_btn.pressed.connect(_on_close_pressed)
 
 		# Create header close button dynamically
 		_inject_header_close_btn()
 		
 		# Style existing title
-		var title := get_node_or_null("Panel/VBox/HeaderRow/Title")
-		if not title:
-			title = get_node_or_null("Panel/VBox/Title")
+		var title := get_node_or_null("Panel/VBox/Title")
 		if title is Label:
 			title.text = "Settings"
+			title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			var title_font := SystemFont.new()
 			title_font.font_weight = 900
 			title.add_theme_font_override("font", title_font)
 			title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-			title.add_theme_font_size_override("font_size", 64)
+			title.add_theme_font_size_override("font_size", 48)
 			title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
-			title.add_theme_constant_override("outline_size", 12)
+			title.add_theme_constant_override("outline_size", 8)
 			title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.2))
 			title.add_theme_constant_override("shadow_offset_x", 3)
 			title.add_theme_constant_override("shadow_offset_y", 3)
@@ -82,14 +86,7 @@ func _ready() -> void:
 		var vc := get_node_or_null("Panel/VBox/VolumeContainer")
 		var music_card: PanelContainer = null
 		if vc is HBoxContainer:
-			# Format VolumeContainer separation
 			vc.add_theme_constant_override("separation", 24)
-			if volume_slider:
-				volume_slider.custom_minimum_size = Vector2(240, 20)
-				volume_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			
-			music_card = _wrap_row_in_card(vc, CLR_BORDER_SKY, "🎵")
 			var lbl := vc.get_node_or_null("Label")
 			if lbl is Label:
 				lbl.text = "Music Volume"
@@ -98,9 +95,18 @@ func _ready() -> void:
 				var font_medium := SystemFont.new()
 				font_medium.font_weight = 500
 				lbl.add_theme_font_override("font", font_medium)
-				lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				lbl.custom_minimum_size.x = 350
+				lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+				
+			if volume_slider:
+				volume_slider.custom_minimum_size = Vector2(400, 20)
+				volume_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			
+			music_card = _wrap_row_in_card(vc, CLR_BORDER_SKY, "🎵")
 			volume_value_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 			volume_value_label.add_theme_font_size_override("font_size", 28)
+			volume_value_label.custom_minimum_size.x = 100
 			var font_bold := SystemFont.new()
 			font_bold.font_weight = 700
 			volume_value_label.add_theme_font_override("font", font_bold)
@@ -227,6 +233,14 @@ func _update_mute_label() -> void:
 func _style_panel_shell() -> void:
 	var panel_node := get_node_or_null("Panel")
 	if panel_node is PanelContainer:
+		panel_node.custom_minimum_size = Vector2(1200, 900)
+		panel_node.set_anchors_preset(Control.PRESET_CENTER)
+		panel_node.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		panel_node.grow_vertical = Control.GROW_DIRECTION_BOTH
+		panel_node.offset_left = -600.0
+		panel_node.offset_top = -450.0
+		panel_node.offset_right = 600.0
+		panel_node.offset_bottom = 450.0
 		UITheme.style_cream_panel(panel_node)
 
 ## Apply slider track/fill style per spec.
@@ -265,8 +279,8 @@ func _style_slider(slider: HSlider) -> void:
 	grabber_hi.content_margin_bottom = 12
 	slider.add_theme_stylebox_override("grabber_highlight", grabber_hi)
 
-## Wrap the row in a stylized PanelContainer card with an accent bar and an emoji icon block.
-func _wrap_row_in_card(row: HBoxContainer, accent: Color, emoji: String) -> PanelContainer:
+## Wrap the row in a stylized PanelContainer card with a clean 3px ink border.
+func _wrap_row_in_card(row: HBoxContainer, _accent: Color, _emoji: String) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
@@ -279,58 +293,20 @@ func _wrap_row_in_card(row: HBoxContainer, accent: Color, emoji: String) -> Pane
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
 	sb.set_corner_radius_all(0)
-	sb.content_margin_left = 16
-	sb.content_margin_top = 16
-	sb.content_margin_right = 16
-	sb.content_margin_bottom = 16
+	sb.content_margin_left = 20
+	sb.content_margin_top = 12
+	sb.content_margin_right = 20
+	sb.content_margin_bottom = 12
 	card.add_theme_stylebox_override("panel", sb)
 	
-	# Inner HBox to align everything
-	var inner_hbox := HBoxContainer.new()
-	inner_hbox.add_theme_constant_override("separation", 24)
-	inner_hbox.mouse_filter = Control.MOUSE_FILTER_PASS
-	card.add_child(inner_hbox)
-	
-	# Left accent stripe (distinguishable colored accent)
-	var stripe := ColorRect.new()
-	stripe.color = accent
-	stripe.custom_minimum_size = Vector2(10, 0)
-	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	inner_hbox.add_child(stripe)
-	
-	# Icon block with emoji
-	var icon_block := _make_icon_block(emoji, accent)
-	inner_hbox.add_child(icon_block)
-	
-	# Move the row container (HBox) into the inner_hbox
+	# Move the row container (HBox) directly into the card
 	if row.get_parent():
 		row.get_parent().remove_child(row)
-	inner_hbox.add_child(row)
+	card.add_child(row)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
 	return card
-
-func _make_icon_block(emoji: String, accent: Color) -> PanelContainer:
-	var container := PanelContainer.new()
-	container.custom_minimum_size = Vector2(72, 72)
-	container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(accent.r, accent.g, accent.b, 0.22)
-	sb.border_color = UITheme.CLR_INK
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(0)
-	container.add_theme_stylebox_override("panel", sb)
-	
-	var label := Label.new()
-	label.text = emoji
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 36) # Big readable emoji
-	container.add_child(label)
-	
-	return container
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  EXPANDED LAYOUT — build AUDIO/GAME/DISPLAY/CONTROLS sections
@@ -398,7 +374,7 @@ func _build_expanded_layout() -> void:
 
 func _make_keybinds_row() -> PanelContainer:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 120)
+	row.custom_minimum_size = Vector2(0, 100)
 	row.add_theme_constant_override("separation", 24)
 	var card = _wrap_row_in_card(row, CLR_CYAN, "⌨️")
 
@@ -483,7 +459,7 @@ func _on_fullscreen_toggled(on: bool) -> void:
 func _make_toggle_row(name: String, sub: String, accent: Color,
 		initial_on: bool, on_toggled: Callable, emoji: String) -> Button:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 120)
+	row.custom_minimum_size = Vector2(0, 100)
 	row.add_theme_constant_override("separation", 24)
 	_wrap_row_in_card(row, accent, emoji)
 
@@ -529,7 +505,7 @@ func _make_toggle_row(name: String, sub: String, accent: Color,
 
 func _make_mute_row() -> PanelContainer:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 120)
+	row.custom_minimum_size = Vector2(0, 100)
 	row.add_theme_constant_override("separation", 24)
 	var card = _wrap_row_in_card(row, Color("#FFA726"), "🔇")
 
@@ -569,37 +545,25 @@ func _make_mute_row() -> PanelContainer:
 	return card
 
 func _inject_header_close_btn() -> void:
-	var title := get_node_or_null("Panel/VBox/Title")
-	if not (title is Label):
+	var panel_node := get_node_or_null("Panel")
+	if not panel_node:
 		return
-	var vbox := title.get_parent()
-	if not (vbox is VBoxContainer):
-		return
-
-	var header := HBoxContainer.new()
-	header.name = "HeaderRow"
-	header.add_theme_constant_override("separation", 10)
-
-	var title_index := title.get_index()
-	vbox.remove_child(title)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	header.add_child(title)
-
+	
+	# Create close button at the top right of the panel container
 	var x := Button.new()
-	x.text = "✕"
-	x.custom_minimum_size = Vector2(88, 88)
+	x.name = "HeaderCloseBtn"
+	x.text = "X" # Standard capital X to render correctly in pixel font
+	x.custom_minimum_size = Vector2(64, 64)
+	x.size_flags_horizontal = Control.SIZE_SHRINK_END
+	x.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	x.focus_mode = Control.FOCUS_NONE
 	UITheme.style_close_button(x)
 	x.pressed.connect(_on_close_pressed)
-	header.add_child(x)
-
-	vbox.add_child(header)
-	vbox.move_child(header, title_index)
+	panel_node.add_child(x)
 
 func _make_sfx_slider_row() -> PanelContainer:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 120)
+	row.custom_minimum_size = Vector2(0, 100)
 	row.add_theme_constant_override("separation", 24)
 	var card = _wrap_row_in_card(row, CLR_CYAN, "🔊")
 
@@ -610,14 +574,16 @@ func _make_sfx_slider_row() -> PanelContainer:
 	var font_medium := SystemFont.new()
 	font_medium.font_weight = 500
 	name_lbl.add_theme_font_override("font", font_medium)
-	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.custom_minimum_size.x = 350
+	name_lbl.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	row.add_child(name_lbl)
 
 	var slider := HSlider.new()
-	slider.custom_minimum_size = Vector2(240, 20)
+	slider.custom_minimum_size = Vector2(400, 20)
 	slider.min_value = 0
 	slider.max_value = 100
 	slider.value = volume_slider.value
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_style_slider(slider)
 	row.add_child(slider)
