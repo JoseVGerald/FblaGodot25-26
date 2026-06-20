@@ -39,6 +39,11 @@ func _ready():
 	breed_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	breed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	breed_label.clip_text = true  # foolproof: minimum size ignores text width → arrows never shift
+	breed_label.add_theme_font_size_override("font_size", 36)  # larger, more prominent text area
+	# Tighten the gap between arrows and label
+	var cycle_container = get_node_or_null("VBoxContainer/CycleContainer")
+	if cycle_container:
+		cycle_container.add_theme_constant_override("separation", 15)
 
 func _input(event):
 	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):
