@@ -157,20 +157,20 @@ func update_ui():
 ## Restyle HUD nodes to match the April 2026 redesign spec.
 ## Runs once at _ready — all existing node paths are preserved.
 func _apply_redesign_styling() -> void:
-	# Background bar — dark charcoal with dark maroon top border
+	# Background bar — cream with dark ink top border
 	var bg := get_node_or_null("Background")
 	if bg is Panel:
 		var bg_sb := StyleBoxFlat.new()
-		bg_sb.bg_color = UITheme.CLR_INK
-		bg_sb.border_color = UITheme.CLR_MAROON_D
+		bg_sb.bg_color = UITheme.CLR_CREAM
+		bg_sb.border_color = UITheme.CLR_INK
 		bg_sb.border_width_top = 4
 		bg_sb.set_corner_radius_all(0)
 		bg.add_theme_stylebox_override("panel", bg_sb)
 		bg.self_modulate.a = 1.0
 
-	# Money label — pixel font, gold, big.
+	# Money label — pixel font, dark maroon/brown, big.
 	money_label.text = "$%.2f" % GameState.money
-	money_label.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	money_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 	money_label.add_theme_font_size_override("font_size", 58)
 	var pf := UITheme.get_pixel_font()
 	if pf: money_label.add_theme_font_override("font", pf)
@@ -189,7 +189,7 @@ func _apply_redesign_styling() -> void:
 			daycare_btn.name = "DaycareBtn"
 			daycare_btn.text = "🐾 Daycare"
 			daycare_btn.custom_minimum_size = Vector2(140, 80) # Sized consistent with other nav buttons
-			UITheme.style_pixel_button_colored(daycare_btn, UITheme.CLR_PINK)
+			UITheme.style_pixel_button_colored(daycare_btn, UITheme.CLR_MAROON_D)
 			daycare_btn.add_theme_font_size_override("font_size", 22)
 			left_sec.add_child(daycare_btn)
 			daycare_btn.pressed.connect(_on_daycare_btn_pressed)
@@ -205,7 +205,7 @@ func _apply_redesign_styling() -> void:
 		left_sec.add_child(status_lbl)
 		status_lbl.visible = false  # job/shift info removed from HUD (visible in Work menu)
 
-	# Color-code and size nav buttons
+	# Monotone dark-brown and size nav buttons
 	supplies_btn.text = "Supplies"
 	needs_btn.text    = "Needs"
 	home_btn.text     = "Taxi"
@@ -214,21 +214,21 @@ func _apply_redesign_styling() -> void:
 	needs_btn.custom_minimum_size = Vector2(160, 80)
 	home_btn.custom_minimum_size = Vector2(160, 80)
 	
-	UITheme.style_pixel_button_colored(supplies_btn, UITheme.CLR_ORANGE_PX)
-	UITheme.style_pixel_button_colored(needs_btn, Color("#4A90D9"))
-	UITheme.style_pixel_button_colored(home_btn, UITheme.CLR_RED)
+	UITheme.style_pixel_button_colored(supplies_btn, UITheme.CLR_MAROON_D)
+	UITheme.style_pixel_button_colored(needs_btn, UITheme.CLR_MAROON_D)
+	UITheme.style_pixel_button_colored(home_btn, UITheme.CLR_MAROON_D)
 	
 	for b in [supplies_btn, needs_btn, home_btn]:
 		b.add_theme_font_size_override("font_size", 26)
 
-	# Create Work button for Teen/Adult pathways (green highlight)
+	# Create Work button for Teen/Adult pathways (dark maroon-brown highlight)
 	var right_sec = get_node_or_null("Background/Margin/MainHBox/RightSection")
 	if right_sec:
 		work_btn = Button.new()
 		work_btn.name = "WorkBtn"
 		work_btn.text = "Work"
 		work_btn.custom_minimum_size = Vector2(140, 80)
-		UITheme.style_pixel_button_colored(work_btn, UITheme.CLR_GREEN)
+		UITheme.style_pixel_button_colored(work_btn, UITheme.CLR_MAROON_D)
 		work_btn.add_theme_font_size_override("font_size", 26)
 		right_sec.add_child(work_btn)
 		work_btn.pressed.connect(_on_work_btn_pressed)
@@ -372,11 +372,11 @@ func _apply_time_label_text() -> void:
 		if _time_label_hovered:
 			time_label.text = "[center][color=#%s][u]%s[/u][/color][/center]" % [UITheme.CLR_ORANGE_PX.to_html(false), s]
 		else:
-			time_label.text = "[center][color=#%s]%s[/color][/center]" % [UITheme.CLR_CREAM_LT.to_html(false), s]
+			time_label.text = "[center][color=#%s]%s[/color][/center]" % [UITheme.CLR_INK.to_html(false), s]
 	else:
 		time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		time_label.text = s
-		time_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+		time_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 
 
 ## On hover: cyan + underline via BBCode; no size/scale changes.
