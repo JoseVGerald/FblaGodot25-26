@@ -238,7 +238,7 @@ func _build_left_panel() -> MarginContainer:
 	var preview_unit := VBoxContainer.new()
 	preview_unit.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	preview_unit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	preview_unit.add_theme_constant_override("separation", 12)
+	preview_unit.add_theme_constant_override("separation", 28)
 	col.add_child(preview_unit)
 
 	# ── Big composited preview (one direction) ──
@@ -273,7 +273,7 @@ func _build_left_panel() -> MarginContainer:
 
 	# ── Bottom strip container (VBoxContainer wrapped in MarginContainer for 8px padding) ──
 	var strip_container := MarginContainer.new()
-	strip_container.add_theme_constant_override("margin_top", 18)
+	strip_container.add_theme_constant_override("margin_top", 36)
 	strip_container.add_theme_constant_override("margin_bottom", 18)
 	preview_unit.add_child(strip_container)
 
@@ -298,26 +298,26 @@ func _build_left_panel() -> MarginContainer:
 	strip_box.add_child(carousel)
 
 	var prev_dir := _create_styled_button("<", Color(0.42, 0.48, 0.54))
-	prev_dir.custom_minimum_size = Vector2(52, 52)
-	prev_dir.add_theme_font_size_override("font_size", 28)
+	prev_dir.custom_minimum_size = Vector2(70, 70)
+	prev_dir.add_theme_font_size_override("font_size", 36)
 	prev_dir.pressed.connect(_on_direction_step.bind(-1))
 	carousel.add_child(prev_dir)
 
 	direction_label = Label.new()
 	direction_label.text = DIRECTION_LABELS[active_direction]
-	direction_label.add_theme_font_size_override("font_size", 24)
+	direction_label.add_theme_font_size_override("font_size", 32)
 	direction_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	direction_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	direction_label.add_theme_constant_override("outline_size", 8)
-	direction_label.custom_minimum_size.x = 140
+	direction_label.custom_minimum_size.x = 180
 	direction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pixel_font:
 		direction_label.add_theme_font_override("font", pixel_font)
 	carousel.add_child(direction_label)
 
 	var next_dir := _create_styled_button(">", Color(0.42, 0.48, 0.54))
-	next_dir.custom_minimum_size = Vector2(52, 52)
-	next_dir.add_theme_font_size_override("font_size", 28)
+	next_dir.custom_minimum_size = Vector2(70, 70)
+	next_dir.add_theme_font_size_override("font_size", 36)
 	next_dir.pressed.connect(_on_direction_step.bind(1))
 	carousel.add_child(next_dir)
 
@@ -335,7 +335,7 @@ func _build_mini_direction_preview(direction: String) -> Control:
 	var mini := Control.new()
 	var mini_scale := 2.25
 	if sprite_scale < 8.0:
-		mini_scale = 1.2
+		mini_scale = 2.0
 	var mini_w := int(48 * mini_scale)
 	var mini_h := int(96 * mini_scale)
 	mini.custom_minimum_size = Vector2(mini_w, mini_h)
@@ -436,7 +436,7 @@ func _build_right_sidebar() -> VBoxContainer:
 		var check := CheckBox.new()
 		check.text = TAB_LABELS[cat]
 		check.button_pressed = true
-		check.add_theme_font_size_override("font_size", 18 if is_small else 22)
+		check.add_theme_font_size_override("font_size", 24 if is_small else 30)
 		check.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 		check.add_theme_color_override("font_hover_color", Color.WHITE)
 		check.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
