@@ -6,7 +6,7 @@ extends Control
 @onready var tip_label: Label = $TipLabel
 @onready var title_label: Label = $TitleLabel
 @onready var bar_card: Panel = $BarCard
-@onready var file_box: ColorRect = $FileBox
+@onready var file_box: Panel = $FileBox
 
 const TIPS = [
 	"Teaching tricks to your pup...",
@@ -24,6 +24,52 @@ var real_files: Array = []
 var tween_finished: bool = false
 
 func _ready():
+	# Apply dynamic themes and replace background with dark red checker pattern
+	UITheme.apply_theme(self)
+
+	# Ensure the BarCard faint panel is hidden
+	if has_node("BarCard"):
+		get_node("BarCard").hide()
+
+	# Remove emoji prefix from tagline and adjust text
+	$TaglineLabel.text = "Preparing your adventure..."
+
+	# Polished ProgressBar customization (corner_radius 8px/5px, tan fill, maroon track, 3px ink border)
+	var sb_track := StyleBoxFlat.new()
+	sb_track.bg_color = UITheme.CLR_MAROON_D
+	sb_track.border_color = UITheme.CLR_INK
+	sb_track.set_border_width_all(3)
+	sb_track.set_corner_radius_all(8)
+	sb_track.anti_aliasing = false
+	progress_bar.add_theme_stylebox_override("background", sb_track)
+
+	var sb_fill := StyleBoxFlat.new()
+	sb_fill.bg_color = UITheme.CLR_TAN
+	sb_fill.set_corner_radius_all(5)
+	sb_fill.anti_aliasing = false
+	progress_bar.add_theme_stylebox_override("fill", sb_fill)
+
+	# Style labels on checker background with dynamic cream text + dark outlines
+	UITheme.style_checker_label(title_label, 12)
+	UITheme.style_checker_label(percent_label, 8)
+	UITheme.style_checker_label(tip_label, 8)
+	UITheme.style_checker_label($TaglineLabel, 8)
+
+	# Debug file loader box styling & visibility
+	if not OS.is_debug_build():
+		file_box.hide()
+	else:
+		file_box.show()
+		# Dark ink text on cream panel
+		UITheme.style_label(file_label, true)
+		var sb_panel := StyleBoxFlat.new()
+		sb_panel.bg_color = UITheme.CLR_CREAM
+		sb_panel.border_color = UITheme.CLR_INK
+		sb_panel.set_border_width_all(3)
+		sb_panel.set_corner_radius_all(0)
+		sb_panel.anti_aliasing = false
+		file_box.add_theme_stylebox_override("panel", sb_panel)
+
 	_build_file_library("res://scenes")
 	_build_file_library("res://scripts")
 	_build_file_library("res://assets")
@@ -35,11 +81,6 @@ func _ready():
 
 	ResourceLoader.load_threaded_request("res://scenes/ui/MainGame.tscn", "PackedScene")
 
-	var pixel_font = load("res://assets/fonts/Minecraft.ttf")
-	if pixel_font:
-		title_label.add_theme_font_override("font", pixel_font)
-		percent_label.add_theme_font_override("font", pixel_font)
-
 	_run_entrance_animations()
 	_start_progress_tween()
 	set_process(true)
@@ -49,39 +90,28 @@ func _ready():
 func _run_entrance_animations():
 	title_label.modulate.a = 0.0
 	$TaglineLabel.modulate.a = 0.0
-	bar_card.modulate.a = 0.0
 	progress_bar.modulate.a = 0.0
 	percent_label.modulate.a = 0.0
 	tip_label.modulate.a = 0.0
 	file_box.modulate.a = 0.0
 
-	# Capture original positions for slide-in effect
 	var title_orig_y = title_label.position.y
-	var bar_orig_y = bar_card.position.y
 	var pb_orig_y = progress_bar.position.y
 	title_label.position.y = title_orig_y + 18.0
-	bar_card.position.y = bar_orig_y + 12.0
 	progress_bar.position.y = pb_orig_y + 12.0
 
-	# Emil: ease-out for entering elements — stagger groups 150-180ms apart
 	var t = get_tree().create_tween()
 
-	# Group 1: Title — fade + slide up
 	t.tween_property(title_label, "modulate:a", 1.0, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(title_label, "position:y", title_orig_y, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-	# Group 2: Tagline — fade in
 	t.tween_interval(0.18)
 	t.tween_property($TaglineLabel, "modulate:a", 1.0, 0.40).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-	# Group 3: Bar card + progress bar — fade + slide up together
 	t.tween_interval(0.18)
-	t.tween_property(bar_card, "modulate:a", 1.0, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(bar_card, "position:y", bar_orig_y, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(progress_bar, "modulate:a", 1.0, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.tween_property(progress_bar, "modulate:a", 1.0, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(progress_bar, "position:y", pb_orig_y, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-	# Group 4: Percent + tip + file box — fades only
 	t.tween_interval(0.15)
 	t.tween_property(percent_label, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(tip_label, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
@@ -89,11 +119,9 @@ func _run_entrance_animations():
 
 func _start_progress_tween():
 	var tween = get_tree().create_tween()
-	# Multi-phase psychological loading: burst → steady → heavy → crawl
 	tween.tween_property(progress_bar, "value", 22.0, 6.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(progress_bar, "value", 58.0, 16.0).set_trans(Tween.TRANS_LINEAR)
 	tween.tween_property(progress_bar, "value", 85.0, 12.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	# Emil: linear for constant motion — the final crawl feels deliberate
 	tween.tween_property(progress_bar, "value", 99.9, 18.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tween.finished.connect(_on_tween_finished)
 
@@ -128,7 +156,6 @@ func _cycle_tip():
 
 	var next_tip = TIPS[randi() % TIPS.size()]
 
-	# Emil: asymmetric timing — fast exit (180ms), responsive enter (300ms ease-out)
 	var t = get_tree().create_tween()
 	t.tween_property(tip_label, "modulate:a", 0.0, 0.18).set_trans(Tween.TRANS_LINEAR)
 	t.tween_callback(func(): tip_label.text = next_tip)
@@ -164,7 +191,6 @@ func _play_completion():
 	if not is_inside_tree():
 		return
 
-	# Emil: exit fast — 220ms ease-in (user already anticipates next screen)
 	var out = get_tree().create_tween()
 	out.tween_property(self, "modulate:a", 0.0, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	await out.finished

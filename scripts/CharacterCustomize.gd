@@ -49,7 +49,8 @@ const DIR_ATLAS := {
 
 # Scale factor for the 48×96 sprites (~540×1080 at scale 11.25 — 1.5× the
 # previous 7.5 scale so the preview reads bigger on the left panel).
-const SPRITE_SCALE := 11.25
+var sprite_scale: float = 11.25
+
 
 var PREVIEW_TEXTURES: Dictionary = CharacterAssets.PREVIEW_TEXTURES
 
@@ -82,6 +83,8 @@ var continue_btn: Button
 var back_btn: Button
 var randomize_btn: Button
 var pixel_font: Font
+var mini_row_ref: HBoxContainer
+
 
 
 func _ready() -> void:
@@ -103,6 +106,27 @@ func _build_ui() -> void:
 	# ── Background (blue checker) ──
 	add_child(_create_checker_bg())
 
+	# Calculate dynamic sprite scale based on viewport height to fit smaller resolutions
+	var viewport_h := get_viewport_rect().size.y
+	if viewport_h > 100:
+		# Calculate the exact height taken by other elements to maximize the preview area
+		var other_h := 0.0
+		if viewport_h < 1200:
+			# top_pad (15) + title (~40) + gap (10) + shadow (14) + gaps (40)
+			# + bottom_bar padding/border/buttons (16+16+6+55 = 93)
+			# + mini row (115) + carousel (48)
+			other_h = 15.0 + 40.0 + 10.0 + 14.0 + 40.0 + 93.0 + 115.0 + 48.0 # = 375px
+		else:
+			# top_pad (30) + title (~60) + gap (18) + shadow (14) + gaps (40)
+			# + bottom_bar padding/border/buttons (24+24+6+82 = 136)
+			# + mini row (144) + carousel (48)
+			other_h = 30.0 + 60.0 + 18.0 + 14.0 + 40.0 + 136.0 + 144.0 + 48.0 # = 490px
+		
+		# Add a safety margin of 20px
+		var avail_h := viewport_h - (other_h + 20.0)
+		sprite_scale = clamp(avail_h / 96.0, 5.5, 12.5)
+
+
 	# ── Root vertical: title, middle split, bottom bar ──
 	var root := VBoxContainer.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -111,17 +135,24 @@ func _build_ui() -> void:
 
 	# top padding
 	var top_pad := Control.new()
-	top_pad.custom_minimum_size.y = 30
+	if viewport_h < 1200:
+		top_pad.custom_minimum_size.y = 15
+	else:
+		top_pad.custom_minimum_size.y = 30
 	root.add_child(top_pad)
 
 	# ── Title ──
 	var title := Label.new()
 	title.text = "CHARACTER CREATOR"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 52)
+	if viewport_h < 1200:
+		title.add_theme_font_size_override("font_size", 36)
+		title.add_theme_constant_override("outline_size", 8)
+	else:
+		title.add_theme_font_size_override("font_size", 52)
+		title.add_theme_constant_override("outline_size", 12)
 	title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
-	title.add_theme_constant_override("outline_size", 12)
 	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.35))
 	title.add_theme_constant_override("shadow_offset_x", 3)
 	title.add_theme_constant_override("shadow_offset_y", 3)
@@ -131,7 +162,10 @@ func _build_ui() -> void:
 
 	# gap under title
 	var gap := Control.new()
-	gap.custom_minimum_size.y = 18
+	if viewport_h < 1200:
+		gap.custom_minimum_size.y = 10
+	else:
+		gap.custom_minimum_size.y = 18
 	root.add_child(gap)
 
 	# ── Middle split: preview (left) | tabs+grid (right) ──
@@ -148,7 +182,28 @@ func _build_ui() -> void:
 
 	# right side (tabs + grid — grid is centered inside)
 	var right := _build_right_panel()
-	split.add_child(right)
+	
+	var right_wrapper := HBoxContainer.new()
+	right_wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_wrapper.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right_wrapper.add_theme_constant_override("separation", 0)
+
+	var left_line := ColorRect.new()
+	left_line.color = UITheme.CLR_INK
+	left_line.custom_minimum_size = Vector2(4, 0)
+	left_line.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right_wrapper.add_child(left_line)
+
+	right_wrapper.add_child(right)
+
+	var right_line := ColorRect.new()
+	right_line.color = UITheme.CLR_INK
+	right_line.custom_minimum_size = Vector2(4, 0)
+	right_line.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right_wrapper.add_child(right_line)
+
+	split.add_child(right_wrapper)
+
 
 	# Right spacer mirrors the left preview column width so the tab/grid
 	# block in the middle sits in the true horizontal center of the screen.
@@ -162,20 +217,33 @@ func _build_ui() -> void:
 
 
 # ── Left panel: main preview + direction carousel ──
-func _build_left_panel() -> VBoxContainer:
+func _build_left_panel() -> MarginContainer:
+	var container := MarginContainer.new()
+	container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	container.add_theme_constant_override("margin_left", 32)
+	container.add_theme_constant_override("margin_right", 24)
+
 	var col := VBoxContainer.new()
-	col.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_theme_constant_override("separation", 12)
+	container.add_child(col)
+
+	# Centering wrapper for preview and the bottom controls strip
+	var preview_unit := VBoxContainer.new()
+	preview_unit.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	preview_unit.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	preview_unit.add_theme_constant_override("separation", 12)
+	col.add_child(preview_unit)
 
 	# ── Big composited preview (one direction) ──
-	var preview_w := int(48 * SPRITE_SCALE)
-	var preview_h := int(96 * SPRITE_SCALE)
+	var preview_w := int(48 * sprite_scale)
+	var preview_h := int(96 * sprite_scale)
 	main_preview_root = Control.new()
 	main_preview_root.custom_minimum_size = Vector2(preview_w, preview_h)
 	main_preview_root.clip_contents = true
-	col.add_child(main_preview_root)
+	preview_unit.add_child(main_preview_root)
 
 	var layer_order := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
 	for i in range(layer_order.size()):
@@ -183,7 +251,7 @@ func _build_left_panel() -> VBoxContainer:
 		var sp := Sprite2D.new()
 		sp.name = cat
 		sp.centered = false
-		sp.scale = Vector2(SPRITE_SCALE, SPRITE_SCALE)
+		sp.scale = Vector2(sprite_scale, sprite_scale)
 		sp.z_index = i
 		main_preview_root.add_child(sp)
 		main_preview_sprites[cat] = sp
@@ -196,13 +264,24 @@ func _build_left_panel() -> VBoxContainer:
 	shadow_sb.bg_color = Color(0, 0, 0, 0.25)
 	shadow_sb.set_corner_radius_all(8)
 	shadow.add_theme_stylebox_override("panel", shadow_sb)
-	col.add_child(shadow)
+	preview_unit.add_child(shadow)
+
+	# ── Bottom strip container (VBoxContainer wrapped in MarginContainer for 8px padding) ──
+	var strip_container := MarginContainer.new()
+	strip_container.add_theme_constant_override("margin_top", 8)
+	strip_container.add_theme_constant_override("margin_bottom", 8)
+	preview_unit.add_child(strip_container)
+
+	var strip_box := VBoxContainer.new()
+	strip_box.add_theme_constant_override("separation", 12)
+	strip_container.add_child(strip_box)
 
 	# ── Row of 4 tiny direction thumbnails (decorative — no click) ──
 	var mini_row := HBoxContainer.new()
 	mini_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	mini_row.add_theme_constant_override("separation", 6)
-	col.add_child(mini_row)
+	strip_box.add_child(mini_row)
+	mini_row_ref = mini_row
 	for d in DIRECTION_ORDER:
 		var mini := _build_mini_direction_preview(d)
 		mini_row.add_child(mini)
@@ -211,17 +290,17 @@ func _build_left_panel() -> VBoxContainer:
 	var carousel := HBoxContainer.new()
 	carousel.alignment = BoxContainer.ALIGNMENT_CENTER
 	carousel.add_theme_constant_override("separation", 18)
-	col.add_child(carousel)
+	strip_box.add_child(carousel)
 
 	var prev_dir := _create_styled_button("<", Color(0.42, 0.48, 0.54))
-	prev_dir.custom_minimum_size = Vector2(52, 52)
+	prev_dir.custom_minimum_size = Vector2(48, 48)
 	prev_dir.add_theme_font_size_override("font_size", 28)
 	prev_dir.pressed.connect(_on_direction_step.bind(-1))
 	carousel.add_child(prev_dir)
 
 	direction_label = Label.new()
 	direction_label.text = DIRECTION_LABELS[active_direction]
-	direction_label.add_theme_font_size_override("font_size", 28)
+	direction_label.add_theme_font_size_override("font_size", 22)
 	direction_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	direction_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	direction_label.add_theme_constant_override("outline_size", 8)
@@ -232,24 +311,36 @@ func _build_left_panel() -> VBoxContainer:
 	carousel.add_child(direction_label)
 
 	var next_dir := _create_styled_button(">", Color(0.42, 0.48, 0.54))
-	next_dir.custom_minimum_size = Vector2(52, 52)
+	next_dir.custom_minimum_size = Vector2(48, 48)
 	next_dir.add_theme_font_size_override("font_size", 28)
 	next_dir.pressed.connect(_on_direction_step.bind(1))
 	carousel.add_child(next_dir)
 
-	return col
+	# Nudge the preview unit slightly upwards to center it visually in the middle of the screen
+	var bottom_nudge := Control.new()
+	bottom_nudge.custom_minimum_size.y = 80
+	col.add_child(bottom_nudge)
+
+	return container
+
 
 
 # ── 4 small non-interactive direction thumbnails under the big preview ──
 func _build_mini_direction_preview(direction: String) -> Control:
 	var mini := Control.new()
-	mini.custom_minimum_size = Vector2(48, 96)  # 1× scale
+	var mini_scale := 1.5
+	if sprite_scale < 8.0:
+		mini_scale = 1.2
+	var mini_w := int(48 * mini_scale)
+	var mini_h := int(96 * mini_scale)
+	mini.custom_minimum_size = Vector2(mini_w, mini_h)
 
 	var layer_order := ["Body", "Eyes", "Outfit", "Hairstyle", "Accessory"]
 	for i in range(layer_order.size()):
 		var cat: String = layer_order[i]
 		var sp := Sprite2D.new()
 		sp.centered = false
+		sp.scale = Vector2(mini_scale, mini_scale)
 		sp.z_index = i
 		var tex: Texture2D = _atlas_for(cat, direction)
 		if tex:
@@ -373,26 +464,34 @@ func _create_bottom_bar() -> PanelContainer:
 	var bar := PanelContainer.new()
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	# Bottom-bar chrome + interior are scaled 1.5× (border/padding/fonts/btns)
-	# so the name row reads larger relative to the rest of the screen.
+	# Bottom-bar chrome + interior are scaled dynamically depending on viewport height
+	var viewport_h := get_viewport_rect().size.y
+	var is_small := viewport_h < 1200
+
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = UITheme.CLR_CREAM
 	sb.border_color = UITheme.CLR_INK
 	sb.border_width_top = 6       # was 4
-	sb.content_margin_left = 45   # was 30
-	sb.content_margin_right = 45  # was 30
-	sb.content_margin_top = 24    # was 16
-	sb.content_margin_bottom = 24 # was 16
+	if is_small:
+		sb.content_margin_left = 30
+		sb.content_margin_right = 30
+		sb.content_margin_top = 16
+		sb.content_margin_bottom = 16
+	else:
+		sb.content_margin_left = 45   # was 30
+		sb.content_margin_right = 45  # was 30
+		sb.content_margin_top = 24    # was 16
+		sb.content_margin_bottom = 24 # was 16
 	bar.add_theme_stylebox_override("panel", sb)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 24)  # was 16
+	row.add_theme_constant_override("separation", 16 if is_small else 24)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(row)
 
 	# ── LEFT CLUSTER: BACK + RANDOMIZE ──
 	var left_cluster := HBoxContainer.new()
-	left_cluster.add_theme_constant_override("separation", 18)  # was 12
+	left_cluster.add_theme_constant_override("separation", 12 if is_small else 18)
 	left_cluster.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	row.add_child(left_cluster)
 
@@ -412,12 +511,12 @@ func _create_bottom_bar() -> PanelContainer:
 	row.add_child(center_wrap)
 
 	var name_box := HBoxContainer.new()
-	name_box.add_theme_constant_override("separation", 18)  # was 12
+	name_box.add_theme_constant_override("separation", 12 if is_small else 18)
 	center_wrap.add_child(name_box)
 
 	var name_label := Label.new()
 	name_label.text = "NAME:"
-	name_label.add_theme_font_size_override("font_size", 42)  # was 28
+	name_label.add_theme_font_size_override("font_size", 28 if is_small else 42)
 	name_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	name_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	name_label.add_theme_constant_override("outline_size", 8)
@@ -426,10 +525,10 @@ func _create_bottom_bar() -> PanelContainer:
 	name_box.add_child(name_label)
 
 	name_input = LineEdit.new()
-	name_input.custom_minimum_size = Vector2(510, 72)  # was (340, 48)
+	name_input.custom_minimum_size = Vector2(340 if is_small else 510, 48 if is_small else 72)
 	name_input.placeholder_text = "Enter Name"
 	name_input.max_length = 25
-	name_input.add_theme_font_size_override("font_size", 36)  # was 24
+	name_input.add_theme_font_size_override("font_size", 24 if is_small else 36)
 	name_input.add_theme_color_override("font_color", UITheme.CLR_INK)
 	name_input.add_theme_color_override("font_placeholder_color", UITheme.CLR_GRAY_DRK)
 	if pixel_font:
@@ -437,23 +536,29 @@ func _create_bottom_bar() -> PanelContainer:
 	var input_sb := StyleBoxFlat.new()
 	input_sb.bg_color = UITheme.CLR_CREAM_LT
 	input_sb.border_color = UITheme.CLR_INK
-	input_sb.set_border_width_all(5)     # was 3
-	input_sb.set_corner_radius_all(0)    # was 4
-	input_sb.content_margin_left = 18    # was 12
-	input_sb.content_margin_right = 18   # was 12
-	input_sb.content_margin_top = 9      # was 6
-	input_sb.content_margin_bottom = 9   # was 6
+	if is_small:
+		input_sb.set_border_width_all(3)
+		input_sb.content_margin_left = 12
+		input_sb.content_margin_right = 12
+		input_sb.content_margin_top = 6
+		input_sb.content_margin_bottom = 6
+	else:
+		input_sb.set_border_width_all(5)     # was 3
+		input_sb.content_margin_left = 18    # was 12
+		input_sb.content_margin_right = 18   # was 12
+		input_sb.content_margin_top = 9      # was 6
+		input_sb.content_margin_bottom = 9   # was 6
 	name_input.add_theme_stylebox_override("normal", input_sb)
 	var input_sb_focus: StyleBoxFlat = input_sb.duplicate()
 	input_sb_focus.border_color = UITheme.CLR_ORANGE_PX
-	input_sb_focus.border_width_bottom = 6  # was 4
+	input_sb_focus.border_width_bottom = 4 if is_small else 6
 	name_input.add_theme_stylebox_override("focus", input_sb_focus)
 	name_input.text_changed.connect(_on_name_changed)
 	name_box.add_child(name_input)
 
 	# ── RIGHT CLUSTER: visibility checkboxes + CONTINUE ──
 	var right_cluster := HBoxContainer.new()
-	right_cluster.add_theme_constant_override("separation", 15)  # was 10
+	right_cluster.add_theme_constant_override("separation", 10 if is_small else 15)
 	right_cluster.size_flags_horizontal = Control.SIZE_SHRINK_END
 	row.add_child(right_cluster)
 
@@ -461,7 +566,7 @@ func _create_bottom_bar() -> PanelContainer:
 		var check := CheckBox.new()
 		check.text = TAB_LABELS[cat]
 		check.button_pressed = true
-		check.add_theme_font_size_override("font_size", 27)  # was 18
+		check.add_theme_font_size_override("font_size", 18 if is_small else 27)
 		check.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 		check.add_theme_color_override("font_hover_color", Color.WHITE)
 		check.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
@@ -484,8 +589,13 @@ func _create_bottom_bar() -> PanelContainer:
 # Scale the 3 bottom-bar buttons (back / randomize / continue) to ~1.5× without
 # touching _create_styled_button (which is also used by direction arrows).
 func _scale_bottom_button(btn: Button) -> void:
-	btn.custom_minimum_size = Vector2(300, 82)  # was (200, 55)
-	btn.add_theme_font_size_override("font_size", 42)  # was 28
+	var viewport_h := get_viewport_rect().size.y
+	if viewport_h < 1200:
+		btn.custom_minimum_size = Vector2(200, 55)
+		btn.add_theme_font_size_override("font_size", 28)
+	else:
+		btn.custom_minimum_size = Vector2(300, 82)  # was (200, 55)
+		btn.add_theme_font_size_override("font_size", 42)  # was 28
 
 
 func _create_styled_button(label_text: String, bg_color: Color) -> Button:
@@ -582,6 +692,8 @@ func _refresh_mini_previews() -> void:
 
 
 func _find_mini_row() -> HBoxContainer:
+	if mini_row_ref != null:
+		return mini_row_ref
 	if main_preview_root == null:
 		return null
 	var parent: Node = main_preview_root.get_parent()
