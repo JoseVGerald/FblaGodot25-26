@@ -34,7 +34,7 @@ const SLEEP_TARGET: Vector2 = Vector2(310, -590)
 # Where the dog snaps to the moment the player enters the house, so its
 # straight-line routine path to the food bowl doesn't have to cross walls
 # from wherever it was standing out in the world.
-const HOUSE_ENTRY_POS: Vector2 = Vector2(565, -685)
+const HOUSE_ENTRY_POS: Vector2 = Vector2(565, -693)
 
 var hunger: float = 80.0
 var thirst: float = 70.0

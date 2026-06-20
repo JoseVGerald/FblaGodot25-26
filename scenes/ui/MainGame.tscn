@@ -621,11 +621,11 @@ curve = SubResource("Curve2D_xgklt")
 position = Vector2(0, 1)
 curve = SubResource("Curve2D_gy3b1")
 
-[node name="KidTeenPlayerSpawn" type="Marker2D" parent="."]
-position = Vector2(950, -900)
+[node name="KidTeenPlayerSpawn" type="Marker2D" parent="." unique_id=936880271]
+position = Vector2(925, -899)
 
-[node name="KidTeenDogSpawn" type="Marker2D" parent="."]
-position = Vector2(995, -915)
+[node name="KidTeenDogSpawn" type="Marker2D" parent="." unique_id=244763609]
+position = Vector2(990, -915)
 
-[node name="KidTeenMotherSpawn" type="Marker2D" parent="."]
+[node name="KidTeenMotherSpawn" type="Marker2D" parent="." unique_id=738846599]
 position = Vector2(-560, -755)

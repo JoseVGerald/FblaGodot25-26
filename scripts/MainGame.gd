@@ -20,16 +20,10 @@ var _job_path_line: Line2D = null
 
 func _ready():
 	if GameState.selected_pathway in ["kid", "teenager"]:
-		if GameState.is_day_one and not GameState.is_tutorial_complete:
-			player_spawn_pos = Vector2(435, -640)
-			dog_spawn_pos = Vector2(395, -640)
-			GameState.Inside_house = true
-			GameState.is_in_house = true
-		else:
-			var pm := get_node_or_null("KidTeenPlayerSpawn")
-			var dm := get_node_or_null("KidTeenDogSpawn")
-			if pm: player_spawn_pos = pm.position
-			if dm: dog_spawn_pos = dm.position
+		var pm := get_node_or_null("KidTeenPlayerSpawn")
+		var dm := get_node_or_null("KidTeenDogSpawn")
+		if pm: player_spawn_pos = pm.position
+		if dm: dog_spawn_pos = dm.position
 	spawn_player()
 	spawn_dog()
 	setup_hud()

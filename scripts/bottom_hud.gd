@@ -287,8 +287,8 @@ func _float_time_label_center() -> void:
 	time_label.offset_top    = 0.0
 	time_label.offset_bottom = 0.0
 	time_label.z_index       = 2
-	# MOUSE_FILTER_STOP in center — side buttons are outside this area
-	time_label.mouse_filter  = Control.MOUSE_FILTER_STOP
+	# IGNORE so the full-width overlay doesn't steal clicks from HUD buttons
+	time_label.mouse_filter  = Control.MOUSE_FILTER_IGNORE
 
 func _on_work_btn_pressed():
 	if GameState.active_job == "none":
