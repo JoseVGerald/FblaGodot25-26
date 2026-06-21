@@ -60,6 +60,8 @@ var presc_checkbox : CheckBox
 var bundle_price_label : Label
 var bundle_count_label : Label
 
+var toy_card : PanelContainer
+
 # Cosmetic / fake item nodes
 var grooming_price_label : Label
 var grooming_count_label : Label
@@ -385,7 +387,7 @@ func _build_ui() -> void:
 	_build_item_card(grooming_card, "grooming")
 
 	# Item Card 6: Chew Toy (cosmetic — keeps Buddy entertained)
-	var toy_card = PanelContainer.new()
+	toy_card = PanelContainer.new()
 	toy_card.name = "ToyCard"
 	shelves_vbox.add_child(toy_card)
 	_build_item_card(toy_card, "toy")
@@ -1049,6 +1051,8 @@ func show_shop() -> void:
 	prescription_available = GameState.has_prescription and GameState.medication != "Antibiotics (5 days)"
 	if presc_card:
 		presc_card.visible = prescription_available
+	if toy_card:
+		toy_card.visible = not prescription_available
 	
 	if prescription_available:
 		prescription_selected = true
