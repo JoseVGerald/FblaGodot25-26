@@ -210,32 +210,150 @@ func _build_ui() -> void:
 	left_col.add_theme_constant_override("separation", 12)
 	columns.add_child(left_col)
 
-	# Shopkeeper Portrait frame
+	# Shopkeeper NPC character card — rich portrait block with name tag + role
 	var sk_portrait_card = PanelContainer.new()
 	sk_portrait_card.name = "ShopkeeperPortrait"
+	sk_portrait_card.custom_minimum_size = Vector2(0, 230)
 	left_col.add_child(sk_portrait_card)
 	
-	# Draw Avatar procdurally (Crisp nearest filter)
+	# Layout inside NPC card: avatar on left, info panel on right
+	var sk_hbox = HBoxContainer.new()
+	sk_hbox.add_theme_constant_override("separation", 0)
+	sk_portrait_card.add_child(sk_hbox)
+	
+	# Avatar column — dark pixel-art style background
+	var avatar_col = VBoxContainer.new()
+	avatar_col.name = "AvatarCol"
+	avatar_col.add_theme_constant_override("separation", 0)
+	sk_hbox.add_child(avatar_col)
+	
+	# Avatar bg panel
+	var avatar_bg = PanelContainer.new()
+	avatar_bg.name = "AvatarBg"
+	avatar_bg.custom_minimum_size = Vector2(160, 0)
+	avatar_bg.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	avatar_col.add_child(avatar_bg)
+	var _avatar_sb = StyleBoxFlat.new()
+	_avatar_sb.bg_color = Color("#0d1a33")
+	_avatar_sb.set_border_width_all(0)
+	_avatar_sb.set_content_margin_all(10)
+	avatar_bg.add_theme_stylebox_override("panel", _avatar_sb)
+	
+	# Avatar TextureRect
 	shopkeeper_avatar = TextureRect.new()
 	shopkeeper_avatar.name = "Avatar"
-	shopkeeper_avatar.custom_minimum_size = Vector2(140, 140)
+	shopkeeper_avatar.custom_minimum_size = Vector2(120, 120)
 	shopkeeper_avatar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	shopkeeper_avatar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	sk_portrait_card.add_child(shopkeeper_avatar)
+	avatar_bg.add_child(shopkeeper_avatar)
+	
+	# Name badge strip below avatar
+	var name_badge = PanelContainer.new()
+	name_badge.name = "NameBadge"
+	var _badge_sb = StyleBoxFlat.new()
+	_badge_sb.bg_color = Color("#ffd071")  # gold
+	_badge_sb.set_border_width_all(0)
+	_badge_sb.content_margin_left = 8
+	_badge_sb.content_margin_right = 8
+	_badge_sb.content_margin_top = 6
+	_badge_sb.content_margin_bottom = 6
+	name_badge.add_theme_stylebox_override("panel", _badge_sb)
+	avatar_col.add_child(name_badge)
+	var name_badge_lbl = Label.new()
+	name_badge_lbl.text = "SHOPKEEPER"
+	name_badge_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_badge_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
+	name_badge_lbl.add_theme_font_size_override("font_size", 18)
+	name_badge_lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
+	name_badge.add_child(name_badge_lbl)
+	
+	# Info panel on right — shop name + mood indicators
+	var sk_info = VBoxContainer.new()
+	sk_info.name = "ShopkeeperInfo"
+	sk_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sk_info.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sk_info.add_theme_constant_override("separation", 8)
+	var _info_sb = StyleBoxFlat.new()
+	_info_sb.bg_color = Color("#0f2040")
+	_info_sb.set_border_width_all(0)
+	_info_sb.set_content_margin_all(14)
+	sk_hbox.add_child(sk_info)
+	
+	# Shop name label
+	var shop_name_lbl = Label.new()
+	shop_name_lbl.text = "BUDDY'S BOUTIQUE"
+	shop_name_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
+	shop_name_lbl.add_theme_font_size_override("font_size", 26)
+	shop_name_lbl.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	shop_name_lbl.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	shop_name_lbl.add_theme_constant_override("outline_size", 4)
+	sk_info.add_child(shop_name_lbl)
+	
+	# Separator line
+	var npc_sep = ColorRect.new()
+	npc_sep.color = Color(UITheme.CLR_GOLD.r, UITheme.CLR_GOLD.g, UITheme.CLR_GOLD.b, 0.35)
+	npc_sep.custom_minimum_size = Vector2(0, 2)
+	sk_info.add_child(npc_sep)
+	
+	# Store open status badge
+	var status_hbox = HBoxContainer.new()
+	status_hbox.add_theme_constant_override("separation", 6)
+	sk_info.add_child(status_hbox)
+	var status_dot = ColorRect.new()
+	status_dot.color = Color("#4CAF50")
+	status_dot.custom_minimum_size = Vector2(10, 10)
+	status_dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	status_hbox.add_child(status_dot)
+	var status_lbl = Label.new()
+	status_lbl.text = "OPEN FOR BUSINESS"
+	status_lbl.add_theme_font_size_override("font_size", 18)
+	status_lbl.add_theme_color_override("font_color", Color("#4CAF50"))
+	status_hbox.add_child(status_lbl)
+	
+	# Stock tip line
+	var tip_lbl = Label.new()
+	tip_lbl.text = "✦ Premium pet supplies\n✦ Daily deals available\n✦ Loyalty points earned"
+	tip_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tip_lbl.add_theme_font_size_override("font_size", 18)
+	tip_lbl.add_theme_color_override("font_color", Color("#8aaad4"))
+	tip_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sk_info.add_child(tip_lbl)
 
-	# Shopkeeper reactive speech bubble
+	# NPC dialogue speech bubble — styled like a real game dialogue box
 	var speech_card = PanelContainer.new()
 	speech_card.name = "SpeechCard"
-	speech_card.custom_minimum_size = Vector2(0, 100)
+	speech_card.custom_minimum_size = Vector2(0, 110)
 	left_col.add_child(speech_card)
-
+	
+	# Inner layout for speech bubble
+	var speech_vbox = VBoxContainer.new()
+	speech_vbox.add_theme_constant_override("separation", 4)
+	speech_card.add_child(speech_vbox)
+	
+	# Speaker indicator row (NPC triangle + name)
+	var speaker_row = HBoxContainer.new()
+	speaker_row.add_theme_constant_override("separation", 8)
+	speech_vbox.add_child(speaker_row)
+	var speaker_triangle = Label.new()
+	speaker_triangle.text = "\u25B6"
+	speaker_triangle.add_theme_font_size_override("font_size", 20)
+	speaker_triangle.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	speaker_row.add_child(speaker_triangle)
+	var speaker_name = Label.new()
+	speaker_name.text = "SHOPKEEPER"
+	speaker_name.add_theme_font_override("font", UITheme.get_pixel_font())
+	speaker_name.add_theme_font_size_override("font_size", 20)
+	speaker_name.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	speaker_row.add_child(speaker_name)
+	
+	# Speech text
 	speech_label = Label.new()
 	speech_label.name = "SpeechLabel"
 	speech_label.text = "Welcome! Need anything for your pet today?"
 	speech_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	speech_label.add_theme_font_size_override("font_size", 24)
 	speech_label.add_theme_color_override("font_color", Color.WHITE)
-	speech_card.add_child(speech_label)
+	speech_vbox.add_child(speech_label)
 
 	# ── "DEALS & ADVERTISEMENTS" section title ────────────────────────────────────
 	var deals_title = Label.new()
@@ -480,8 +598,34 @@ func _build_ui() -> void:
 	
 	# Specific component overrides (navy backgrounds instead of cream)
 	UITheme.style_panel(main_panel)
-	UITheme.style_card(sk_portrait_card)
-	UITheme.style_card(speech_card)
+	
+	# NPC portrait card — dark immersive background, gold accent border on left
+	var _sk_portrait_sb = StyleBoxFlat.new()
+	_sk_portrait_sb.bg_color = Color("#0d1a33")
+	_sk_portrait_sb.border_color = UITheme.CLR_GOLD
+	_sk_portrait_sb.border_width_left = 4
+	_sk_portrait_sb.border_width_top = 2
+	_sk_portrait_sb.border_width_right = 2
+	_sk_portrait_sb.border_width_bottom = 2
+	_sk_portrait_sb.set_corner_radius_all(8)
+	_sk_portrait_sb.set_content_margin_all(0)  # Zero padding — inner panels control their own
+	sk_portrait_card.add_theme_stylebox_override("panel", _sk_portrait_sb)
+	
+	# Speech bubble: cream background with ink border — classic NPC dialogue box style
+	var _speech_sb = StyleBoxFlat.new()
+	_speech_sb.bg_color = Color("#152038")
+	_speech_sb.border_color = UITheme.CLR_GOLD
+	_speech_sb.border_width_left = 3
+	_speech_sb.border_width_top = 3
+	_speech_sb.border_width_right = 3
+	_speech_sb.border_width_bottom = 5  # heavier bottom = cartoon speech bubble depth
+	_speech_sb.set_corner_radius_all(6)
+	_speech_sb.content_margin_left = 16
+	_speech_sb.content_margin_right = 16
+	_speech_sb.content_margin_top = 10
+	_speech_sb.content_margin_bottom = 12
+	speech_card.add_theme_stylebox_override("panel", _speech_sb)
+	
 	UITheme.style_card(cart_card)
 	
 	# Pixel button configurations
@@ -605,7 +749,8 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 	hbox.add_theme_constant_override("separation", 12)
 	card.add_child(hbox)
 
-	# 1. Left side: Item Icon Tile
+	# 1. Left side: Item Icon — embedded directly in card, no wrapper panel
+	# (removed PanelContainer tile to eliminate double border effect)
 	var icon_color := UIColors.BTN_GREEN
 	var emoji := "🍖"
 	match type:
@@ -624,16 +769,34 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 		"toy":
 			icon_color = Color("#d4a017")
 			emoji = "🧸"
-			
-	var icon_tile = UITheme.make_icon_tile(icon_color, 80)
-	hbox.add_child(icon_tile)
+	
+	# Icon column: colored accent strip that hugs the left edge, matching the card's left border color
+	var icon_col = VBoxContainer.new()
+	icon_col.custom_minimum_size = Vector2(80, 0)
+	icon_col.add_theme_constant_override("separation", 0)
+	hbox.add_child(icon_col)
+	
+	# Solid color swatch panel that fills the icon column area
+	var icon_bg = PanelContainer.new()
+	icon_bg.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var _icon_sb = StyleBoxFlat.new()
+	_icon_sb.bg_color = Color(icon_color.r, icon_color.g, icon_color.b, 0.18)
+	_icon_sb.set_border_width_all(0)
+	_icon_sb.content_margin_left = 0
+	_icon_sb.content_margin_right = 0
+	_icon_sb.content_margin_top = 0
+	_icon_sb.content_margin_bottom = 0
+	icon_bg.add_theme_stylebox_override("panel", _icon_sb)
+	icon_col.add_child(icon_bg)
 	
 	var emoji_lbl = Label.new()
 	emoji_lbl.text = emoji
 	emoji_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	emoji_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	emoji_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	emoji_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	emoji_lbl.add_theme_font_size_override("font_size", 48)
-	icon_tile.add_child(emoji_lbl)
+	icon_bg.add_child(emoji_lbl)
 
 	# 2. Middle side: Title & Description & Pricing
 	var mid_vbox = VBoxContainer.new()
