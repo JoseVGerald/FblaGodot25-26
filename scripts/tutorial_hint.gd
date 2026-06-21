@@ -22,21 +22,19 @@ var _dim_right: ColorRect = null
 func _ready():
 	UITheme.apply_overlay_theme(self)
 	
-	# Override panel stylebox (dark ink background, thick gold border = 8px, shadow)
+	# Override panel stylebox (dark ink background, gold border = 3px, no shadow)
 	var panel_sb := StyleBoxFlat.new()
 	panel_sb.bg_color = UITheme.CLR_INK
 	panel_sb.border_color = UITheme.CLR_GOLD
-	panel_sb.border_width_left = 8
-	panel_sb.border_width_right = 8
-	panel_sb.border_width_top = 8
-	panel_sb.border_width_bottom = 8
+	panel_sb.border_width_left = 3
+	panel_sb.border_width_right = 3
+	panel_sb.border_width_top = 3
+	panel_sb.border_width_bottom = 3
 	panel_sb.set_corner_radius_all(0)
 	panel_sb.content_margin_left = 44
 	panel_sb.content_margin_top = 28
 	panel_sb.content_margin_right = 44
 	panel_sb.content_margin_bottom = 28
-	panel_sb.shadow_color = Color(0, 0, 0, 0.4)
-	panel_sb.shadow_size = 10
 	panel.add_theme_stylebox_override("panel", panel_sb)
 
 	# Reset margin container margins so we only use the stylebox padding
