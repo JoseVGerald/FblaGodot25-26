@@ -90,7 +90,7 @@ func _ready() -> void:
 		sb.border_color = UITheme.CLR_INK
 		sb.set_border_width_all(3)
 		sb.set_corner_radius_all(0)
-		sb.set_content_margin_all(20)
+		sb.set_content_margin_all(0)
 		panel.add_theme_stylebox_override("panel", sb)
 		panel.modulate.a = 1.0
 
@@ -126,7 +126,10 @@ func _build_layout() -> void:
 	var header_sb := StyleBoxFlat.new()
 	header_sb.bg_color = UITheme.CLR_CREAM
 	header_sb.border_color = UITheme.CLR_INK
-	header_sb.border_width_bottom = 0
+	header_sb.border_width_left = 0
+	header_sb.border_width_top = 0
+	header_sb.border_width_right = 0
+	header_sb.border_width_bottom = 3 # separates header from content
 	header_sb.set_corner_radius_all(0)
 	header_sb.content_margin_left = 20
 	header_sb.content_margin_top = 16
@@ -178,7 +181,7 @@ func _build_layout() -> void:
 	hint_margin.add_theme_constant_override("margin_left", 32)
 	hint_margin.add_theme_constant_override("margin_right", 32)
 	hint_margin.add_theme_constant_override("margin_top", 16)
-	hint_margin.add_theme_constant_override("margin_bottom", 8)
+	hint_margin.add_theme_constant_override("margin_bottom", 16) # Add padding below subheading to space it from list
 	
 	var hint := Label.new()
 	hint.text = "Click a key to rebind. ESC cancels."
@@ -190,15 +193,15 @@ func _build_layout() -> void:
 	hint_margin.add_child(hint)
 	vbox.add_child(hint_margin)
 
-	# 2. CONTENT FRAME (ScrollFrame with 2px border around ScrollContainer)
+	# 2. CONTENT FRAME (ScrollFrame with no border around ScrollContainer)
 	var content_margin := MarginContainer.new()
 	content_margin.name = "ContentMargin"
 	content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content_margin.add_theme_constant_override("margin_left", 24)
-	content_margin.add_theme_constant_override("margin_right", 24)
-	content_margin.add_theme_constant_override("margin_top", 12)
-	content_margin.add_theme_constant_override("margin_bottom", 12)
+	content_margin.add_theme_constant_override("margin_left", 0)
+	content_margin.add_theme_constant_override("margin_right", 0)
+	content_margin.add_theme_constant_override("margin_top", 0)
+	content_margin.add_theme_constant_override("margin_bottom", 0)
 	vbox.add_child(content_margin)
 	
 	var scroll_frame := PanelContainer.new()
@@ -208,16 +211,12 @@ func _build_layout() -> void:
 	
 	var frame_sb := StyleBoxFlat.new()
 	frame_sb.bg_color = UITheme.CLR_CREAM_LT
-	frame_sb.border_color = UITheme.CLR_INK
-	frame_sb.border_width_left = 2
-	frame_sb.border_width_top = 2
-	frame_sb.border_width_right = 2
-	frame_sb.border_width_bottom = 2
+	frame_sb.set_border_width_all(0) # No border!
 	frame_sb.set_corner_radius_all(0)
-	frame_sb.content_margin_left = 18
-	frame_sb.content_margin_top = 18
-	frame_sb.content_margin_right = 18
-	frame_sb.content_margin_bottom = 18
+	frame_sb.content_margin_left = 24
+	frame_sb.content_margin_top = 0 # No top margin so list starts cleanly under divider line
+	frame_sb.content_margin_right = 24
+	frame_sb.content_margin_bottom = 24
 	scroll_frame.add_theme_stylebox_override("panel", frame_sb)
 	content_margin.add_child(scroll_frame)
 
@@ -261,7 +260,10 @@ func _build_layout() -> void:
 	var footer_sb := StyleBoxFlat.new()
 	footer_sb.bg_color = UITheme.CLR_CREAM
 	footer_sb.border_color = UITheme.CLR_INK
-	footer_sb.border_width_top = 0
+	footer_sb.border_width_left = 0
+	footer_sb.border_width_top = 3 # separates content from footer
+	footer_sb.border_width_right = 0
+	footer_sb.border_width_bottom = 0
 	footer_sb.set_corner_radius_all(0)
 	footer_sb.content_margin_left = 20
 	footer_sb.content_margin_top = 16

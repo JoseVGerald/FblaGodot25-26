@@ -65,7 +65,10 @@ func _ready() -> void:
 		var header_sb := StyleBoxFlat.new()
 		header_sb.bg_color = UITheme.CLR_CREAM
 		header_sb.border_color = UITheme.CLR_INK
-		header_sb.border_width_bottom = 0 # Removed the border line to avoid "dual boxes" look
+		header_sb.border_width_left = 0
+		header_sb.border_width_top = 0
+		header_sb.border_width_right = 0
+		header_sb.border_width_bottom = 3 # separates header from content
 		header_sb.set_corner_radius_all(0)
 		header_sb.content_margin_left = 20
 		header_sb.content_margin_top = 16
@@ -115,15 +118,15 @@ func _ready() -> void:
 		
 		main_vbox.add_child(header_panel)
 		
-		# 2. CONTENT FRAME (ScrollFrame with 4px border around ScrollContainer)
+		# 2. CONTENT FRAME (ScrollFrame with no border around ScrollContainer)
 		var content_margin := MarginContainer.new()
 		content_margin.name = "ContentMargin"
 		content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		content_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		content_margin.add_theme_constant_override("margin_left", 24)
-		content_margin.add_theme_constant_override("margin_right", 24)
-		content_margin.add_theme_constant_override("margin_top", 24)
-		content_margin.add_theme_constant_override("margin_bottom", 24)
+		content_margin.add_theme_constant_override("margin_left", 0)
+		content_margin.add_theme_constant_override("margin_right", 0)
+		content_margin.add_theme_constant_override("margin_top", 0)
+		content_margin.add_theme_constant_override("margin_bottom", 0)
 		main_vbox.add_child(content_margin)
 		
 		var scroll_frame := PanelContainer.new()
@@ -133,16 +136,12 @@ func _ready() -> void:
 		
 		var frame_sb := StyleBoxFlat.new()
 		frame_sb.bg_color = UITheme.CLR_CREAM_LT
-		frame_sb.border_color = UITheme.CLR_INK
-		frame_sb.border_width_left = 2
-		frame_sb.border_width_top = 2
-		frame_sb.border_width_right = 2
-		frame_sb.border_width_bottom = 2
+		frame_sb.set_border_width_all(0) # No border!
 		frame_sb.set_corner_radius_all(0)
-		frame_sb.content_margin_left = 18
-		frame_sb.content_margin_top = 18
-		frame_sb.content_margin_right = 18
-		frame_sb.content_margin_bottom = 18
+		frame_sb.content_margin_left = 24
+		frame_sb.content_margin_top = 24
+		frame_sb.content_margin_right = 24
+		frame_sb.content_margin_bottom = 24
 		scroll_frame.add_theme_stylebox_override("panel", frame_sb)
 		content_margin.add_child(scroll_frame)
 		
@@ -168,7 +167,10 @@ func _ready() -> void:
 		var footer_sb := StyleBoxFlat.new()
 		footer_sb.bg_color = UITheme.CLR_CREAM
 		footer_sb.border_color = UITheme.CLR_INK
-		footer_sb.border_width_top = 0 # Removed the border line to avoid "dual boxes" look
+		footer_sb.border_width_left = 0
+		footer_sb.border_width_top = 3 # separates content from footer
+		footer_sb.border_width_right = 0
+		footer_sb.border_width_bottom = 0
 		footer_sb.set_corner_radius_all(0)
 		footer_sb.content_margin_left = 20
 		footer_sb.content_margin_top = 16
@@ -300,7 +302,7 @@ func _style_panel_shell() -> void:
 		sb.border_color = UITheme.CLR_INK
 		sb.set_border_width_all(3)
 		sb.set_corner_radius_all(0)
-		sb.set_content_margin_all(20)
+		sb.set_content_margin_all(0)
 		panel_node.add_theme_stylebox_override("panel", sb)
 		panel_node.modulate.a = 1.0
 
