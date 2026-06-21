@@ -81,7 +81,7 @@ func _ready() -> void:
 func _on_resized() -> void:
 	if is_instance_valid(main_panel):
 		var vp = get_viewport().get_visible_rect().size
-		var pw = minf(1900.0, vp.x - 40.0)
+		var pw = minf(2200.0, vp.x - 40.0)
 		var ph = minf(1100.0, vp.y - 150.0 - 40.0) # Usable height excluding bottom HUD (150px)
 		main_panel.custom_minimum_size = Vector2(pw, ph)
 		
@@ -102,7 +102,7 @@ func _build_ui() -> void:
 	# Main Panel Container
 	main_panel = PanelContainer.new()
 	main_panel.name = "Panel"
-	main_panel.custom_minimum_size = Vector2(1900, 1100)
+	main_panel.custom_minimum_size = Vector2(2200, 1100)
 	add_child(main_panel)
 	
 	# Initial scale and modulation for enter animations
@@ -260,35 +260,15 @@ func _build_ui() -> void:
 	deal_desc_label.add_theme_color_override("font_color", UITheme.CLR_INK)
 	deal_vbox.add_child(deal_desc_label)
 
-	# ── "TODAY'S DEALS & NEWS" section title ────────────────────────────────────
+	# ── "Deals and Advertisements" section title ────────────────────────────────────
 	var deals_title = Label.new()
-	deals_title.text = "TODAY'S DEALS & NEWS"
+	deals_title.text = "Deals and Advertisements"
 	deals_title.add_theme_font_override("font", UITheme.get_pixel_font())
 	deals_title.add_theme_font_size_override("font_size", 32)
 	deals_title.add_theme_color_override("font_color", UITheme.CLR_INK)
 	left_col.add_child(deals_title)
 
 	# ── Advertisement panels (item-related promos & tips) ────────────────────────
-	# Ad 1 — Kibble promotion
-	var ad1 = PanelContainer.new()
-	ad1.name = "AdPanel1"
-	left_col.add_child(ad1)
-	var ad1_vbox = VBoxContainer.new()
-	ad1_vbox.add_theme_constant_override("separation", 4)
-	ad1.add_child(ad1_vbox)
-	var ad1_title_lbl = Label.new()
-	ad1_title_lbl.text = "🍖 KIBBLE COMBO DEAL"
-	ad1_title_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
-	ad1_title_lbl.add_theme_font_size_override("font_size", 32)
-	ad1_title_lbl.add_theme_color_override("font_color", UITheme.CLR_GOLD)
-	ad1_vbox.add_child(ad1_title_lbl)
-	var ad1_desc_lbl = Label.new()
-	ad1_desc_lbl.text = "Buy 3 bags of kibble & get a free grooming session! Buddy deserves the best."
-	ad1_desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	ad1_desc_lbl.add_theme_font_size_override("font_size", 24)
-	ad1_desc_lbl.add_theme_color_override("font_color", Color.WHITE)
-	ad1_vbox.add_child(ad1_desc_lbl)
-
 	# Ad 2 — Water / hydration promotion
 	var ad2 = PanelContainer.new()
 	ad2.name = "AdPanel2"
@@ -530,7 +510,6 @@ func _build_ui() -> void:
 		s.content_margin_top = 12
 		s.content_margin_bottom = 12
 		return s
-	ad1.add_theme_stylebox_override("panel", _ad_sb.call("#1c2710", UITheme.CLR_GOLD))
 	ad2.add_theme_stylebox_override("panel", _ad_sb.call("#0a1e2c", Color("#53d8fb")))
 	ad3.add_theme_stylebox_override("panel", _ad_sb.call("#221508", Color("#ffa34d")))
 	ad4.add_theme_stylebox_override("panel", _ad_sb.call("#0d2010", UIColors.BTN_GREEN))
@@ -551,7 +530,7 @@ func _build_ui() -> void:
 	funds_label.add_theme_constant_override("shadow_offset_x", 0)
 	funds_label.add_theme_constant_override("shadow_offset_y", 0)
 	# Ad panels: strip shadows from every label inside
-	for ad_panel in [ad1, ad2, ad3, ad4]:
+	for ad_panel in [ad2, ad3, ad4]:
 		for c in ad_panel.get_child(0).get_children():
 			if c is Label:
 				c.add_theme_constant_override("shadow_offset_x", 0)
