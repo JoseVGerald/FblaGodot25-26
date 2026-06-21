@@ -1,7 +1,5 @@
 # KeybindsMenu.gd
-# Overlay that lets the player rebind every gameplay InputMap action and
-# persists changes to user://keybinds.cfg. Defaults are captured on first
-# load so "Reset to Defaults" can restore project.godot's original binds.
+# Redesigned keybinds overlay matching the settings popup visual layout.
 extends CanvasLayer
 
 signal keybinds_closed
@@ -21,7 +19,7 @@ const ACTIONS := [
 	["sim_day",     "Skip Week"],
 ]
 
-# Design tokens — maroon brand palette (sibling of needs_menu: ink-on-cream).
+# Design tokens — maroon brand palette
 const CLR_BG_CARD    := UITheme.CLR_CREAM_LT    # row background (light card)
 const CLR_BORDER_SKY := UITheme.CLR_ORANGE_PX   # row accent stripe
 const CLR_BORDER_DIM := UITheme.CLR_INK         # keycap button border
@@ -30,21 +28,17 @@ const CLR_WHITE      := UITheme.CLR_INK          # row label + keycap text
 const CLR_DIM        := Color(UITheme.CLR_INK.r, UITheme.CLR_INK.g, UITheme.CLR_INK.b, 0.7)
 const CLR_AMBER      := UITheme.CLR_ORANGE_PX    # reset btn + listening highlight
 
-# Default events captured once before any saved override is applied. Used by
-# "Reset to Defaults" and to know what to fall back to when a saved bind
-# references a missing action.
+# Default events captured once before any saved override is applied.
 static var _original_events: Dictionary = {}
 
 var _row_buttons: Dictionary = {}     # action_name → Button (the bind button)
-var _rebinding_action: String = ""    # non-empty = waiting for next key press
+var _rebinding_action: String = ""    # waiting for next key press
 var _status_label: Label = null
 
 @onready var vbox: VBoxContainer = $Panel/VBox
 
 # ── Static API ────────────────────────────────────────────────────────────────
 
-## Capture the project.godot defaults the first time we run, then apply any
-## saved overrides on top. Safe to call more than once.
 static func load_saved_keybinds() -> void:
 	_capture_defaults()
 	var cfg := ConfigFile.new()
@@ -81,12 +75,28 @@ func _ready() -> void:
 
 	var panel := get_node_or_null("Panel")
 	if panel is PanelContainer:
-		UITheme.style_panel(panel)
+		panel.custom_minimum_size = Vector2(800, 750)
+		panel.set_anchors_preset(Control.PRESET_CENTER)
+		panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+		panel.offset_left = -400.0
+		panel.offset_top = -375.0
+		panel.offset_right = 400.0
+		panel.offset_bottom = 375.0
+		
+		# Custom stylebox with reduced border thickness (3px instead of 4px)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color     = UITheme.CLR_CREAM
+		sb.border_color = UITheme.CLR_INK
+		sb.set_border_width_all(3)
+		sb.set_corner_radius_all(0)
+		sb.set_content_margin_all(20)
+		panel.add_theme_stylebox_override("panel", sb)
+		panel.modulate.a = 1.0
 
 	_build_layout()
 
 func _input(event: InputEvent) -> void:
-	# Rebinding mode swallows the next key press and assigns it. ESC cancels.
 	if _rebinding_action != "" and event is InputEventKey and event.pressed and not event.echo:
 		get_viewport().set_input_as_handled()
 		if event.keycode == KEY_ESCAPE or event.physical_keycode == KEY_ESCAPE:
@@ -95,7 +105,6 @@ func _input(event: InputEvent) -> void:
 			_apply_rebind(_rebinding_action, event)
 		return
 
-	# Outside rebinding mode, ESC closes the overlay.
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		_close()
@@ -103,129 +112,236 @@ func _input(event: InputEvent) -> void:
 # ── Layout ────────────────────────────────────────────────────────────────────
 
 func _build_layout() -> void:
-	# Header: title + ✕ close button.
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 10)
-	var title := Label.new()
-	title.text = "Keybinds"
-	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-	title.add_theme_font_size_override("font_size", 48)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var pf := UITheme.get_pixel_font()
-	if pf: title.add_theme_font_override("font", pf)
-	header.add_child(title)
+	# Clear vbox children to rebuild
+	for child in vbox.get_children():
+		child.queue_free()
+	
+	vbox.add_theme_constant_override("separation", 0)
 
+	# 1. HEADER PANEL
+	var header_panel := PanelContainer.new()
+	header_panel.name = "HeaderPanel"
+	header_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var header_sb := StyleBoxFlat.new()
+	header_sb.bg_color = UITheme.CLR_CREAM
+	header_sb.border_color = UITheme.CLR_INK
+	header_sb.border_width_bottom = 0
+	header_sb.set_corner_radius_all(0)
+	header_sb.content_margin_left = 20
+	header_sb.content_margin_top = 16
+	header_sb.content_margin_right = 20
+	header_sb.content_margin_bottom = 16
+	header_panel.add_theme_stylebox_override("panel", header_sb)
+	
+	var header_hbox := HBoxContainer.new()
+	header_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_panel.add_child(header_hbox)
+	
+	# Balanced spacer on the left to perfectly center the title
+	var left_spacer := Control.new()
+	left_spacer.custom_minimum_size = Vector2(64, 0)
+	header_hbox.add_child(left_spacer)
+	
+	# Title label styling
+	var title_lbl := Label.new()
+	title_lbl.text = "Keybinds"
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title_font := SystemFont.new()
+	title_font.font_weight = 900
+	title_lbl.add_theme_font_override("font", title_font)
+	title_lbl.add_theme_color_override("font_color", UITheme.CLR_CREAM)
+	title_lbl.add_theme_font_size_override("font_size", 48)
+	title_lbl.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	title_lbl.add_theme_constant_override("outline_size", 14)
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header_hbox.add_child(title_lbl)
+	
+	# Red X Close button on the right
 	var x_btn := Button.new()
-	x_btn.text = "✕"
-	x_btn.custom_minimum_size = Vector2(44, 44)
+	x_btn.name = "HeaderCloseBtn"
+	x_btn.text = "X"
+	x_btn.custom_minimum_size = Vector2(64, 64)
+	x_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	x_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	x_btn.focus_mode = Control.FOCUS_NONE
-	UITheme.style_close_button(x_btn)
+	UITheme.style_pixel_button_colored(x_btn, Color("#EF5350"))
 	x_btn.pressed.connect(_close)
-	header.add_child(x_btn)
-	vbox.add_child(header)
+	header_hbox.add_child(x_btn)
+	
+	vbox.add_child(header_panel)
 
-	# Hint line.
+	# Subheading / Hint label (taken out of the internal box)
+	var hint_margin := MarginContainer.new()
+	hint_margin.name = "HintMargin"
+	hint_margin.add_theme_constant_override("margin_left", 32)
+	hint_margin.add_theme_constant_override("margin_right", 32)
+	hint_margin.add_theme_constant_override("margin_top", 16)
+	hint_margin.add_theme_constant_override("margin_bottom", 8)
+	
 	var hint := Label.new()
 	hint.text = "Click a key to rebind. ESC cancels."
 	hint.add_theme_color_override("font_color", CLR_DIM)
-	hint.add_theme_font_size_override("font_size", 18)
-	vbox.add_child(hint)
+	hint.add_theme_font_size_override("font_size", 24)
+	var font_medium := SystemFont.new()
+	font_medium.font_weight = 500
+	hint.add_theme_font_override("font", font_medium)
+	hint_margin.add_child(hint)
+	vbox.add_child(hint_margin)
 
-	# Scrollable list of action rows.
+	# 2. CONTENT FRAME (ScrollFrame with 2px border around ScrollContainer)
+	var content_margin := MarginContainer.new()
+	content_margin.name = "ContentMargin"
+	content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_margin.add_theme_constant_override("margin_left", 24)
+	content_margin.add_theme_constant_override("margin_right", 24)
+	content_margin.add_theme_constant_override("margin_top", 12)
+	content_margin.add_theme_constant_override("margin_bottom", 12)
+	vbox.add_child(content_margin)
+	
+	var scroll_frame := PanelContainer.new()
+	scroll_frame.name = "ScrollFrame"
+	scroll_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	
+	var frame_sb := StyleBoxFlat.new()
+	frame_sb.bg_color = UITheme.CLR_CREAM_LT
+	frame_sb.border_color = UITheme.CLR_INK
+	frame_sb.border_width_left = 2
+	frame_sb.border_width_top = 2
+	frame_sb.border_width_right = 2
+	frame_sb.border_width_bottom = 2
+	frame_sb.set_corner_radius_all(0)
+	frame_sb.content_margin_left = 18
+	frame_sb.content_margin_top = 18
+	frame_sb.content_margin_right = 18
+	frame_sb.content_margin_bottom = 18
+	scroll_frame.add_theme_stylebox_override("panel", frame_sb)
+	content_margin.add_child(scroll_frame)
+
+	# Inner vertical container inside ScrollFrame
+	var inner_vbox := VBoxContainer.new()
+	inner_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inner_vbox.add_theme_constant_override("separation", 12)
+	scroll_frame.add_child(inner_vbox)
+
+	# Scrollable list of action rows
 	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner_vbox.add_child(scroll)
+
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override("separation", 8)
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(list)
-	vbox.add_child(scroll)
 
 	for entry in ACTIONS:
 		list.add_child(_build_action_row(entry[0], entry[1]))
 
-	# Status line for "press a key" prompts and confirmations.
+	# Status line for "press a key" prompts and confirmations
 	_status_label = Label.new()
 	_status_label.text = ""
 	_status_label.add_theme_color_override("font_color", CLR_CYAN)
-	_status_label.add_theme_font_size_override("font_size", 20)
+	_status_label.add_theme_font_size_override("font_size", 24)
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var pf := UITheme.get_pixel_font()
 	if pf: _status_label.add_theme_font_override("font", pf)
-	vbox.add_child(_status_label)
+	inner_vbox.add_child(_status_label)
 
-	# Footer buttons.
+	# 3. FOOTER PANEL
+	var footer_panel := PanelContainer.new()
+	footer_panel.name = "FooterPanel"
+	footer_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var footer_sb := StyleBoxFlat.new()
+	footer_sb.bg_color = UITheme.CLR_CREAM
+	footer_sb.border_color = UITheme.CLR_INK
+	footer_sb.border_width_top = 0
+	footer_sb.set_corner_radius_all(0)
+	footer_sb.content_margin_left = 20
+	footer_sb.content_margin_top = 16
+	footer_sb.content_margin_right = 20
+	footer_sb.content_margin_bottom = 16
+	footer_panel.add_theme_stylebox_override("panel", footer_sb)
+	
 	var footer := HBoxContainer.new()
 	footer.alignment = BoxContainer.ALIGNMENT_CENTER
 	footer.add_theme_constant_override("separation", 18)
+	footer_panel.add_child(footer)
 
 	var reset_btn := Button.new()
 	reset_btn.text = "Reset to Defaults"
-	reset_btn.custom_minimum_size = Vector2(220, 56)
+	reset_btn.custom_minimum_size = Vector2(240, 64)
 	reset_btn.add_theme_font_size_override("font_size", 24)
-	if pf: reset_btn.add_theme_font_override("font", pf)
-	UITheme.style_pixel_button_colored(reset_btn, CLR_AMBER)
+	UITheme.style_pixel_button(reset_btn, false) # tan standard button
 	reset_btn.pressed.connect(_reset_to_defaults)
 	footer.add_child(reset_btn)
 
 	var close_btn := Button.new()
 	close_btn.text = "Close"
-	close_btn.custom_minimum_size = Vector2(180, 56)
+	close_btn.custom_minimum_size = Vector2(180, 64)
 	close_btn.add_theme_font_size_override("font_size", 24)
-	if pf: close_btn.add_theme_font_override("font", pf)
-	UITheme.style_close_button(close_btn)
+	UITheme.style_pixel_button(close_btn, false) # tan standard button
 	close_btn.pressed.connect(_close)
 	footer.add_child(close_btn)
 
-	vbox.add_child(footer)
+	vbox.add_child(footer_panel)
 
-func _build_action_row(action: String, label_text: String) -> HBoxContainer:
+func _build_action_row(action: String, label_text: String) -> PanelContainer:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 56)
-	row.add_theme_constant_override("separation", 12)
-
-	var bg := ColorRect.new()
-	bg.color = CLR_BG_CARD
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.show_behind_parent = true
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(bg)
-	row.move_child(bg, 0)
-
-	var stripe := ColorRect.new()
-	stripe.color = CLR_BORDER_SKY
-	stripe.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	stripe.offset_right = 4
-	stripe.show_behind_parent = true
-	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(stripe)
-	row.move_child(stripe, 1)
+	row.custom_minimum_size = Vector2(0, 72)
+	row.add_theme_constant_override("separation", 24)
 
 	var name_lbl := Label.new()
 	name_lbl.text = label_text
 	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
-	name_lbl.add_theme_font_size_override("font_size", 24)
+	name_lbl.add_theme_font_size_override("font_size", 26)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var pf := UITheme.get_pixel_font()
-	if pf: name_lbl.add_theme_font_override("font", pf)
+	var font_bold := SystemFont.new()
+	font_bold.font_weight = 700
+	name_lbl.add_theme_font_override("font", font_bold)
 	row.add_child(name_lbl)
 
 	var bind_btn := Button.new()
 	bind_btn.text = _current_key_label(action)
-	bind_btn.custom_minimum_size = Vector2(180, 44)
+	bind_btn.custom_minimum_size = Vector2(180, 48)
 	bind_btn.add_theme_font_size_override("font_size", 22)
-	if pf: bind_btn.add_theme_font_override("font", pf)
+	bind_btn.focus_mode = Control.FOCUS_NONE
 	_apply_bind_button_style(bind_btn, false)
 	bind_btn.pressed.connect(_begin_rebind.bind(action))
 	row.add_child(bind_btn)
 	_row_buttons[action] = bind_btn
 
-	return row
+	# Wrap in standard card style matching SettingsMenu
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = UITheme.CLR_CREAM_LT
+	sb.border_color = UITheme.CLR_INK
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 20
+	sb.content_margin_top = 10
+	sb.content_margin_right = 20
+	sb.content_margin_bottom = 10
+	card.add_theme_stylebox_override("panel", sb)
+	card.add_child(row)
+	
+	return card
 
 # ── Rebind flow ───────────────────────────────────────────────────────────────
 
 func _begin_rebind(action: String) -> void:
 	if _rebinding_action != "":
-		# Cancel any in-progress rebind on the previous row first.
 		_cancel_rebind()
 	_rebinding_action = action
 	var btn: Button = _row_buttons[action]
@@ -247,8 +363,6 @@ func _cancel_rebind() -> void:
 
 func _apply_rebind(action: String, key_event: InputEventKey) -> void:
 	_rebinding_action = ""
-	# Build a clean InputEventKey using physical_keycode so layout differences
-	# (AZERTY vs QWERTY etc.) keep working.
 	var ev := InputEventKey.new()
 	ev.physical_keycode = key_event.physical_keycode if key_event.physical_keycode != 0 else key_event.keycode
 
@@ -274,7 +388,6 @@ func _reset_to_defaults() -> void:
 			var btn: Button = _row_buttons[action]
 			btn.text = _current_key_label(action)
 			_apply_bind_button_style(btn, false)
-	# Clear the saved overrides file so a fresh launch also gets defaults.
 	var cfg := ConfigFile.new()
 	cfg.save(SAVE_PATH)
 	if _status_label:
@@ -284,7 +397,7 @@ func _reset_to_defaults() -> void:
 
 func _save_keybind(action: String, physical_keycode: int) -> void:
 	var cfg := ConfigFile.new()
-	cfg.load(SAVE_PATH)  # ignore failure; treats missing file as empty
+	cfg.load(SAVE_PATH)
 	cfg.set_value("keybinds", action, physical_keycode)
 	cfg.save(SAVE_PATH)
 
@@ -301,13 +414,12 @@ func _current_key_label(action: String) -> String:
 	return "—"
 
 func _apply_bind_button_style(btn: Button, listening: bool) -> void:
-	# Tan "keycap" look; glows orange while waiting for the next key press.
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = CLR_AMBER if listening else UITheme.CLR_TAN
 	sb.border_color = UITheme.CLR_INK
 	sb.set_border_width_all(3)
-	sb.border_width_bottom = 5                            # subtle 3-D keycap base
-	sb.set_corner_radius_all(0)                           # crisp pixel edges
+	sb.border_width_bottom = 5
+	sb.set_corner_radius_all(0)
 	sb.content_margin_left = 12
 	sb.content_margin_right = 12
 	sb.content_margin_top = 6

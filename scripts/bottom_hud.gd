@@ -240,19 +240,53 @@ func _apply_redesign_styling() -> void:
 		top_hud.offset_bottom = 120.0
 		top_hud.add_theme_constant_override("separation", 16)
 
-	finance_btn.text = "📋"
+	finance_btn.text = ""
 	finance_btn.custom_minimum_size = Vector2(72, 72)
 	UITheme.style_pixel_button_colored(finance_btn, UITheme.CLR_CREAM_LT)
-	finance_btn.add_theme_color_override("font_color", UITheme.CLR_INK)
-	finance_btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
-	finance_btn.add_theme_font_size_override("font_size", 36)
+	for state in ["normal", "hover", "pressed"]:
+		var sb = finance_btn.get_theme_stylebox(state).duplicate()
+		if sb is StyleBoxFlat:
+			sb.content_margin_left = 0
+			sb.content_margin_right = 0
+			sb.content_margin_top = 0
+			sb.content_margin_bottom = 0
+			finance_btn.add_theme_stylebox_override(state, sb)
 
-	pause_btn.text = "⚙️"
+	var cc_f := CenterContainer.new()
+	cc_f.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cc_f.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	finance_btn.add_child(cc_f)
+
+	var lbl_f := Label.new()
+	lbl_f.text = "📋"
+	lbl_f.add_theme_font_size_override("font_size", 44)
+	lbl_f.add_theme_color_override("font_color", UITheme.CLR_INK)
+	lbl_f.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cc_f.add_child(lbl_f)
+
+	pause_btn.text = ""
 	pause_btn.custom_minimum_size = Vector2(72, 72)
 	UITheme.style_pixel_button_colored(pause_btn, UITheme.CLR_CREAM_LT)
-	pause_btn.add_theme_color_override("font_color", UITheme.CLR_INK)
-	pause_btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
-	pause_btn.add_theme_font_size_override("font_size", 36)
+	for state in ["normal", "hover", "pressed"]:
+		var sb = pause_btn.get_theme_stylebox(state).duplicate()
+		if sb is StyleBoxFlat:
+			sb.content_margin_left = 0
+			sb.content_margin_right = 0
+			sb.content_margin_top = 0
+			sb.content_margin_bottom = 0
+			pause_btn.add_theme_stylebox_override(state, sb)
+
+	var cc_p := CenterContainer.new()
+	cc_p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cc_p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pause_btn.add_child(cc_p)
+
+	var lbl_p := Label.new()
+	lbl_p.text = "⚙️"
+	lbl_p.add_theme_font_size_override("font_size", 44)
+	lbl_p.add_theme_color_override("font_color", UITheme.CLR_INK)
+	lbl_p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cc_p.add_child(lbl_p)
 
 func _update_hud_status_label():
 	if not is_instance_valid(status_lbl):
@@ -790,16 +824,29 @@ func _setup_notif_button() -> void:
 	UITheme.style_pixel_button_colored(notif_btn, UITheme.CLR_CREAM_LT)
 	notif_btn.text = ""   # No emoji — we use a TextureRect child instead
 
-	# TextureRect icon inside the button
+	for state in ["normal", "hover", "pressed"]:
+		var sb = notif_btn.get_theme_stylebox(state).duplicate()
+		if sb is StyleBoxFlat:
+			sb.content_margin_left = 0
+			sb.content_margin_right = 0
+			sb.content_margin_top = 0
+			sb.content_margin_bottom = 0
+			notif_btn.add_theme_stylebox_override(state, sb)
+
+	var cc := CenterContainer.new()
+	cc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	notif_btn.add_child(cc)
+
+	# TextureRect icon inside the button, centered and scaled to 52x52
 	_notif_icon = TextureRect.new()
 	_notif_icon.texture = _tex_normal
 	_notif_icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	_notif_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_notif_icon.custom_minimum_size = Vector2(40, 40)
-	_notif_icon.size = Vector2(40, 40)
-	_notif_icon.position = Vector2(16, 16)
+	_notif_icon.custom_minimum_size = Vector2(52, 52)
+	_notif_icon.size = Vector2(52, 52)
 	_notif_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	notif_btn.add_child(_notif_icon)
+	cc.add_child(_notif_icon)
 
 	notif_btn.pressed.connect(_on_notif_btn_pressed)
 	NotificationCenter.badge_state_changed.connect(_update_notif_badge)
@@ -815,7 +862,6 @@ func _update_notif_badge() -> void:
 	if NotificationCenter.has_unread_warning:
 		# WARNING state: exclamation envelope icon + red pulse animation
 		_notif_icon.texture = _tex_warning
-		_notif_icon.position = Vector2(16, 16)
 		_notif_pulse_tween = create_tween().set_loops()
 		_notif_pulse_tween.tween_callback(
 				func(): notif_btn.modulate = UITheme.CLR_RED)
@@ -826,12 +872,10 @@ func _update_notif_badge() -> void:
 	elif NotificationCenter.has_unread:
 		# UNREAD state: red-badge envelope icon, no pulse
 		_notif_icon.texture = _tex_badge
-		_notif_icon.position = Vector2(16, 16)
 		notif_btn.modulate = Color.WHITE
 	else:
 		# CLEAR state: plain envelope icon
 		_notif_icon.texture = _tex_normal
-		_notif_icon.position = Vector2(16, 16)
 		notif_btn.modulate = Color.WHITE
 
 ## Open the notification panel as a child of this CanvasLayer.

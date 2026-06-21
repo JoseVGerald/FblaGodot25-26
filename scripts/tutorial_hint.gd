@@ -22,21 +22,21 @@ var _dim_right: ColorRect = null
 func _ready():
 	UITheme.apply_overlay_theme(self)
 	
-	# Override panel stylebox to match the redesign spec (dark ink background, gold border, shadow)
+	# Override panel stylebox (dark ink background, thick gold border = 8px, shadow)
 	var panel_sb := StyleBoxFlat.new()
 	panel_sb.bg_color = UITheme.CLR_INK
 	panel_sb.border_color = UITheme.CLR_GOLD
-	panel_sb.border_width_left = 3
-	panel_sb.border_width_right = 3
-	panel_sb.border_width_top = 3
-	panel_sb.border_width_bottom = 3
+	panel_sb.border_width_left = 8
+	panel_sb.border_width_right = 8
+	panel_sb.border_width_top = 8
+	panel_sb.border_width_bottom = 8
 	panel_sb.set_corner_radius_all(0)
-	panel_sb.content_margin_left = 24
-	panel_sb.content_margin_top = 16
-	panel_sb.content_margin_right = 24
-	panel_sb.content_margin_bottom = 16
-	panel_sb.shadow_color = Color(0, 0, 0, 0.3)
-	panel_sb.shadow_size = 4
+	panel_sb.content_margin_left = 44
+	panel_sb.content_margin_top = 28
+	panel_sb.content_margin_right = 44
+	panel_sb.content_margin_bottom = 28
+	panel_sb.shadow_color = Color(0, 0, 0, 0.4)
+	panel_sb.shadow_size = 10
 	panel.add_theme_stylebox_override("panel", panel_sb)
 
 	# Reset margin container margins so we only use the stylebox padding
@@ -47,12 +47,14 @@ func _ready():
 		margin_container.add_theme_constant_override("margin_right", 0)
 		margin_container.add_theme_constant_override("margin_bottom", 0)
 
-	# Override the HintLabel text color, font (weight 500), and font size to 24
+	# Override the HintLabel text color, font (weight 500), and font size to 34
 	hint_label.add_theme_color_override("font_color", Color.WHITE)
+	hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var font_medium := SystemFont.new()
 	font_medium.font_weight = 500
 	hint_label.add_theme_font_override("font", font_medium)
-	hint_label.add_theme_font_size_override("font_size", 24)
+	hint_label.add_theme_font_size_override("font_size", 34)
 
 	panel.modulate.a = 0
 	anim_player.animation_finished.connect(_on_animation_finished)
