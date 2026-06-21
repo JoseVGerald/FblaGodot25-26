@@ -235,6 +235,14 @@ func _build_ui() -> void:
 	speech_label.add_theme_color_override("font_color", Color.WHITE)
 	speech_card.add_child(speech_label)
 
+	# ── "DEALS & ADVERTISEMENTS" section title ────────────────────────────────────
+	var deals_title = Label.new()
+	deals_title.text = "DEALS & ADVERTISEMENTS"
+	deals_title.add_theme_font_override("font", UITheme.get_pixel_font())
+	deals_title.add_theme_font_size_override("font_size", 32)
+	deals_title.add_theme_color_override("font_color", UITheme.CLR_INK)
+	left_col.add_child(deals_title)
+
 	# Today's Daily Deal section
 	deal_strip = PanelContainer.new()
 	deal_strip.name = "DealStrip"
@@ -249,7 +257,7 @@ func _build_ui() -> void:
 	deal_title_label.text = "TODAY'S SPECIAL DEAL"
 	deal_title_label.add_theme_font_override("font", UITheme.get_pixel_font())
 	deal_title_label.add_theme_font_size_override("font_size", 32)
-	deal_title_label.add_theme_color_override("font_color", UITheme.CLR_ORANGE_PX)
+	deal_title_label.add_theme_color_override("font_color", Color("#ffd84d"))
 	deal_vbox.add_child(deal_title_label)
 
 	deal_desc_label = Label.new()
@@ -257,16 +265,8 @@ func _build_ui() -> void:
 	deal_desc_label.text = "Have a great day!"
 	deal_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	deal_desc_label.add_theme_font_size_override("font_size", 24)
-	deal_desc_label.add_theme_color_override("font_color", UITheme.CLR_INK)
+	deal_desc_label.add_theme_color_override("font_color", Color.WHITE)
 	deal_vbox.add_child(deal_desc_label)
-
-	# ── "Deals and Advertisements" section title ────────────────────────────────────
-	var deals_title = Label.new()
-	deals_title.text = "Deals and Advertisements"
-	deals_title.add_theme_font_override("font", UITheme.get_pixel_font())
-	deals_title.add_theme_font_size_override("font_size", 32)
-	deals_title.add_theme_color_override("font_color", UITheme.CLR_INK)
-	left_col.add_child(deals_title)
 
 	# ── Advertisement panels (item-related promos & tips) ────────────────────────
 	# Ad 2 — Water / hydration promotion
@@ -480,7 +480,6 @@ func _build_ui() -> void:
 	UITheme.style_panel(main_panel)
 	UITheme.style_card(sk_portrait_card)
 	UITheme.style_card(speech_card)
-	UITheme.style_warning_strip(deal_strip, "orange")
 	UITheme.style_card(cart_card)
 	
 	# Pixel button configurations
@@ -510,6 +509,7 @@ func _build_ui() -> void:
 		s.content_margin_top = 12
 		s.content_margin_bottom = 12
 		return s
+	deal_strip.add_theme_stylebox_override("panel", _ad_sb.call("#271e0c", Color("#ffd84d")))
 	ad2.add_theme_stylebox_override("panel", _ad_sb.call("#0a1e2c", Color("#53d8fb")))
 	ad3.add_theme_stylebox_override("panel", _ad_sb.call("#221508", Color("#ffa34d")))
 	ad4.add_theme_stylebox_override("panel", _ad_sb.call("#0d2010", UIColors.BTN_GREEN))
@@ -530,7 +530,7 @@ func _build_ui() -> void:
 	funds_label.add_theme_constant_override("shadow_offset_x", 0)
 	funds_label.add_theme_constant_override("shadow_offset_y", 0)
 	# Ad panels: strip shadows from every label inside
-	for ad_panel in [ad2, ad3, ad4]:
+	for ad_panel in [deal_strip, ad2, ad3, ad4]:
 		for c in ad_panel.get_child(0).get_children():
 			if c is Label:
 				c.add_theme_constant_override("shadow_offset_x", 0)
@@ -608,6 +608,12 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 		"bundle":
 			icon_color = UITheme.CLR_GOLD
 			emoji = "📦"
+		"grooming":
+			icon_color = Color("#c97dd4")
+			emoji = "🧼"
+		"toy":
+			icon_color = Color("#d4a017")
+			emoji = "🧸"
 			
 	var icon_tile = UITheme.make_icon_tile(icon_color, 80)
 	hbox.add_child(icon_tile)
