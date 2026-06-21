@@ -118,82 +118,53 @@ func _build_layout() -> void:
 	
 	vbox.add_theme_constant_override("separation", 0)
 
-	# 1. HEADER PANEL
-	var header_panel := PanelContainer.new()
-	header_panel.name = "HeaderPanel"
-	header_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 1. HEADER & SUBHEADING (MarginContainer for top-level padding)
+	var header_margin := MarginContainer.new()
+	header_margin.name = "HeaderMargin"
+	header_margin.add_theme_constant_override("margin_left", 24)
+	header_margin.add_theme_constant_override("margin_right", 24)
+	header_margin.add_theme_constant_override("margin_top", 24)
+	header_margin.add_theme_constant_override("margin_bottom", 12)
+	vbox.add_child(header_margin)
 	
-	var header_sb := StyleBoxFlat.new()
-	header_sb.bg_color = UITheme.CLR_CREAM
-	header_sb.border_color = UITheme.CLR_INK
-	header_sb.border_width_left = 0
-	header_sb.border_width_top = 0
-	header_sb.border_width_right = 0
-	header_sb.border_width_bottom = 3 # separates header from content
-	header_sb.set_corner_radius_all(0)
-	header_sb.content_margin_left = 20
-	header_sb.content_margin_top = 16
-	header_sb.content_margin_right = 20
-	header_sb.content_margin_bottom = 16
-	header_panel.add_theme_stylebox_override("panel", header_sb)
+	var header_vbox := VBoxContainer.new()
+	header_vbox.add_theme_constant_override("separation", 10)
+	header_margin.add_child(header_vbox)
 	
+	# Title HBox
 	var header_hbox := HBoxContainer.new()
-	header_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header_panel.add_child(header_hbox)
+	header_hbox.add_theme_constant_override("separation", 10)
+	header_vbox.add_child(header_hbox)
 	
-	# Balanced spacer on the left to perfectly center the title
-	var left_spacer := Control.new()
-	left_spacer.custom_minimum_size = Vector2(64, 0)
-	header_hbox.add_child(left_spacer)
-	
-	# Title label styling
+	# Title label (orange text, pixel font, no shadow/outline)
 	var title_lbl := Label.new()
 	title_lbl.text = "Keybinds"
-	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var title_font := SystemFont.new()
-	title_font.font_weight = 900
-	title_lbl.add_theme_font_override("font", title_font)
-	title_lbl.add_theme_color_override("font_color", UITheme.CLR_CREAM)
+	title_lbl.add_theme_color_override("font_color", CLR_BORDER_SKY)
 	title_lbl.add_theme_font_size_override("font_size", 48)
-	title_lbl.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
-	title_lbl.add_theme_constant_override("outline_size", 14)
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var pf := UITheme.get_pixel_font()
+	if pf: title_lbl.add_theme_font_override("font", pf)
 	header_hbox.add_child(title_lbl)
 	
-	# Red X Close button on the right
+	# Close button (small ✕ close button)
 	var x_btn := Button.new()
 	x_btn.name = "HeaderCloseBtn"
-	x_btn.text = "X"
-	x_btn.custom_minimum_size = Vector2(64, 64)
-	x_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-	x_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	x_btn.text = "✕"
+	x_btn.custom_minimum_size = Vector2(44, 44)
 	x_btn.focus_mode = Control.FOCUS_NONE
-	UITheme.style_pixel_button_colored(x_btn, Color("#EF5350"))
+	UITheme.style_close_button(x_btn)
 	x_btn.pressed.connect(_close)
 	header_hbox.add_child(x_btn)
 	
-	vbox.add_child(header_panel)
-
-	# Subheading / Hint label (taken out of the internal box)
-	var hint_margin := MarginContainer.new()
-	hint_margin.name = "HintMargin"
-	hint_margin.add_theme_constant_override("margin_left", 32)
-	hint_margin.add_theme_constant_override("margin_right", 32)
-	hint_margin.add_theme_constant_override("margin_top", 16)
-	hint_margin.add_theme_constant_override("margin_bottom", 16) # Add padding below subheading to space it from list
-	
+	# Hint / Subheading label
 	var hint := Label.new()
 	hint.text = "Click a key to rebind. ESC cancels."
 	hint.add_theme_color_override("font_color", CLR_DIM)
-	hint.add_theme_font_size_override("font_size", 24)
-	var font_medium := SystemFont.new()
-	font_medium.font_weight = 500
-	hint.add_theme_font_override("font", font_medium)
-	hint_margin.add_child(hint)
-	vbox.add_child(hint_margin)
+	hint.add_theme_font_size_override("font_size", 18)
+	if pf: hint.add_theme_font_override("font", pf)
+	header_vbox.add_child(hint)
 
-	# 2. CONTENT FRAME (ScrollFrame with no border around ScrollContainer)
+	# 2. CONTENT FRAME (ScrollFrame with top/bottom horizontal borders separating content)
 	var content_margin := MarginContainer.new()
 	content_margin.name = "ContentMargin"
 	content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -211,10 +182,14 @@ func _build_layout() -> void:
 	
 	var frame_sb := StyleBoxFlat.new()
 	frame_sb.bg_color = UITheme.CLR_CREAM_LT
-	frame_sb.set_border_width_all(0) # No border!
+	frame_sb.border_color = UITheme.CLR_INK
+	frame_sb.border_width_left = 0
+	frame_sb.border_width_top = 3 # top horizontal border separates subheading from list
+	frame_sb.border_width_right = 0
+	frame_sb.border_width_bottom = 3 # bottom horizontal border separates list from footer
 	frame_sb.set_corner_radius_all(0)
 	frame_sb.content_margin_left = 24
-	frame_sb.content_margin_top = 0 # No top margin so list starts cleanly under divider line
+	frame_sb.content_margin_top = 24
 	frame_sb.content_margin_right = 24
 	frame_sb.content_margin_bottom = 24
 	scroll_frame.add_theme_stylebox_override("panel", frame_sb)
@@ -248,7 +223,6 @@ func _build_layout() -> void:
 	_status_label.add_theme_color_override("font_color", CLR_CYAN)
 	_status_label.add_theme_font_size_override("font_size", 24)
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var pf := UITheme.get_pixel_font()
 	if pf: _status_label.add_theme_font_override("font", pf)
 	inner_vbox.add_child(_status_label)
 
@@ -261,7 +235,7 @@ func _build_layout() -> void:
 	footer_sb.bg_color = UITheme.CLR_CREAM
 	footer_sb.border_color = UITheme.CLR_INK
 	footer_sb.border_width_left = 0
-	footer_sb.border_width_top = 3 # separates content from footer
+	footer_sb.border_width_top = 0 # scroll_frame bottom border handles separation
 	footer_sb.border_width_right = 0
 	footer_sb.border_width_bottom = 0
 	footer_sb.set_corner_radius_all(0)
@@ -299,14 +273,26 @@ func _build_action_row(action: String, label_text: String) -> PanelContainer:
 	row.custom_minimum_size = Vector2(0, 72)
 	row.add_theme_constant_override("separation", 24)
 
+	# Left accent stripe
+	var stripe := ColorRect.new()
+	stripe.color = CLR_BORDER_SKY
+	stripe.custom_minimum_size = Vector2(8, 0)
+	stripe.size_flags_vertical = Control.SIZE_FILL
+	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(stripe)
+
 	var name_lbl := Label.new()
 	name_lbl.text = label_text
 	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
 	name_lbl.add_theme_font_size_override("font_size", 26)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var font_bold := SystemFont.new()
-	font_bold.font_weight = 700
-	name_lbl.add_theme_font_override("font", font_bold)
+	var pf := UITheme.get_pixel_font()
+	if pf:
+		name_lbl.add_theme_font_override("font", pf)
+	else:
+		var font_bold := SystemFont.new()
+		font_bold.font_weight = 700
+		name_lbl.add_theme_font_override("font", font_bold)
 	row.add_child(name_lbl)
 
 	var bind_btn := Button.new()
@@ -314,6 +300,7 @@ func _build_action_row(action: String, label_text: String) -> PanelContainer:
 	bind_btn.custom_minimum_size = Vector2(180, 48)
 	bind_btn.add_theme_font_size_override("font_size", 22)
 	bind_btn.focus_mode = Control.FOCUS_NONE
+	if pf: bind_btn.add_theme_font_override("font", pf)
 	_apply_bind_button_style(bind_btn, false)
 	bind_btn.pressed.connect(_begin_rebind.bind(action))
 	row.add_child(bind_btn)
@@ -331,7 +318,7 @@ func _build_action_row(action: String, label_text: String) -> PanelContainer:
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
 	sb.set_corner_radius_all(0)
-	sb.content_margin_left = 20
+	sb.content_margin_left = 0
 	sb.content_margin_top = 10
 	sb.content_margin_right = 20
 	sb.content_margin_bottom = 10
