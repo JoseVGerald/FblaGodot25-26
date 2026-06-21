@@ -23,27 +23,39 @@ func _ready():
 	preview.sprite_frames = dog_scene.get_node("AnimatedSprite2D").sprite_frames
 	dog_scene.free()
 	update_preview()
+	# Expand VBoxContainer width programmatically to give the breed name text more space
+	var vbox = get_node_or_null("VBoxContainer")
+	if vbox:
+		vbox.offset_left = -550.0
+		vbox.offset_right = 550.0
+
 	# New UI pixel-art styling
 	var prev_btn = get_node_or_null("VBoxContainer/CycleContainer/PrevButton")
 	var next_btn = get_node_or_null("VBoxContainer/CycleContainer/NextButton")
 	var cont_btn = get_node_or_null("VBoxContainer/ContinueButton")
-	if prev_btn: UITheme.style_pixel_button(prev_btn, true)
-	if next_btn: UITheme.style_pixel_button(next_btn, true)
+	if prev_btn:
+		prev_btn.custom_minimum_size = Vector2(100, 100)
+		prev_btn.add_theme_font_size_override("font_size", 58)
+		UITheme.style_pixel_button(prev_btn, true)
+	if next_btn:
+		next_btn.custom_minimum_size = Vector2(100, 100)
+		next_btn.add_theme_font_size_override("font_size", 58)
+		UITheme.style_pixel_button(next_btn, true)
 	if cont_btn: UITheme.style_pixel_button(cont_btn)
 	# Title and breed name sit directly on the checker — cream + outline.
 	UITheme.style_checker_label($VBoxContainer/Title, 14)
 	UITheme.style_checker_label(breed_label, 10)
 	# Lock the label to a constant width so < > arrows never shift position.
-	# SIZE_EXPAND_FILL fills all remaining space between the buttons (always
-	# the same value since the parent HBoxContainer has a fixed width).
-	breed_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# SIZE_SHRINK_CENTER and custom_minimum_size ensures arrows stay close but safe.
+	breed_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	breed_label.custom_minimum_size = Vector2(600, 0)
 	breed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	breed_label.clip_text = true  # foolproof: minimum size ignores text width → arrows never shift
-	breed_label.add_theme_font_size_override("font_size", 36)  # larger, more prominent text area
+	breed_label.add_theme_font_size_override("font_size", 54)  # larger, more prominent text area
 	# Tighten the gap between arrows and label
 	var cycle_container = get_node_or_null("VBoxContainer/CycleContainer")
 	if cycle_container:
-		cycle_container.add_theme_constant_override("separation", 15)
+		cycle_container.add_theme_constant_override("separation", 30)
 
 func _input(event):
 	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):
