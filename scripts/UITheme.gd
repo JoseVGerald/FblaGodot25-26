@@ -131,7 +131,7 @@ static func style_pixel_button(btn: Button, secondary: bool = false) -> void:
 	btn.add_theme_stylebox_override("normal",   _pxsb(fill,                fill_drk, 8))
 	btn.add_theme_stylebox_override("hover",    _pxsb(fill_hi,             fill_drk, 8))
 	btn.add_theme_stylebox_override("pressed",  _pxsb(fill.darkened(0.06), fill_drk, 2))
-	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30), fill_drk, 0))
+	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30), fill_drk, 8))
 	_do_juice_on(btn)
 
 
@@ -150,7 +150,7 @@ static func style_pixel_button_colored(btn: Button, fill: Color) -> void:
 	btn.add_theme_stylebox_override("normal",   _pxsb(fill,                 shadow, 8))
 	btn.add_theme_stylebox_override("hover",    _pxsb(fill.lightened(0.10), shadow, 8))
 	btn.add_theme_stylebox_override("pressed",  _pxsb(fill.darkened(0.08),  shadow, 2))
-	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30),  shadow, 0))
+	btn.add_theme_stylebox_override("disabled", _pxsb(fill.darkened(0.30),  shadow, 8))
 	_do_juice_on(btn)
 
 

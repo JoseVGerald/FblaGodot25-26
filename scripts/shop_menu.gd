@@ -531,6 +531,14 @@ func _build_ui() -> void:
 	funds_label.add_theme_color_override("font_color", Color(0.65, 0.80, 1.0))
 	funds_label.add_theme_constant_override("shadow_offset_x", 0)
 	funds_label.add_theme_constant_override("shadow_offset_y", 0)
+	
+	# Prescription checkbox: matches character customization page checkbox style
+	if presc_checkbox:
+		presc_checkbox.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+		presc_checkbox.add_theme_color_override("font_hover_color", Color.WHITE)
+		presc_checkbox.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
+		presc_checkbox.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+		presc_checkbox.add_theme_constant_override("outline_size", 6)
 	# Ad panels: strip shadows from every label inside
 	for ad_panel in [deal_strip, ad2, ad3, ad4]:
 		for c in ad_panel.get_child(0).get_children():
