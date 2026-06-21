@@ -136,10 +136,10 @@ func _build_layout() -> void:
 	header_hbox.add_theme_constant_override("separation", 10)
 	header_vbox.add_child(header_hbox)
 	
-	# Title label (orange text, pixel font, no shadow/outline)
+	# Title label (red text, pixel font, no shadow/outline)
 	var title_lbl := Label.new()
 	title_lbl.text = "Keybinds"
-	title_lbl.add_theme_color_override("font_color", CLR_BORDER_SKY)
+	title_lbl.add_theme_color_override("font_color", Color("#ef5350"))
 	title_lbl.add_theme_font_size_override("font_size", 48)
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var pf := UITheme.get_pixel_font()
@@ -156,11 +156,11 @@ func _build_layout() -> void:
 	x_btn.pressed.connect(_close)
 	header_hbox.add_child(x_btn)
 	
-	# Hint / Subheading label
+	# Hint / Subheading label (made bigger)
 	var hint := Label.new()
 	hint.text = "Click a key to rebind. ESC cancels."
 	hint.add_theme_color_override("font_color", CLR_DIM)
-	hint.add_theme_font_size_override("font_size", 18)
+	hint.add_theme_font_size_override("font_size", 24)
 	if pf: hint.add_theme_font_override("font", pf)
 	header_vbox.add_child(hint)
 
@@ -273,14 +273,6 @@ func _build_action_row(action: String, label_text: String) -> PanelContainer:
 	row.custom_minimum_size = Vector2(0, 72)
 	row.add_theme_constant_override("separation", 24)
 
-	# Left accent stripe
-	var stripe := ColorRect.new()
-	stripe.color = CLR_BORDER_SKY
-	stripe.custom_minimum_size = Vector2(8, 0)
-	stripe.size_flags_vertical = Control.SIZE_FILL
-	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(stripe)
-
 	var name_lbl := Label.new()
 	name_lbl.text = label_text
 	name_lbl.add_theme_color_override("font_color", CLR_WHITE)
@@ -318,7 +310,7 @@ func _build_action_row(action: String, label_text: String) -> PanelContainer:
 	sb.border_width_right = 3
 	sb.border_width_bottom = 3
 	sb.set_corner_radius_all(0)
-	sb.content_margin_left = 0
+	sb.content_margin_left = 20
 	sb.content_margin_top = 10
 	sb.content_margin_right = 20
 	sb.content_margin_bottom = 10
