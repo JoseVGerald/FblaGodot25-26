@@ -14,7 +14,7 @@ var tutorial_controller: Node = null
 var Day1Tutorial = preload("res://scripts/day1_tutorial.gd")
 var Day2Tutorial = preload("res://scripts/day2_tutorial.gd")
 var day2_tutorial_controller: Node = null
-var _job_path_line: Line2D = null
+var _job_path_line: Node2D = null
 @onready var shop_path = $ShopPath
 @onready var original_path = $VetPath
 
@@ -129,10 +129,8 @@ func show_job_path(node_name: String) -> void:
 	hide_job_path()
 	var path = get_node_or_null(node_name)
 	if path and path is Path2D and path.curve:
-		_job_path_line = Line2D.new()
-		_job_path_line.points = path.curve.get_baked_points()
-		_job_path_line.width = 6.0
-		_job_path_line.default_color = Color(1, 1, 0, 0.8) # Yellow guidance line
+		_job_path_line = PathGuider.new()
+		_job_path_line.setup_path(path, 6.0, Color(1, 0.9, 0.1))
 		_job_path_line.z_index = 100 # Always draw above the map/buildings
 		path.add_child(_job_path_line)
 
@@ -324,12 +322,14 @@ func _make_paths_visible():
 
 	for path in tutorial_paths:
 		if path and path is Path2D:
-			var line = Line2D.new()
-			line.points = path.curve.get_baked_points()
-			line.width = 4.0
-			line.default_color = Color(1, 1, 0, 0.5) # Semi-transparent yellow
+			# Remove any existing PathGuider child to avoid duplicates if re-called
+			for child in path.get_children():
+				if child is PathGuider:
+					child.queue_free()
+			var line = PathGuider.new()
+			line.setup_path(path, 5.0, Color(1, 0.9, 0.1))
 			path.add_child(line)
-			print("[MainGame] Made path visible: ", path.name)
+			print("[MainGame] Made path visible with PathGuider: ", path.name)
 
 func spawn_mother_npc():
 	# Only spawn for Kid and Teenager pathways
