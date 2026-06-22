@@ -2,45 +2,35 @@ class_name PathGuider
 extends Node2D
 
 var curve: Curve2D
-var width: float = 6.0
-var base_color: Color = Color(1.0, 0.9, 0.1)
-var arrow_color: Color = Color(1.0, 0.9, 0.0)
+var width: float = 3.0
+var base_color: Color = Color(0.96, 0.93, 0.58, 0.5) # Simple semi-transparent light yellow
+var arrow_color: Color = Color(0.96, 0.93, 0.58, 1.0) # Solid simple light yellow
 
-var arrow_phase: float = 0.0
-var arrow_speed: float = 140.0 # pixels per second for flow animation
-var arrow_spacing: float = 75.0 # distance between chevrons
-var arrow_scale: float = 1.35   # size factor of chevrons
+var arrow_spacing: float = 100.0 # spacing between static arrows
+var pixel_size: float = 3.0      # size of each pixel in the chevron
 
-# Chevron arrow points (facing positive X / right in local space)
-# Sleek modern chevron design:
-# Tip at (12, 0)
-# Top-back at (-8, -8)
-# Inner indent at (-4, 0) for chevron effect
-# Bottom-back at (-8, 8)
-var arrow_poly = PackedVector2Array([
-	Vector2(12, 0),
-	Vector2(-8, -8),
-	Vector2(-4, 0),
-	Vector2(-8, 8)
-])
-
-# Process to update the arrow animation offset
-func _process(delta: float) -> void:
-	arrow_phase += delta * arrow_speed
-	if arrow_phase >= arrow_spacing:
-		arrow_phase = fmod(arrow_phase, arrow_spacing)
-	queue_redraw()
+# Relative pixel coordinates for a 2-pixel-thick retro pixel-art chevron
+# Pointing right (positive X)
+const PIXELS = [
+	Vector2(-2, -3), Vector2(-1, -3),
+	Vector2(-1, -2), Vector2(0, -2),
+	Vector2(0, -1), Vector2(1, -1),
+	Vector2(1, 0), Vector2(2, 0),
+	Vector2(0, 1), Vector2(1, 1),
+	Vector2(-1, 2), Vector2(0, 2),
+	Vector2(-2, 3), Vector2(-1, 3)
+]
 
 # Take a Path2D node, extract waypoints, and build a smooth Curve2D
-func setup_path(path2d: Path2D, p_width: float = 6.0, p_color: Color = Color(1.0, 0.9, 0.1)) -> void:
+func setup_path(path2d: Path2D, p_width: float = 3.0, p_color: Color = Color(0.96, 0.93, 0.58, 0.5)) -> void:
 	width = p_width
 	base_color = p_color
-	arrow_color = Color(1.0, 0.9, 0.0, 1.0) # Vibrant solid yellow for arrows
+	arrow_color = Color(p_color.r, p_color.g, p_color.b, 1.0) # Solid matching color
 	
 	if not path2d or not path2d.curve:
 		return
 		
-	# Extract the raw editor waypoints
+	# Extract raw editor waypoints
 	var raw_points = PackedVector2Array()
 	for i in range(path2d.curve.point_count):
 		raw_points.append(path2d.curve.get_point_position(i))
@@ -52,11 +42,11 @@ func setup_path(path2d: Path2D, p_width: float = 6.0, p_color: Color = Color(1.0
 		return
 		
 	if raw_points.size() == 2:
-		# Simple line for just 2 points
+		# Simple line for 2 points
 		curve.add_point(raw_points[0])
 		curve.add_point(raw_points[1])
 	else:
-		# Generate a smooth spline using cubic Bézier tangent calculation
+		# Smooth spline calculation
 		var p0 = raw_points[0]
 		var p1 = raw_points[1]
 		var dir_start = (p1 - p0).normalized()
@@ -70,10 +60,8 @@ func setup_path(path2d: Path2D, p_width: float = 6.0, p_color: Color = Color(1.0
 			
 			var d_prev = curr.distance_to(prev)
 			var d_next = curr.distance_to(next)
-			# Control length is proportional to segment length to avoid overshoot loops
 			var factor = min(d_prev, d_next) * 0.25
 			
-			# Tangent parallel to the line from previous to next waypoint
 			var tangent = (next - prev).normalized()
 			var control_in = -tangent * factor
 			var control_out = tangent * factor
@@ -91,45 +79,32 @@ func _draw() -> void:
 		
 	var points = curve.get_baked_points()
 	
-	# --- DRAW GLOWING GUIDANCE PATH ---
-	# Outer soft halo (glow effect)
-	draw_polyline(points, Color(base_color.r, base_color.g, base_color.b, 0.12), width * 2.5, true)
-	# Medium core glow
-	draw_polyline(points, Color(base_color.r, base_color.g, base_color.b, 0.28), width * 1.5, true)
-	# Sharp main guidance line
-	draw_polyline(points, Color(base_color.r, base_color.g, base_color.b, 0.7), width * 0.7, true)
-	# Hot bright inner core
-	draw_polyline(points, Color(1.0, 1.0, 0.75, 0.95), width * 0.25, true)
+	# Draw simple thin guidance line (no borders, no glows)
+	draw_polyline(points, base_color, width, true)
 	
-	# --- DRAW ANIMATED FLOWING ARROWS ---
+	# Draw static pixelated arrows along the path
 	var length = curve.get_baked_length()
 	if length < 10.0:
 		return
 		
 	if length < arrow_spacing:
-		# Short path: place a single centered arrow
 		_draw_arrow(length / 2.0)
 	else:
-		var offset = arrow_phase
+		var offset = arrow_spacing / 2.0
 		while offset < length:
-			# Prevent drawing an arrow too close to the end point to avoid clipping
 			if offset < length - 6.0:
 				_draw_arrow(offset)
 			offset += arrow_spacing
 
 func _draw_arrow(offset: float) -> void:
-	# Get rotation and position at offset
 	var trans = curve.sample_baked_with_rotation(offset)
 	
-	# 1. Dark background polygon (outline effect to pop out on any background)
-	var border_poly = PackedVector2Array()
-	for p in arrow_poly:
-		border_poly.append(trans * (p * arrow_scale * 1.3))
-	# Translucent dark outline
-	draw_colored_polygon(border_poly, Color(0.05, 0.05, 0.05, 0.8))
-	
-	# 2. Main bright yellow chevron fill
-	var fill_poly = PackedVector2Array()
-	for p in arrow_poly:
-		fill_poly.append(trans * (p * arrow_scale))
-	draw_colored_polygon(fill_poly, arrow_color)
+	# Draw the pixelated chevron using relative pixel offsets
+	for pixel in PIXELS:
+		var local_pos = pixel * pixel_size
+		var v0 = trans * local_pos
+		var v1 = trans * (local_pos + Vector2(pixel_size, 0))
+		var v2 = trans * (local_pos + Vector2(pixel_size, pixel_size))
+		var v3 = trans * (local_pos + Vector2(0, pixel_size))
+		
+		draw_colored_polygon(PackedVector2Array([v0, v1, v2, v3]), arrow_color)
