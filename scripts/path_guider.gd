@@ -2,30 +2,34 @@ class_name PathGuider
 extends Node2D
 
 var curve: Curve2D
-var width: float = 3.0
-var base_color: Color = Color(0.96, 0.93, 0.58, 0.5) # Simple semi-transparent light yellow
-var arrow_color: Color = Color(0.96, 0.93, 0.58, 1.0) # Solid simple light yellow
+var width: float = 2.5
+var base_color: Color = Color(0.96, 0.93, 0.58, 0.15) # Very translucent light yellow
+var arrow_color: Color = Color(0.98, 0.95, 0.6, 1.0) # Solid bright light-yellow
 
-var arrow_spacing: float = 100.0 # spacing between static arrows
-var pixel_size: float = 3.0      # size of each pixel in the chevron
+var arrow_spacing: float = 90.0 # spacing between static arrows
+var pixel_size: float = 4.0      # size of each pixel in the chevron (larger for readability)
 
-# Relative pixel coordinates for a 2-pixel-thick retro pixel-art chevron
+# Relative pixel coordinates for a clean, thick 3-pixel-thick chevron
 # Pointing right (positive X)
 const PIXELS = [
-	Vector2(-2, -3), Vector2(-1, -3),
-	Vector2(-1, -2), Vector2(0, -2),
-	Vector2(0, -1), Vector2(1, -1),
-	Vector2(1, 0), Vector2(2, 0),
-	Vector2(0, 1), Vector2(1, 1),
-	Vector2(-1, 2), Vector2(0, 2),
-	Vector2(-2, 3), Vector2(-1, 3)
+	# Top wing
+	Vector2(-3, -3), Vector2(-2, -3), Vector2(-1, -3),
+	Vector2(-2, -2), Vector2(-1, -2), Vector2(0, -2),
+	Vector2(-1, -1), Vector2(0, -1), Vector2(1, -1),
+	# Center tip
+	Vector2(0, 0), Vector2(1, 0), Vector2(2, 0),
+	# Bottom wing
+	Vector2(-1, 1), Vector2(0, 1), Vector2(1, 1),
+	Vector2(-2, 2), Vector2(-1, 2), Vector2(0, 2),
+	Vector2(-3, 3), Vector2(-2, 3), Vector2(-1, 3)
 ]
 
 # Take a Path2D node, extract waypoints, and build a smooth Curve2D
-func setup_path(path2d: Path2D, p_width: float = 3.0, p_color: Color = Color(0.96, 0.93, 0.58, 0.5)) -> void:
-	width = p_width
-	base_color = p_color
-	arrow_color = Color(p_color.r, p_color.g, p_color.b, 1.0) # Solid matching color
+func setup_path(path2d: Path2D, p_width: float = 6.0, p_color: Color = Color(0.96, 0.93, 0.58, 1.0)) -> void:
+	# Force a thin and highly translucent path line
+	width = clamp(p_width * 0.4, 2.0, 3.0)
+	base_color = Color(p_color.r, p_color.g, p_color.b, 0.15) # 15% opacity for subtle background guide
+	arrow_color = Color(p_color.r, p_color.g, p_color.b, 1.0)  # 100% opacity for arrows to pop out
 	
 	if not path2d or not path2d.curve:
 		return
@@ -79,7 +83,7 @@ func _draw() -> void:
 		
 	var points = curve.get_baked_points()
 	
-	# Draw simple thin guidance line (no borders, no glows)
+	# Draw the highly translucent guide line in the background
 	draw_polyline(points, base_color, width, true)
 	
 	# Draw static pixelated arrows along the path
@@ -102,9 +106,11 @@ func _draw_arrow(offset: float) -> void:
 	# Draw the pixelated chevron using relative pixel offsets
 	for pixel in PIXELS:
 		var local_pos = pixel * pixel_size
+		# Add a minor inflation (+0.4) to eliminate subpixel rendering gaps when rotated
+		var p_size = pixel_size + 0.4
 		var v0 = trans * local_pos
-		var v1 = trans * (local_pos + Vector2(pixel_size, 0))
-		var v2 = trans * (local_pos + Vector2(pixel_size, pixel_size))
-		var v3 = trans * (local_pos + Vector2(0, pixel_size))
+		var v1 = trans * (local_pos + Vector2(p_size, 0))
+		var v2 = trans * (local_pos + Vector2(p_size, p_size))
+		var v3 = trans * (local_pos + Vector2(0, p_size))
 		
 		draw_colored_polygon(PackedVector2Array([v0, v1, v2, v3]), arrow_color)
