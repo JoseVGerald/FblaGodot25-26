@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://b15w1mxa6mc7l"]
+[gd_scene format=3 uid="uid://b15w1mxa6mc7l"]
 
 [ext_resource type="Script" uid="uid://dafne5w3fuy3j" path="res://scripts/MainMenu.gd" id="1_main_menu"]
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=1770712194]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main_menu")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=676248444]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -26,24 +26,24 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="Title" type="Label" parent="VBoxContainer"]
+[node name="Title" type="Label" parent="VBoxContainer" unique_id=287384019]
 layout_mode = 2
 text = "My Little Buddy"
 horizontal_alignment = 1
 
-[node name="ContinueButton" type="Button" parent="VBoxContainer"]
+[node name="ContinueButton" type="Button" parent="VBoxContainer" unique_id=1096409503]
 layout_mode = 2
 text = "Continue Game"
 
-[node name="StartButton" type="Button" parent="VBoxContainer"]
+[node name="StartButton" type="Button" parent="VBoxContainer" unique_id=303721900]
 layout_mode = 2
 text = "Start New Game"
 
-[node name="SettingsButton" type="Button" parent="VBoxContainer"]
+[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=811308349]
 layout_mode = 2
 text = "Settings"
 
-[node name="SettingsPanel" type="Panel" parent="."]
+[node name="SettingsPanel" type="Panel" parent="." unique_id=213441407]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -58,7 +58,7 @@ offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel" unique_id=1047577248]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -67,15 +67,13 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="Label" type="Label" parent="SettingsPanel/VBoxContainer"]
+[node name="Label" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=1318010504]
 layout_mode = 2
 text = "Settings Placeholder"
 horizontal_alignment = 1
 
-[node name="CloseButton" type="Button" parent="SettingsPanel/VBoxContainer"]
+[node name="CloseButton" type="Button" parent="SettingsPanel/VBoxContainer" unique_id=336504345]
 layout_mode = 2
 text = "Close"
 
 [connection signal="pressed" from="SettingsPanel/VBoxContainer/CloseButton" to="." method="_on_close_settings_pressed"]
-
-; COMMIT: Achievements and Catch Minigame Update
