@@ -7,7 +7,7 @@ signal request_started()
 signal request_failed(error: String)
 
 const OLLAMA_URL = "http://localhost:11434/api/generate"
-const MODEL_NAME = "llama3.2:3b"
+const MODEL_NAME = "llama3.2:1b"
 
 var http_request: HTTPRequest
 var system_prompt: String = ""

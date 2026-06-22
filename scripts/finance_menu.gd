@@ -1,6 +1,7 @@
 # finance_menu.gd
-# Financial Hub overlay — sky-blue / green pixel-art identity.
-# Tabs: Overview | BudgetPlanner | WeeklyReport | Loans | AllTimeHistory.
+# Financial Hub overlay — paper/ink pixel-art chrome (matches burger-minigame Finance HTML).
+# Left rail (account card + nav + tip) · main content area · bottom status bar.
+# Views: Overview | Spending | BudgetPlanner | WeeklyReport | Loans | AllTimeHistory.
 extends CanvasLayer
 
 signal menu_closed
@@ -8,131 +9,171 @@ signal menu_closed
 var buy_home_btn: Button = null
 var home_progress_lbl: Label = null
 
-# ── Colour palette (maroon pixel-art identity) ────────────────────────────────
-const CLR_NAVY_DEEP  := UITheme.CLR_MAROON_D     # For card/chart background tint
-const CLR_NAVY       := UITheme.CLR_MAROON        # Root panel bg
-const CLR_NAVY_LIGHT := UITheme.CLR_CREAM_LT      # Highlight
-const CLR_NAVY_CARD  := UITheme.CLR_CREAM          # Card bg
-const CLR_SKY        := UITheme.CLR_INK            # Panel border
-const CLR_SKY_DIM    := UITheme.CLR_GRAY_DRK       # Dim accent
-const CLR_CYAN       := UITheme.CLR_ORANGE_PX      # Active tab, title accent
-const CLR_GREEN      := Color("#4CAF50")
-const CLR_ORANGE     := Color("#FFA726")
-const CLR_RED        := Color("#EF5350")
-const CLR_GOLD       := UITheme.CLR_GOLD
-const CLR_WHITE      := UITheme.CLR_CREAM
-const CLR_DIM        := UITheme.CLR_CREAM_LT
-const CLR_CAT_FOOD   := Color("#4CAF50")
-const CLR_CAT_VET    := Color("#4A90D9")
-const CLR_CAT_TRAVEL := Color("#FFA726")
-const CLR_CAT_INCOME := Color("#53d8fb")
-const CLR_CAT_LOAN   := Color("#EF5350")
+# ── Colour palette (paper/ink — matches finance/styles.css :root) ─────────────
+const CLR_PAPER      := Color("#f9dcab")
+const CLR_PAPER2     := Color("#f3cf95")
+const CLR_PAPER_EDGE := Color("#ecc483")
+const CLR_INK        := Color("#3a2616")
+const CLR_INK2       := Color("#5c3d23")
+const CLR_MUTED      := Color("#8a6a44")
+const CLR_NAVY       := Color("#16273e")
+const CLR_NAVY_TX    := Color("#c7d6e8")
+const CLR_NAVY_DIM   := Color("#7f93ab")
+const CLR_NAVY_LINE  := Color("#314c6e")
+const CLR_GREEN      := Color("#5ea83c")
+const CLR_GREEN_D    := Color("#3f7e28")
+const CLR_GREEN_TX   := Color("#7fd05a")
+const CLR_RED        := Color("#d24a3d")
+const CLR_RED_D      := Color("#a8352b")
+const CLR_RED_TX     := Color("#ef8276")
+const CLR_GOLD       := Color("#e8b53f")
+const CLR_GOLD_D     := Color("#c4902a")
+const CLR_BLUE       := Color("#57b6df")
+const CLR_BLUE_D     := Color("#3d8bb0")
+const CLR_ORANGE     := Color("#e0852e")
 
-# ── Scene node refs ──────────────────────────────────────────────────────────
-@onready var overview_tab    = $Panel/VBox/Content/TabContainer/Overview
-@onready var budget_tab      = $Panel/VBox/Content/TabContainer/BudgetPlanner
-@onready var report_tab      = $Panel/VBox/Content/TabContainer/WeeklyReport
-@onready var spendable_label = $Panel/VBox/Content/TabContainer/Overview/SpendableLabel
-@onready var savings_label   = $Panel/VBox/Content/TabContainer/Overview/SavingsLabel
-@onready var deposit_input   = $Panel/VBox/Content/TabContainer/Overview/DepositInput
-@onready var day_label       = $Panel/VBox/Header/TitleBlock/DayLabel
+# Category colours (pie / bars / pills)
+const CLR_CAT_FOOD   := Color("#5ea83c")
+const CLR_CAT_VET    := Color("#57b6df")
+const CLR_CAT_TRAVEL := Color("#e0852e")
+const CLR_CAT_RENT   := Color("#a86fc4")
+const CLR_CAT_INCOME := Color("#5ea83c")
+const CLR_CAT_LOAN   := Color("#d24a3d")
 
-# Budget Planner — cards
-@onready var food_card    = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard
-@onready var vet_card     = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard
-@onready var travel_card  = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard
-@onready var budget_warning = $Panel/VBox/Content/TabContainer/BudgetPlanner/WarningStrip
+# ── View nodes ────────────────────────────────────────────────────────────────
+@onready var views_container = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views
+@onready var overview_tab    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview
+@onready var spending_view   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Spending
+@onready var budget_tab      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner
+@onready var report_tab      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport
 
-@onready var food_slider        = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/FoodSlider
-@onready var vet_slider         = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/VetSlider
-@onready var travel_slider      = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/TravelSlider
-@onready var food_limit_label   = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/HeaderRow/FoodLimitLabel
-@onready var vet_limit_label    = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/HeaderRow/VetLimitLabel
-@onready var travel_limit_label = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/HeaderRow/TravelLimitLabel
+# Overview
+@onready var spendable_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/SpendableLabel
+@onready var savings_label   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/SavingsLabel
+@onready var deposit_input   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/DepositInput
 
-@onready var food_progress_bar: Control   = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/FoodProgressBar
-@onready var vet_progress_bar: Control    = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/VetProgressBar
-@onready var travel_progress_bar: Control = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/TravelProgressBar
+# Title / status
+@onready var close_btn   = $Window/VBox/StatusBar/StatusHBox/CloseBtn
+@onready var day_label   = $Window/VBox/StatusBar/StatusHBox/DayLabel
+@onready var status_cash = $Window/VBox/StatusBar/StatusHBox/StatusCash
 
-@onready var food_spent_label    = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/MetaRow/SpentLabel
-@onready var food_limit_meta     = $Panel/VBox/Content/TabContainer/BudgetPlanner/FoodCard/VBox/MetaRow/LimitLabel
-@onready var vet_spent_label     = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/MetaRow/SpentLabel
-@onready var vet_limit_meta      = $Panel/VBox/Content/TabContainer/BudgetPlanner/VetCard/VBox/MetaRow/LimitLabel
-@onready var travel_spent_label  = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/MetaRow/SpentLabel
-@onready var travel_limit_meta   = $Panel/VBox/Content/TabContainer/BudgetPlanner/TravelCard/VBox/MetaRow/LimitLabel
+# Left-rail account card
+@onready var checking_label    = $Window/VBox/BodyMargin/Body/Rail/AcctCard/AcctVBox/CheckingRow/CheckingLabel
+@onready var savings_bal_label = $Window/VBox/BodyMargin/Body/Rail/AcctCard/AcctVBox/SavingsRow/SavingsBalLabel
+@onready var debt_label        = $Window/VBox/BodyMargin/Body/Rail/AcctCard/AcctVBox/DebtRow/DebtLabel
+@onready var net_label         = $Window/VBox/BodyMargin/Body/Rail/AcctCard/AcctVBox/NetRow/NetLabel
+
+# Nav buttons
+@onready var nav_overview = $Window/VBox/BodyMargin/Body/Rail/Nav/NavOverview
+@onready var nav_spending = $Window/VBox/BodyMargin/Body/Rail/Nav/NavSpending
+@onready var nav_budget   = $Window/VBox/BodyMargin/Body/Rail/Nav/NavBudget
+@onready var nav_loans    = $Window/VBox/BodyMargin/Body/Rail/Nav/NavLoans
+@onready var nav_report   = $Window/VBox/BodyMargin/Body/Rail/Nav/NavReport
+@onready var nav_history  = $Window/VBox/BodyMargin/Body/Rail/Nav/NavHistory
+
+# Main header
+@onready var main_title_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead/HeadRow/MainTitle
+@onready var main_hint        = $Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead/HeadRow/MainHint
+
+# Budget Planner
+@onready var food_card      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard
+@onready var vet_card       = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard
+@onready var travel_card    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard
+@onready var budget_warning = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/WarningStrip
+@onready var food_slider        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/FoodSlider
+@onready var vet_slider         = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/VetSlider
+@onready var travel_slider      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/TravelSlider
+@onready var food_limit_label   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/HeaderRow/FoodLimitLabel
+@onready var vet_limit_label    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/HeaderRow/VetLimitLabel
+@onready var travel_limit_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/HeaderRow/TravelLimitLabel
+@onready var food_progress_bar: Control   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/FoodProgressBar
+@onready var vet_progress_bar: Control    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/VetProgressBar
+@onready var travel_progress_bar: Control = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/TravelProgressBar
+@onready var food_spent_label    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/MetaRow/SpentLabel
+@onready var food_limit_meta     = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/MetaRow/LimitLabel
+@onready var vet_spent_label     = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/MetaRow/SpentLabel
+@onready var vet_limit_meta      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/MetaRow/LimitLabel
+@onready var travel_spent_label  = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/MetaRow/SpentLabel
+@onready var travel_limit_meta   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/MetaRow/LimitLabel
 
 # Weekly Report
-@onready var week_strip         = $Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip
-@onready var week_label         = $Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/WeekLabel
-@onready var report_income_val  = $Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/IncomeStat/Value
-@onready var report_spent_val   = $Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/SpentStat/Value
-@onready var report_net_val     = $Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/NetStat/Value
-@onready var report_emer_val    = $Panel/VBox/Content/TabContainer/WeeklyReport/WeekStrip/HBox/EmergencyStat/Value
-@onready var breakdown_title    = $Panel/VBox/Content/TabContainer/WeeklyReport/BreakdownTitle
-@onready var breakdown_card     = $Panel/VBox/Content/TabContainer/WeeklyReport/BreakdownCard
-@onready var breakdown_grid     = $Panel/VBox/Content/TabContainer/WeeklyReport/BreakdownCard/BreakdownGrid
-@onready var events_title       = $Panel/VBox/Content/TabContainer/WeeklyReport/EventsTitle
-@onready var events_card        = $Panel/VBox/Content/TabContainer/WeeklyReport/EventsCard
-@onready var events_grid        = $Panel/VBox/Content/TabContainer/WeeklyReport/EventsCard/EventsGrid
+@onready var week_strip        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/WeekStrip
+@onready var week_label        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/WeekStrip/HBox/WeekLabel
+@onready var report_income_val = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/WeekStrip/HBox/IncomeStat/Value
+@onready var report_spent_val  = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/WeekStrip/HBox/SpentStat/Value
+@onready var report_net_val    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/WeekStrip/HBox/NetStat/Value
+@onready var report_emer_val   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/WeekStrip/HBox/EmergencyStat/Value
+@onready var breakdown_title   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/BreakdownTitle
+@onready var breakdown_card    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/BreakdownCard
+@onready var breakdown_grid    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/BreakdownCard/BreakdownGrid
+@onready var events_title      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/EventsTitle
+@onready var events_card       = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/EventsCard
+@onready var events_grid       = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport/EventsCard/EventsGrid
 
 # History
-@onready var history_cash_label  = $Panel/VBox/Content/TabContainer/AllTimeHistory/CashHeader
-@onready var history_spent_label = $Panel/VBox/Content/TabContainer/AllTimeHistory/SpentTotalLabel
-@onready var history_list        = $Panel/VBox/Content/TabContainer/AllTimeHistory/BreakdownView/ScrollContainer/HistoryList
-@onready var breakdown_btn  = $Panel/VBox/Content/TabContainer/AllTimeHistory/ViewToggleContainer/BreakdownBtn
-@onready var graphs_btn     = $Panel/VBox/Content/TabContainer/AllTimeHistory/ViewToggleContainer/GraphsBtn
-@onready var breakdown_view = $Panel/VBox/Content/TabContainer/AllTimeHistory/BreakdownView
-@onready var graph_view     = $Panel/VBox/Content/TabContainer/AllTimeHistory/GraphView
-@onready var graph_canvas   = $Panel/VBox/Content/TabContainer/AllTimeHistory/GraphView/GraphCanvas
-@onready var close_btn      = $Panel/VBox/Header/CloseBtn
+@onready var history_cash_label  = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/CashHeader
+@onready var history_spent_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/SpentTotalLabel
+@onready var history_list        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/BreakdownView/ScrollContainer/HistoryList
+@onready var breakdown_btn  = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/ViewToggleContainer/BreakdownBtn
+@onready var graphs_btn     = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/ViewToggleContainer/GraphsBtn
+@onready var breakdown_view = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/BreakdownView
+@onready var graph_view     = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/GraphView
+@onready var graph_canvas   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/AllTimeHistory/GraphView/GraphCanvas
 
-# Loans tab
-@onready var credit_card         = $Panel/VBox/Content/TabContainer/Loans/CreditCard
-@onready var loan_balance_label  = $Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/LoanBalanceLabel
-@onready var loan_limit_label    = $Panel/VBox/Content/TabContainer/Loans/CreditBarSection/BarHeader/LoanLimitLabel
-@onready var loan_rate_label     = $Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/RateStat/LoanRateLabel
-@onready var loan_accrued_label  = $Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/AccruedStat/LoanAccruedLabel
-@onready var loan_impact_label   = $Panel/VBox/Content/TabContainer/Loans/CreditCard/VBox/FooterRow/NextStat/ImpactLabel
-@onready var credit_bar: Control = $Panel/VBox/Content/TabContainer/Loans/CreditBarSection/CreditBar
-@onready var action_card         = $Panel/VBox/Content/TabContainer/Loans/ActionCard
-@onready var loan_input          = $Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow/LoanInput
-@onready var borrow_btn          = $Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow/BorrowBtn
-@onready var repay_btn           = $Panel/VBox/Content/TabContainer/Loans/ActionCard/VBox/ActionRow/RepayBtn
-@onready var loan_warning        = $Panel/VBox/Content/TabContainer/Loans/LoanWarning
+# Loans
+@onready var credit_card        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard
+@onready var loan_balance_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/LoanBalanceLabel
+@onready var loan_limit_label   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditBarSection/BarHeader/LoanLimitLabel
+@onready var loan_rate_label    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/RateStat/LoanRateLabel
+@onready var loan_accrued_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/AccruedStat/LoanAccruedLabel
+@onready var loan_impact_label  = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/NextStat/ImpactLabel
+@onready var credit_bar: Control = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditBarSection/CreditBar
+@onready var action_card        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/ActionCard
+@onready var loan_input         = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/ActionCard/VBox/ActionRow/LoanInput
+@onready var borrow_btn         = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/ActionCard/VBox/ActionRow/BorrowBtn
+@onready var repay_btn          = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/ActionCard/VBox/ActionRow/RepayBtn
+@onready var loan_warning       = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/LoanWarning
 
-# ── Pie chart state ────────────────────────────────────────────────────────────
+# ── Pie chart state ─────────────────────────────────────────────────────────────
+var _pie_canvas  : Control = null
+var _pie_tooltip : Label   = null
+var _pie_slices  : Array   = []
+var _pie_center  : Vector2 = Vector2.ZERO
+var _pie_radius  : float   = 0.0
 
-var _pie_canvas      : Control = null
-var _pie_tooltip     : Label   = null
-var _pie_slices      : Array   = []
-var _pie_center      : Vector2 = Vector2.ZERO
-var _pie_radius      : float   = 0.0
-
-# Cached credit-bar fill ratio for _draw()
 var _credit_bar_ratio : float = 0.0
-
-# Per-card progress fill ratio + colour for _draw()
 var _budget_progress : Dictionary = {
 	"Food":   {"ratio": 0.0, "color": CLR_CAT_FOOD},
 	"Vet":    {"ratio": 0.0, "color": CLR_CAT_VET},
 	"Travel": {"ratio": 0.0, "color": CLR_CAT_TRAVEL},
+	"Rent":   {"ratio": 0.0, "color": CLR_CAT_RENT},
 }
 
-# ── Lifecycle ─────────────────────────────────────────────────────────────────
+var _active_view : String = "Overview"
 
+# Rent & Housing (adult-only, built at runtime)
+var _rent_card       : PanelContainer = null
+var _rent_slider     : HSlider        = null
+var _rent_limit_lbl  : Label          = null
+var _rent_spent_lbl  : Label          = null
+var _rent_limit_meta : Label          = null
+var _rent_progress   : Control        = null
+
+# ── Lifecycle ───────────────────────────────────────────────────────────────────
 func _ready() -> void:
-	_style_root_panel()
-	_grow_panel_to_viewport()
-	_apply_finance_panel_scale_and_close_style()
-	_style_toggle_buttons()
+	_style_window_chrome()
+	_style_nav_buttons()
+	_style_acct_card()
+	_style_tip_card()
+	_style_status_bar()
 	_style_deposit_withdraw_buttons()
-	_style_header_title()
-	_grow_tab_fonts()
+	_style_toggle_buttons()
 	_style_budget_cards()
 	_style_report_panels()
 	_style_loan_panels()
 	_hook_progress_canvases()
 	_hook_credit_bar_canvas()
+
 	GameState.budget_updated.connect(update_ui)
 	GameState.savings_updated.connect(update_ui)
 	GameState.loan_updated.connect(update_ui)
@@ -142,28 +183,33 @@ func _ready() -> void:
 	_style_loan_buttons()
 	_wire_numeric_validation()
 
-	# Dynamic Buy House controls for Adult pathway
-	var overview = $Panel/VBox/Content/TabContainer/Overview
-	if overview and GameState.selected_pathway == "adult":
+	# Adult pathway: Buy House goal + Rent & Housing budget card
+	if GameState.selected_pathway == "adult":
 		home_progress_lbl = Label.new()
 		home_progress_lbl.name = "HomeProgressLabel"
-		home_progress_lbl.add_theme_font_size_override("font_size", 28)
-		home_progress_lbl.add_theme_color_override("font_color", CLR_GOLD)
+		home_progress_lbl.add_theme_font_size_override("font_size", 30)
+		home_progress_lbl.add_theme_color_override("font_color", CLR_GOLD_D)
+		home_progress_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var font := UITheme.get_pixel_font()
 		if font: home_progress_lbl.add_theme_font_override("font", font)
-		overview.add_child(home_progress_lbl)
-		
+		overview_tab.add_child(home_progress_lbl)
+
 		buy_home_btn = Button.new()
 		buy_home_btn.name = "BuyHomeButton"
 		buy_home_btn.text = "Buy House ($%.2f)" % GameState.house_price
-		buy_home_btn.add_theme_font_size_override("font_size", 30)
-		buy_home_btn.custom_minimum_size = Vector2(240, 60)
+		buy_home_btn.add_theme_font_size_override("font_size", 34)
+		buy_home_btn.custom_minimum_size = Vector2(300, 76)
+		buy_home_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		UITheme.style_pixel_button(buy_home_btn)
-		overview.add_child(buy_home_btn)
+		overview_tab.add_child(buy_home_btn)
 		buy_home_btn.pressed.connect(_on_buy_home_pressed)
 
+		_add_rent_budget_card()
+
+	_switch_view("Overview")
 	update_ui()
 
+# ── Numeric input validation ────────────────────────────────────────────────────
 func _wire_numeric_validation() -> void:
 	if deposit_input:
 		deposit_input.text_changed.connect(_on_money_text_changed.bind(deposit_input))
@@ -193,8 +239,7 @@ func _is_valid_money(s: String) -> bool:
 			return false
 	return true
 
-# ── Public API ─────────────────────────────────────────────────────────────────
-
+# ── Public API ───────────────────────────────────────────────────────────────────
 func show_menu() -> void:
 	visible = true
 	update_ui()
@@ -206,39 +251,97 @@ func hide_menu() -> void:
 
 func update_ui() -> void:
 	_update_day_label()
+	_update_acct_rail()
+	_update_statusbar()
 	update_overview()
 	update_budget_inputs()
 	update_report()
 	update_loans()
 	update_history_header()
 
-# ── Header ────────────────────────────────────────────────────────────────────
+# ── View switching ────────────────────────────────────────────────────────────────
+const _VIEW_META := {
+	"Overview":       {"title": "OVERVIEW",      "hint": "your money at a glance"},
+	"Spending":       {"title": "SPENDING",      "hint": "where it went this week"},
+	"BudgetPlanner":  {"title": "BUDGET",        "hint": "set your spending limits"},
+	"WeeklyReport":   {"title": "WEEKLY REPORT", "hint": "this week at a glance"},
+	"Loans":          {"title": "LOANS",         "hint": "what you owe"},
+	"AllTimeHistory": {"title": "HISTORY",       "hint": "recent transactions"},
+}
 
+func _switch_view(view_name: String) -> void:
+	_active_view = view_name
+	for child in views_container.get_children():
+		child.visible = false
+	var target := views_container.get_node_or_null(view_name)
+	if target:
+		target.visible = true
+
+	var meta: Dictionary = _VIEW_META.get(view_name, {})
+	if main_title_label: main_title_label.text = meta.get("title", "")
+	if main_hint:        main_hint.text = meta.get("hint", "")
+
+	_update_nav_active(view_name)
+
+	if view_name == "Spending":
+		_ensure_pie_canvas()
+		if _pie_canvas: _pie_canvas.queue_redraw()
+
+func _update_nav_active(view_name: String) -> void:
+	var map := {
+		"Overview": nav_overview, "Spending": nav_spending, "BudgetPlanner": nav_budget,
+		"WeeklyReport": nav_report, "Loans": nav_loans, "AllTimeHistory": nav_history,
+	}
+	for key in map:
+		var btn: Button = map[key]
+		if not btn: continue
+		if key == view_name: _style_nav_active(btn)
+		else:                _style_nav_inactive(btn)
+
+# ── Header / status / rail ──────────────────────────────────────────────────────
 func _update_day_label() -> void:
-	if not day_label:
-		return
+	if not day_label: return
 	var day := GameState.current_day
 	var week: int = int(float(day) / 7.0) + 1
 	day_label.text = "DAY %d · WEEK %d" % [max(1, day), week]
-	day_label.add_theme_color_override("font_color", CLR_DIM)
 	var font := UITheme.get_pixel_font()
 	if font: day_label.add_theme_font_override("font", font)
 
-# ── Overview tab ──────────────────────────────────────────────────────────────
+func _update_statusbar() -> void:
+	if status_cash:
+		status_cash.text = "CASH  $%.2f" % GameState.money
+		var font := UITheme.get_pixel_font()
+		if font: status_cash.add_theme_font_override("font", font)
 
+func _update_acct_rail() -> void:
+	if not checking_label: return
+	checking_label.text    = "$%.2f" % GameState.money
+	savings_bal_label.text = "$%.2f" % GameState.savings_balance
+	debt_label.text        = "-$%.2f" % GameState.loan_balance
+	var net := GameState.money + GameState.savings_balance - float(GameState.loan_balance)
+	net_label.text = "$%.2f" % net
+	var px := UITheme.get_pixel_font()
+	for lbl in [checking_label, savings_bal_label, debt_label, net_label]:
+		if px: lbl.add_theme_font_override("font", px)
+	checking_label.add_theme_color_override("font_color", CLR_GREEN_TX)
+	savings_bal_label.add_theme_color_override("font_color", CLR_GREEN_TX)
+	debt_label.add_theme_color_override("font_color", CLR_RED_TX if GameState.loan_balance > 0 else CLR_GREEN_TX)
+	net_label.add_theme_color_override("font_color", CLR_GOLD)
+
+# ── Overview tab ───────────────────────────────────────────────────────────────
 func update_overview() -> void:
 	spendable_label.text = "Spending Money: $%.2f" % GameState.money
-	spendable_label.add_theme_color_override("font_color", CLR_GREEN)
+	spendable_label.add_theme_color_override("font_color", CLR_GREEN_D)
 	savings_label.text = "Emergency Savings: $%.2f" % GameState.savings_balance
-	savings_label.add_theme_color_override("font_color", CLR_CYAN)
+	savings_label.add_theme_color_override("font_color", CLR_BLUE_D)
 
 	var food_spent   = GameState.budget_data["Food"]["spent"]
 	var vet_spent    = GameState.budget_data["Vet"]["spent"]
 	var travel_spent = GameState.budget_data["Travel"]["spent"]
 	var total_spent  = food_spent + vet_spent + travel_spent
 
-	var food_pct   := 0.0
-	var vet_pct    := 0.0
+	var food_pct := 0.0
+	var vet_pct := 0.0
 	var travel_pct := 0.0
 	if total_spent > 0:
 		food_pct   = float(food_spent)   / float(total_spent) * 100.0
@@ -275,43 +378,33 @@ func update_overview() -> void:
 		_pie_slices[i]["end_angle"]   = angle + sweep
 		angle += sweep
 
-	_ensure_pie_canvas()
-	if _pie_canvas:
-		_pie_canvas.queue_redraw()
+	if _active_view == "Spending":
+		_ensure_pie_canvas()
+		if _pie_canvas: _pie_canvas.queue_redraw()
+	_update_pie_legend()
 
 	if is_instance_valid(home_progress_lbl):
 		if GameState.house_owned:
 			home_progress_lbl.text = "CONGRATULATIONS! House Purchased!"
 			buy_home_btn.visible = false
 		else:
-			home_progress_lbl.text = "Goal: Buy House ($%.2f) - Cash: $%.2f / $%.2f" % [GameState.house_price, GameState.money, GameState.house_price]
+			home_progress_lbl.text = "Goal: Buy House ($%.2f) — Cash: $%.2f / $%.2f" % [
+				GameState.house_price, GameState.money, GameState.house_price]
 			buy_home_btn.text = "Buy House ($%.2f)" % GameState.house_price
 			buy_home_btn.visible = true
 			buy_home_btn.disabled = GameState.money < GameState.house_price
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  PIE CHART — Canvas + hover
-# ──────────────────────────────────────────────────────────────────────────────
-
+# ── Pie chart + legend (Spending view) ───────────────────────────────────────────
 func _ensure_pie_canvas() -> void:
-	if _pie_canvas:
-		return
-
-	var overview = $Panel/VBox/Content/TabContainer/Overview
-
-	for node_name in ["BudgetsTitle", "FoodLabel", "FoodProgress",
-					   "VetLabel", "VetProgress", "TravelLabel", "TravelProgress"]:
-		var n = overview.get_node_or_null(node_name)
-		if n:
-			n.visible = false
-
+	if _pie_canvas: return
 	_pie_canvas = Control.new()
 	_pie_canvas.name = "PieChartCanvas"
-	_pie_canvas.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-	_pie_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_pie_canvas.custom_minimum_size   = Vector2(200, 200)
+	_pie_canvas.custom_minimum_size = Vector2(440, 440)
+	_pie_canvas.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_pie_canvas.mouse_filter = Control.MOUSE_FILTER_STOP
-	overview.add_child(_pie_canvas)
+	var pie_holder := spending_view.get_node_or_null("PieHolder")
+	if pie_holder: pie_holder.add_child(_pie_canvas)
+	else:          spending_view.add_child(_pie_canvas)
 
 	_pie_canvas.draw.connect(_on_pie_draw)
 	_pie_canvas.gui_input.connect(_on_pie_input)
@@ -320,101 +413,110 @@ func _ensure_pie_canvas() -> void:
 	_pie_tooltip = Label.new()
 	_pie_tooltip.visible = false
 	_pie_tooltip.add_theme_font_size_override("font_size", 28)
-	_pie_tooltip.add_theme_color_override("font_color", CLR_WHITE)
+	_pie_tooltip.add_theme_color_override("font_color", CLR_PAPER)
 	var font := UITheme.get_pixel_font()
-	if font:
-		_pie_tooltip.add_theme_font_override("font", font)
+	if font: _pie_tooltip.add_theme_font_override("font", font)
 	var tip_sb := StyleBoxFlat.new()
 	tip_sb.bg_color = Color(0, 0, 0, 0.85)
-	tip_sb.border_color = CLR_SKY
+	tip_sb.border_color = CLR_INK
 	tip_sb.set_border_width_all(2)
 	tip_sb.set_corner_radius_all(6)
 	tip_sb.set_content_margin_all(10)
 	_pie_tooltip.add_theme_stylebox_override("normal", tip_sb)
 	_pie_canvas.add_child(_pie_tooltip)
 
-
 func _on_pie_draw() -> void:
-	if not _pie_canvas or _pie_slices.is_empty():
-		return
-
+	if not _pie_canvas or _pie_slices.is_empty(): return
 	var sz := _pie_canvas.size
-	_pie_radius = min(sz.x, sz.y) * 0.38
+	_pie_radius = min(sz.x, sz.y) * 0.42
 	_pie_center = sz * 0.5
-
 	var seg := 64
-
 	for slice in _pie_slices:
 		var points := PackedVector2Array()
 		points.append(_pie_center)
 		var start_a : float = slice["start_angle"]
-		var end_a   : float = slice["end_angle"]
-		var sweep   := end_a - start_a
+		var sweep   : float = slice["end_angle"] - start_a
 		for j in range(seg + 1):
 			var a := start_a + sweep * (float(j) / float(seg))
 			points.append(_pie_center + Vector2(cos(a), sin(a)) * _pie_radius)
 		_pie_canvas.draw_colored_polygon(points, slice["color"])
-
 	var outline_pts := PackedVector2Array()
 	for j in range(129):
 		var a := float(j) / 128.0 * TAU
 		outline_pts.append(_pie_center + Vector2(cos(a), sin(a)) * _pie_radius)
-	_pie_canvas.draw_polyline(outline_pts, UITheme.CLR_INK, 2.0)
-
+	_pie_canvas.draw_polyline(outline_pts, CLR_INK, 3.0)
 	for slice in _pie_slices:
 		var p1 := _pie_center + Vector2(cos(slice["start_angle"]), sin(slice["start_angle"])) * _pie_radius
-		_pie_canvas.draw_line(_pie_center, p1, UITheme.CLR_INK, 2.0)
-
+		_pie_canvas.draw_line(_pie_center, p1, CLR_INK, 2.0)
 
 func _on_pie_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		var local_pos : Vector2 = event.position
 		var dist := local_pos.distance_to(_pie_center)
 		if dist > _pie_radius or _pie_radius == 0.0:
-			_hide_pie_tooltip()
-			return
-
+			_hide_pie_tooltip(); return
 		var angle := atan2(local_pos.y - _pie_center.y, local_pos.x - _pie_center.x)
-
 		for slice in _pie_slices:
 			var sa : float = slice["start_angle"]
 			var ea : float = slice["end_angle"]
 			var a_norm := angle
-			if a_norm < sa:
-				a_norm += TAU
+			if a_norm < sa: a_norm += TAU
 			if a_norm >= sa and a_norm < ea:
-				_show_pie_tooltip(slice, local_pos)
-				return
-
+				_show_pie_tooltip(slice, local_pos); return
 		for slice in _pie_slices:
 			var sa : float = slice["start_angle"]
 			var ea : float = slice["end_angle"]
 			var a_norm := angle + TAU
 			if a_norm >= sa and a_norm < ea:
-				_show_pie_tooltip(slice, local_pos)
-				return
-
+				_show_pie_tooltip(slice, local_pos); return
 		_hide_pie_tooltip()
 
-
 func _show_pie_tooltip(slice: Dictionary, pos: Vector2) -> void:
-	if not _pie_tooltip:
-		return
+	if not _pie_tooltip: return
 	_pie_tooltip.text = "%s\n%.1f%%  %s" % [slice["name"], slice["pct"], slice["detail"]]
 	_pie_tooltip.visible = true
 	_pie_tooltip.position = pos + Vector2(16, -50)
 
-
 func _hide_pie_tooltip() -> void:
-	if _pie_tooltip:
-		_pie_tooltip.visible = false
+	if _pie_tooltip: _pie_tooltip.visible = false
 
-# ── Budget Planner tab ────────────────────────────────────────────────────────
+## Build the HTML-style vertical legend (swatch · name · mini-bar · amount/pct).
+func _update_pie_legend() -> void:
+	var legend := spending_view.get_node_or_null("Legend")
+	if not legend: return
+	for child in legend.get_children(): child.queue_free()
+	var px := UITheme.get_pixel_font()
+	for slice in _pie_slices:
+		var row := PanelContainer.new()
+		_apply_sb(row, _sb_paper_card())
+		var hb := HBoxContainer.new()
+		hb.add_theme_constant_override("separation", 16)
+		row.add_child(hb)
+		var sw := ColorRect.new()
+		sw.color = slice["color"]
+		sw.custom_minimum_size = Vector2(32, 32)
+		sw.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		hb.add_child(sw)
+		var nm := Label.new()
+		nm.text = slice["name"]
+		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nm.add_theme_font_size_override("font_size", 32)
+		nm.add_theme_color_override("font_color", CLR_INK)
+		if px: nm.add_theme_font_override("font", px)
+		hb.add_child(nm)
+		var amt := Label.new()
+		amt.text = "%.0f%%" % slice["pct"]
+		amt.add_theme_font_size_override("font_size", 32)
+		amt.add_theme_color_override("font_color", CLR_MUTED)
+		if px: amt.add_theme_font_override("font", px)
+		hb.add_child(amt)
+		legend.add_child(row)
 
+# ── Budget Planner ───────────────────────────────────────────────────────────────
 func _style_budget_cards() -> void:
-	UITheme.style_accent_card(food_card,   CLR_CAT_FOOD)
-	UITheme.style_accent_card(vet_card,    CLR_CAT_VET)
-	UITheme.style_accent_card(travel_card, CLR_CAT_TRAVEL)
+	_style_accent_card(food_card,   CLR_CAT_FOOD)
+	_style_accent_card(vet_card,    CLR_CAT_VET)
+	_style_accent_card(travel_card, CLR_CAT_TRAVEL)
 	UITheme.style_warning_strip(budget_warning, "orange")
 	_style_slider(food_slider,   CLR_CAT_FOOD)
 	_style_slider(vet_slider,    CLR_CAT_VET)
@@ -422,21 +524,23 @@ func _style_budget_cards() -> void:
 
 func _style_slider(slider: HSlider, accent: Color) -> void:
 	var track := StyleBoxFlat.new()
-	track.bg_color = UITheme.CLR_MAROON_D
-	track.border_color = UITheme.CLR_INK
-	track.set_border_width_all(2)
+	track.bg_color = CLR_PAPER2
+	track.border_color = CLR_INK
+	track.set_border_width_all(3)
 	track.set_corner_radius_all(0)
-	track.content_margin_top = 4
-	track.content_margin_bottom = 4
+	track.content_margin_top = 5
+	track.content_margin_bottom = 5
 	slider.add_theme_stylebox_override("slider", track)
-
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = accent
-	fill.border_color = UITheme.CLR_INK
-	fill.set_border_width_all(2)
+	fill.border_color = CLR_INK
+	fill.set_border_width_all(3)
 	fill.set_corner_radius_all(0)
 	slider.add_theme_stylebox_override("grabber_area", fill)
-	slider.add_theme_stylebox_override("grabber_area_highlight", fill)
+	# grabber_area_highlight slightly brighter for press feedback (Emil rule)
+	var fill_hi: StyleBoxFlat = fill.duplicate()
+	fill_hi.bg_color = accent.lightened(0.12)
+	slider.add_theme_stylebox_override("grabber_area_highlight", fill_hi)
 
 func _hook_progress_canvases() -> void:
 	food_progress_bar.draw.connect(func(): _draw_progress_bar(food_progress_bar, "Food"))
@@ -446,25 +550,20 @@ func _hook_progress_canvases() -> void:
 func _draw_progress_bar(ctrl: Control, category: String) -> void:
 	var sz := ctrl.size
 	var track_sb := StyleBoxFlat.new()
-	track_sb.bg_color = UITheme.CLR_CREAM_LT
-	track_sb.border_color = UITheme.CLR_INK
+	track_sb.bg_color = CLR_PAPER2
+	track_sb.border_color = CLR_INK
 	track_sb.set_border_width_all(2)
 	track_sb.set_corner_radius_all(0)
 	ctrl.draw_style_box(track_sb, Rect2(Vector2.ZERO, sz))
-
-	var info: Dictionary = _budget_progress.get(category, {"ratio": 0.0, "color": CLR_SKY})
+	var info: Dictionary = _budget_progress.get(category, {"ratio": 0.0, "color": CLR_BLUE})
 	var ratio: float = clamp(info.get("ratio", 0.0), 0.0, 1.0)
-	if ratio <= 0.0:
-		return
-	var fill_color: Color = info.get("color", CLR_SKY)
-	if ratio > 0.85:
-		fill_color = CLR_RED
-	elif ratio > 0.60:
-		fill_color = CLR_ORANGE
-
+	if ratio <= 0.0: return
+	var fill_color: Color = info.get("color", CLR_BLUE)
+	if ratio > 0.85:   fill_color = CLR_RED
+	elif ratio > 0.60: fill_color = CLR_ORANGE
 	var fill_sb := StyleBoxFlat.new()
 	fill_sb.bg_color = fill_color
-	fill_sb.border_color = UITheme.CLR_INK
+	fill_sb.border_color = CLR_INK
 	fill_sb.set_border_width_all(2)
 	fill_sb.set_corner_radius_all(0)
 	ctrl.draw_style_box(fill_sb, Rect2(Vector2.ZERO, Vector2(sz.x * ratio, sz.y)))
@@ -479,136 +578,196 @@ func update_budget_inputs() -> void:
 	if not travel_slider.has_focus():
 		travel_slider.value = GameState.budget_data["Travel"]["limit"]
 		travel_limit_label.text = "$%.2f" % travel_slider.value
-
 	for category in ["Food", "Vet", "Travel"]:
 		var limit: float = GameState.budget_data[category]["limit"]
 		var spent: float = GameState.budget_data[category]["spent"]
 		var ratio := 0.0
-		if limit > 0:
-			ratio = clamp(spent / limit, 0.0, 1.0)
+		if limit > 0: ratio = clamp(spent / limit, 0.0, 1.0)
 		_budget_progress[category]["ratio"] = ratio
-
 	food_spent_label.text   = "Spent: $%.2f" % GameState.budget_data["Food"]["spent"]
 	food_limit_meta.text    = "Limit: $%.2f" % GameState.budget_data["Food"]["limit"]
 	vet_spent_label.text    = "Spent: $%.2f" % GameState.budget_data["Vet"]["spent"]
 	vet_limit_meta.text     = "Limit: $%.2f" % GameState.budget_data["Vet"]["limit"]
 	travel_spent_label.text = "Spent: $%.2f" % GameState.budget_data["Travel"]["spent"]
 	travel_limit_meta.text  = "Limit: $%.2f" % GameState.budget_data["Travel"]["limit"]
-
 	food_progress_bar.queue_redraw()
 	vet_progress_bar.queue_redraw()
 	travel_progress_bar.queue_redraw()
+	_update_rent_card()
 
-# ── Weekly Report tab ────────────────────────────────────────────────────────
+# ── Adult-only Rent & Housing budget card ─────────────────────────────────────────
+func _add_rent_budget_card() -> void:
+	if not budget_tab: return
+	if not GameState.budget_data.has("Rent"):
+		GameState.budget_data["Rent"] = {"limit": 280.0, "spent": 0.0}
+	_budget_progress["Rent"] = {"ratio": 0.0, "color": CLR_CAT_RENT}
 
+	_rent_card = PanelContainer.new()
+	_rent_card.name = "RentCard"
+	_style_accent_card(_rent_card, CLR_CAT_RENT)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	_rent_card.add_child(vbox)
+
+	var header := HBoxContainer.new()
+	vbox.add_child(header)
+	var px := UITheme.get_pixel_font()
+	var title_lbl := Label.new()
+	title_lbl.text = "Rent & Housing"
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_lbl.add_theme_font_size_override("font_size", 44)
+	title_lbl.add_theme_color_override("font_color", CLR_CAT_RENT)
+	header.add_child(title_lbl)
+	_rent_limit_lbl = Label.new()
+	_rent_limit_lbl.text = "$%.2f" % GameState.budget_data["Rent"]["limit"]
+	_rent_limit_lbl.add_theme_font_size_override("font_size", 52)
+	_rent_limit_lbl.add_theme_color_override("font_color", CLR_CAT_RENT)
+	_rent_limit_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	if px: _rent_limit_lbl.add_theme_font_override("font", px)
+	header.add_child(_rent_limit_lbl)
+
+	_rent_progress = Control.new()
+	_rent_progress.name = "RentProgressBar"
+	_rent_progress.custom_minimum_size = Vector2(0, 27)
+	_rent_progress.draw.connect(func(): _draw_progress_bar(_rent_progress, "Rent"))
+	vbox.add_child(_rent_progress)
+
+	var meta := HBoxContainer.new()
+	vbox.add_child(meta)
+	_rent_spent_lbl = Label.new()
+	_rent_spent_lbl.text = "Spent: $%.2f" % GameState.budget_data["Rent"]["spent"]
+	_rent_spent_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rent_spent_lbl.add_theme_font_size_override("font_size", 33)
+	_rent_spent_lbl.add_theme_color_override("font_color", CLR_INK2)
+	if px: _rent_spent_lbl.add_theme_font_override("font", px)
+	meta.add_child(_rent_spent_lbl)
+	_rent_limit_meta = Label.new()
+	_rent_limit_meta.text = "Limit: $%.2f" % GameState.budget_data["Rent"]["limit"]
+	_rent_limit_meta.add_theme_font_size_override("font_size", 33)
+	_rent_limit_meta.add_theme_color_override("font_color", CLR_INK2)
+	_rent_limit_meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	if px: _rent_limit_meta.add_theme_font_override("font", px)
+	meta.add_child(_rent_limit_meta)
+
+	_rent_slider = HSlider.new()
+	_rent_slider.name = "RentSlider"
+	_rent_slider.custom_minimum_size = Vector2(0, 54)
+	_rent_slider.min_value = 0.0
+	_rent_slider.max_value = 1000.0
+	_rent_slider.step = 10.0
+	_rent_slider.value = GameState.budget_data["Rent"]["limit"]
+	_style_slider(_rent_slider, CLR_CAT_RENT)
+	vbox.add_child(_rent_slider)
+	_rent_slider.value_changed.connect(_on_rent_slider_changed)
+
+	# Insert before the warning strip so the strip stays at the bottom.
+	budget_tab.add_child(_rent_card)
+	budget_tab.move_child(_rent_card, budget_warning.get_index())
+
+func _on_rent_slider_changed(value: float) -> void:
+	GameState.budget_data["Rent"]["limit"] = value
+	if _rent_limit_lbl: _rent_limit_lbl.text = "$%.2f" % value
+	_update_rent_card()
+
+func _update_rent_card() -> void:
+	if not _rent_card: return
+	var limit: float = GameState.budget_data["Rent"]["limit"]
+	var spent: float = GameState.budget_data["Rent"]["spent"]
+	if _rent_spent_lbl:  _rent_spent_lbl.text  = "Spent: $%.2f" % spent
+	if _rent_limit_meta: _rent_limit_meta.text = "Limit: $%.2f" % limit
+	if _rent_limit_lbl:  _rent_limit_lbl.text  = "$%.2f" % limit
+	var ratio := 0.0
+	if limit > 0.0: ratio = clamp(spent / limit, 0.0, 1.0)
+	_budget_progress["Rent"]["ratio"] = ratio
+	if _rent_progress: _rent_progress.queue_redraw()
+
+# ── Weekly Report ────────────────────────────────────────────────────────────────
 func _style_report_panels() -> void:
-	UITheme.style_cream_panel(week_strip)
-	UITheme.style_cream_panel(breakdown_card)
-	UITheme.style_cream_panel(events_card)
+	_apply_sb(week_strip, _sb_paper_card())
+	_apply_sb(breakdown_card, _sb_paper_card())
+	_apply_sb(events_card, _sb_paper_card())
 	var font := UITheme.get_pixel_font()
 	for lbl in [breakdown_title, events_title]:
 		if font: lbl.add_theme_font_override("font", font)
-		lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-	# Week header label
+		lbl.add_theme_color_override("font_color", CLR_INK2)
 	if week_label:
-		week_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+		week_label.add_theme_color_override("font_color", CLR_INK)
 
 func update_report() -> void:
 	var r    := GameState.weekly_report
 	var week := int(float(GameState.current_day) / 7.0) + 1
 	week_label.text = "WEEK %d" % week
-
 	var income: float    = r.get("income", 0.0)
 	var spent: float     = r.get("total_spent", 0.0)
 	var net: float       = income - spent
 	var emergency: float = r.get("emergency_usage", 0.0)
-
 	report_income_val.text = "+$%.2f" % income
 	report_spent_val.text  = "-$%.2f" % spent
 	report_net_val.text    = ("+$%.2f" % net) if net >= 0 else "-$%.2f" % abs(net)
-	report_net_val.add_theme_color_override("font_color", CLR_GREEN if net >= 0 else CLR_RED)
+	report_net_val.add_theme_color_override("font_color", CLR_GREEN_D if net >= 0 else CLR_RED_D)
 	report_emer_val.text   = "$%.2f" % emergency
-
 	_populate_breakdown_grid(r)
 	_populate_events_grid(r, week)
 
 func _populate_breakdown_grid(r: Dictionary) -> void:
-	for child in breakdown_grid.get_children():
-		child.queue_free()
-
+	for child in breakdown_grid.get_children(): child.queue_free()
 	_add_grid_header(breakdown_grid, "CATEGORY")
 	_add_grid_header(breakdown_grid, "SPENT")
 	_add_grid_header(breakdown_grid, "BUDGET")
 	_add_grid_header(breakdown_grid, "REMAINING")
 	_add_grid_header(breakdown_grid, "STATUS")
-
 	var categories := ["Food", "Vet", "Travel"]
 	var breakdown: Dictionary = r.get("category_breakdown", {})
 	for cat in categories:
-		var spent: float = breakdown.get(cat, 0.0)
-		var limit: float = GameState.budget_data[cat]["limit"]
+		var spent: float     = breakdown.get(cat, 0.0)
+		var limit: float     = GameState.budget_data[cat]["limit"]
 		var remaining: float = limit - spent
-
-		# Pill cell
 		var pill := UITheme.make_cat_pill(cat, 33)
 		pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		breakdown_grid.add_child(pill)
-
-		var spent_color := CLR_RED if spent > 0 else UITheme.CLR_MAROON_D
+		var spent_color := CLR_RED_D if spent > 0 else CLR_INK
 		breakdown_grid.add_child(_make_cell("$%.2f" % spent, spent_color))
-		breakdown_grid.add_child(_make_cell("$%.2f" % limit, UITheme.CLR_MAROON_D))
-
-		var remaining_color := CLR_GREEN
-		if remaining <= 0: remaining_color = CLR_RED
-		elif spent == 0:   remaining_color = UITheme.CLR_INK
+		breakdown_grid.add_child(_make_cell("$%.2f" % limit, CLR_INK))
+		var remaining_color := CLR_GREEN_D
+		if remaining <= 0:  remaining_color = CLR_RED_D
+		elif spent == 0:    remaining_color = CLR_INK
 		breakdown_grid.add_child(_make_cell("$%.2f" % remaining, remaining_color))
-
 		var status_text: String
 		var status_color: Color
 		if spent == 0:
-			status_text = "– Unused"
-			status_color = UITheme.CLR_INK
+			status_text = "Unused";       status_color = CLR_MUTED
 		elif remaining <= 0:
-			status_text = "✗ Over"
-			status_color = CLR_RED
+			status_text = "Over";         status_color = CLR_RED_D
 		elif spent / max(1.0, limit) > 0.85:
-			status_text = "! Near limit"
-			status_color = CLR_ORANGE
+			status_text = "Near limit";   status_color = CLR_ORANGE
 		else:
-			status_text = "✓ On track"
-			status_color = CLR_GREEN
+			status_text = "On track";     status_color = CLR_GREEN_D
 		breakdown_grid.add_child(_make_cell(status_text, status_color))
 
 func _populate_events_grid(r: Dictionary, _week: int) -> void:
-	for child in events_grid.get_children():
-		child.queue_free()
-
+	for child in events_grid.get_children(): child.queue_free()
 	_add_grid_header(events_grid, "EVENT")
 	_add_grid_header(events_grid, "EFFECT")
-
 	var inflation: float = GameState.inflation_rate if "inflation_rate" in GameState else 1.0
 	var inflation_pct: float = (inflation - 1.0) * 100.0
-	events_grid.add_child(_make_cell("Inflation rate", UITheme.CLR_MAROON_D))
+	events_grid.add_child(_make_cell("Inflation rate", CLR_INK))
 	events_grid.add_child(_make_cell("%+0.1f%% on all costs" % inflation_pct, CLR_ORANGE))
-
 	var emergency: float = r.get("emergency_usage", 0.0)
 	if emergency > 0:
-		events_grid.add_child(_make_cell("Emergency coverage", UITheme.CLR_MAROON_D))
-		events_grid.add_child(_make_cell("-$%.2f from savings" % emergency, CLR_RED))
-
+		events_grid.add_child(_make_cell("Emergency coverage", CLR_INK))
+		events_grid.add_child(_make_cell("-$%.2f from savings" % emergency, CLR_RED_D))
 	var income: float = r.get("income", 0.0)
 	if income > 0:
-		events_grid.add_child(_make_cell("Weekly allowance", UITheme.CLR_MAROON_D))
-		events_grid.add_child(_make_cell("+$%.2f income" % income, CLR_GREEN))
-
+		events_grid.add_child(_make_cell("Weekly allowance", CLR_INK))
+		events_grid.add_child(_make_cell("+$%.2f income" % income, CLR_GREEN_D))
 	if GameState.loan_balance > 0:
-		events_grid.add_child(_make_cell("Active loan", UITheme.CLR_MAROON_D))
-		events_grid.add_child(_make_cell("Owed: $%d" % GameState.loan_balance, CLR_RED))
+		events_grid.add_child(_make_cell("Active loan", CLR_INK))
+		events_grid.add_child(_make_cell("Owed: $%d" % GameState.loan_balance, CLR_RED_D))
 
 func _add_grid_header(grid: GridContainer, text: String) -> void:
 	var lbl := Label.new()
 	lbl.text = text
-	lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	lbl.add_theme_color_override("font_color", CLR_MUTED)
 	lbl.add_theme_font_size_override("font_size", 30)
 	var font := UITheme.get_pixel_font()
 	if font: lbl.add_theme_font_override("font", font)
@@ -623,79 +782,61 @@ func _make_cell(text: String, color: Color) -> Label:
 	if font: lbl.add_theme_font_override("font", font)
 	return lbl
 
-# ── History header ───────────────────────────────────────────────────────────
-
+# ── History ──────────────────────────────────────────────────────────────────────
 func update_history_header() -> void:
 	history_cash_label.text  = "Spending Cash: $%.2f" % GameState.money
-	history_cash_label.add_theme_color_override("font_color", CLR_GREEN)
+	history_cash_label.add_theme_color_override("font_color", CLR_GREEN_D)
 	history_spent_label.text = "All-Time Total Spent: $%.2f" % GameState.all_time_spent
-	history_spent_label.add_theme_color_override("font_color", CLR_RED)
-
-# ── History list ──────────────────────────────────────────────────────────────
+	history_spent_label.add_theme_color_override("font_color", CLR_RED_D)
 
 func update_history() -> void:
-	for child in history_list.get_children():
-		child.queue_free()
-
+	for child in history_list.get_children(): child.queue_free()
 	var pixel_font := UITheme.get_pixel_font()
-	var row_idx    := 0
-
+	var row_idx := 0
 	for entry in GameState.transaction_history:
 		var row_bg := ColorRect.new()
-		row_bg.color = UITheme.CLR_CREAM_LT if row_idx % 2 == 1 else UITheme.CLR_CREAM
+		row_bg.color = CLR_PAPER2 if row_idx % 2 == 1 else CLR_PAPER
 		row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
 		var h_box := HBoxContainer.new()
 		h_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var FONT_SIZE := 34
-
 		var dot := ColorRect.new()
 		dot.color = _category_color(entry["category"])
-		dot.custom_minimum_size = Vector2(14, 14)
+		dot.custom_minimum_size = Vector2(16, 16)
 		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		h_box.add_child(dot)
-
 		var day_lbl := Label.new()
 		day_lbl.text = "  [Day %d]  " % entry["day"]
-		day_lbl.custom_minimum_size.x = 140
+		day_lbl.custom_minimum_size.x = 150
 		day_lbl.add_theme_font_size_override("font_size", FONT_SIZE)
-		day_lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-		if pixel_font:
-			day_lbl.add_theme_font_override("font", pixel_font)
+		day_lbl.add_theme_color_override("font_color", CLR_INK2)
+		if pixel_font: day_lbl.add_theme_font_override("font", pixel_font)
 		h_box.add_child(day_lbl)
-
 		var desc_label := Label.new()
 		desc_label.text = entry["description"]
 		desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		desc_label.add_theme_font_size_override("font_size", FONT_SIZE)
-		desc_label.add_theme_color_override("font_color", UITheme.CLR_INK)
-		if pixel_font:
-			desc_label.add_theme_font_override("font", pixel_font)
+		desc_label.add_theme_color_override("font_color", CLR_INK)
+		if pixel_font: desc_label.add_theme_font_override("font", pixel_font)
 		h_box.add_child(desc_label)
-
 		var amount_label := Label.new()
-		var is_income    = entry["amount"] >= 0
-		var prefix       := "+" if is_income else ""
+		var is_income: bool = (entry["amount"] as float) >= 0
+		var prefix: String  = "+" if is_income else ""
 		amount_label.text = "%s$%.2f" % [prefix, entry["amount"]]
-		amount_label.add_theme_color_override("font_color", CLR_GREEN if is_income else CLR_RED)
+		amount_label.add_theme_color_override("font_color", CLR_GREEN_D if is_income else CLR_RED_D)
 		amount_label.add_theme_font_size_override("font_size", FONT_SIZE)
 		amount_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		if pixel_font:
-			amount_label.add_theme_font_override("font", pixel_font)
+		if pixel_font: amount_label.add_theme_font_override("font", pixel_font)
 		h_box.add_child(amount_label)
-
-		row_bg.anchors_preset = Control.PRESET_FULL_RECT
-		row_bg.anchor_right   = 1.0
-		row_bg.anchor_bottom  = 1.0
+		row_bg.anchor_right = 1.0
+		row_bg.anchor_bottom = 1.0
 		history_list.add_child(row_bg)
 		history_list.add_child(h_box)
-
 		var sep := ColorRect.new()
-		sep.color = CLR_SKY
-		sep.custom_minimum_size = Vector2(0, 1)
+		sep.color = Color(CLR_INK.r, CLR_INK.g, CLR_INK.b, 0.18)
+		sep.custom_minimum_size = Vector2(0, 2)
 		sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		history_list.add_child(sep)
-
 		row_idx += 1
 
 func _category_color(category: String) -> Color:
@@ -703,191 +844,260 @@ func _category_color(category: String) -> Color:
 		"Food":   return CLR_CAT_FOOD
 		"Vet":    return CLR_CAT_VET
 		"Travel": return CLR_CAT_TRAVEL
+		"Rent":   return CLR_CAT_RENT
 		"Income": return CLR_GREEN
 		"Loan":   return CLR_ORANGE
-		_:        return CLR_CYAN
+		_:        return CLR_BLUE
 
-# ── Root panel styling ────────────────────────────────────────────────────────
+# ── Local helpers ──────────────────────────────────────────────────────────────
+## Apply the pixel font only when the text has no emoji (Minecraft.ttf lacks emoji glyphs).
+func _pf(node) -> void:
+	var f := UITheme.get_pixel_font()
+	if f and not _has_emoji(node.text):
+		node.add_theme_font_override("font", f)
 
-func _style_root_panel() -> void:
-	var panel_node := get_node_or_null("Panel")
-	if not panel_node:
-		return
+func _has_emoji(text: String) -> bool:
+	for i in range(text.length()):
+		if text.unicode_at(i) > 0x2000:
+			return true
+	return false
+
+func _apply_sb(node: Control, sb: StyleBoxFlat) -> void:
+	if node is PanelContainer or node is Panel:
+		node.add_theme_stylebox_override("panel", sb)
+
+func _sb_paper_card() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color     = CLR_NAVY
-	sb.border_color = UITheme.CLR_INK
+	sb.bg_color = CLR_PAPER
+	sb.border_color = CLR_INK
 	sb.set_border_width_all(4)
 	sb.set_corner_radius_all(0)
-	sb.set_content_margin_all(20)
-	if panel_node is PanelContainer or panel_node is Panel:
-		panel_node.add_theme_stylebox_override("panel", sb)
-	panel_node.modulate.a = 1.0
+	sb.set_content_margin_all(18)
+	return sb
 
-func _apply_finance_panel_scale_and_close_style() -> void:
-	var panel_node := get_node_or_null("Panel")
-	if panel_node:
-		panel_node.scale = Vector2(0.85, 0.85)
-		call_deferred("_center_finance_panel_pivot")
+func _style_accent_card(panel: PanelContainer, accent: Color) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = CLR_PAPER
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(4)
+	sb.border_width_left = 10
+	# left accent stripe via a tinted border is not possible with one color,
+	# so use the accent for the whole border to read as the category colour.
+	sb.border_color = accent
+	sb.set_corner_radius_all(0)
+	sb.set_content_margin_all(16)
+	panel.add_theme_stylebox_override("panel", sb)
+
+# ── Window chrome / rail / status styling ─────────────────────────────────────────
+func _style_window_chrome() -> void:
+	var font := UITheme.get_pixel_font()
+	var win := get_node_or_null("Window")
+	if win:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = CLR_PAPER
+		sb.border_color = CLR_INK
+		sb.set_border_width_all(5)
+		sb.set_corner_radius_all(0)
+		sb.set_content_margin_all(0)
+		win.add_theme_stylebox_override("panel", sb)
+	var title_lbl = get_node_or_null("Window/VBox/TitleBarMargin/TitleBar/TitleChip/ChipRow/TitleLabel")
+	if title_lbl:
+		_pf(title_lbl)
+		title_lbl.add_theme_color_override("font_color", CLR_INK)
+	var chip = get_node_or_null("Window/VBox/TitleBarMargin/TitleBar/TitleChip")
+	if chip:
+		var csb := StyleBoxFlat.new()
+		csb.bg_color = CLR_PAPER2
+		csb.border_color = CLR_INK
+		csb.set_border_width_all(4)
+		csb.set_corner_radius_all(0)
+		csb.content_margin_left = 18
+		csb.content_margin_right = 18
+		csb.content_margin_top = 10
+		csb.content_margin_bottom = 10
+		chip.add_theme_stylebox_override("panel", csb)
+	var div = get_node_or_null("Window/VBox/Divider")
+	if div:
+		_pf(div)
+		div.add_theme_color_override("font_color", CLR_INK2)
+	if main_title_label:
+		if font: main_title_label.add_theme_font_override("font", font)
+		main_title_label.add_theme_color_override("font_color", CLR_INK)
+	if main_hint:
+		main_hint.add_theme_color_override("font_color", CLR_MUTED)
+	var main_panel = get_node_or_null("Window/VBox/BodyMargin/Body/Main")
+	if main_panel:
+		var msb := StyleBoxFlat.new()
+		msb.bg_color = CLR_PAPER2
+		msb.border_color = CLR_INK
+		msb.set_border_width_all(4)
+		msb.set_corner_radius_all(0)
+		msb.set_content_margin_all(0)
+		main_panel.add_theme_stylebox_override("panel", msb)
+	var head = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead")
+	if head:
+		var hsb := StyleBoxFlat.new()
+		hsb.bg_color = CLR_PAPER
+		hsb.border_color = CLR_INK
+		hsb.border_width_bottom = 4
+		hsb.set_corner_radius_all(0)
+		hsb.content_margin_left = 18
+		hsb.content_margin_right = 18
+		hsb.content_margin_top = 14
+		hsb.content_margin_bottom = 14
+		head.add_theme_stylebox_override("panel", hsb)
+
+func _style_acct_card() -> void:
+	var card = get_node_or_null("Window/VBox/BodyMargin/Body/Rail/AcctCard")
+	if card:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = CLR_NAVY
+		sb.border_color = CLR_INK
+		sb.set_border_width_all(4)
+		sb.set_corner_radius_all(0)
+		sb.set_content_margin_all(16)
+		card.add_theme_stylebox_override("panel", sb)
+	var font := UITheme.get_pixel_font()
+	var acct = get_node_or_null("Window/VBox/BodyMargin/Body/Rail/AcctCard/AcctVBox")
+	if acct:
+		for path in ["WhoRow/WhoInfo/WalletLabel", "WhoRow/WhoInfo/SubLabel",
+					 "CheckingRow/CheckingKey", "SavingsRow/SavingsKey",
+					 "DebtRow/DebtKey", "NetRow/NetKey"]:
+			var n = acct.get_node_or_null(path)
+			if n and font: n.add_theme_font_override("font", font)
+
+func _style_tip_card() -> void:
+	var tip = get_node_or_null("Window/VBox/BodyMargin/Body/Rail/TipCard")
+	if tip:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = CLR_BLUE_D
+		sb.border_color = CLR_INK
+		sb.set_border_width_all(4)
+		sb.set_corner_radius_all(0)
+		sb.set_content_margin_all(14)
+		tip.add_theme_stylebox_override("panel", sb)
+	var font := UITheme.get_pixel_font()
+	var tt = get_node_or_null("Window/VBox/BodyMargin/Body/Rail/TipCard/TipVBox/TipTitle")
+	var tb = get_node_or_null("Window/VBox/BodyMargin/Body/Rail/TipCard/TipVBox/TipBody")
+	if tt and font: tt.add_theme_font_override("font", font)
+	if tb and font: tb.add_theme_font_override("font", font)
+
+func _style_status_bar() -> void:
+	var bar = get_node_or_null("Window/VBox/StatusBar")
+	if bar:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = CLR_INK
+		sb.border_color = Color("#2a1a0e")
+		sb.border_width_top = 5
+		sb.set_corner_radius_all(0)
+		sb.content_margin_left = 18
+		sb.content_margin_right = 18
+		sb.content_margin_top = 10
+		sb.content_margin_bottom = 10
+		bar.add_theme_stylebox_override("panel", sb)
+	if status_cash:
+		status_cash.add_theme_color_override("font_color", CLR_GOLD)
+	if day_label:
+		day_label.add_theme_color_override("font_color", CLR_PAPER)
 	if close_btn:
 		UITheme.style_close_button(close_btn)
-		close_btn.add_theme_font_size_override("font_size", 32)
+		close_btn.add_theme_font_size_override("font_size", 30)
 
+func _style_nav_buttons() -> void:
+	for btn in [nav_overview, nav_spending, nav_budget, nav_loans, nav_report, nav_history]:
+		if btn:
+			_style_nav_inactive(btn)
+			_pf(btn)  # emoji-safe: nav labels carry icons, so keep default font there
 
-func _center_finance_panel_pivot() -> void:
-	var panel_node := get_node_or_null("Panel")
-	if panel_node:
-		panel_node.pivot_offset = panel_node.size * 0.5
+func _style_nav_active(btn: Button) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = CLR_GREEN
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(4)
+	sb.border_width_bottom = 9
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 14
+	sb.content_margin_bottom = 14
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb)
+	btn.add_theme_stylebox_override("pressed", sb)
+	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
 
-
-func _grow_panel_to_viewport() -> void:
-	var panel_node := get_node_or_null("Panel")
-	if not panel_node:
-		return
-	panel_node.anchor_left   = 0.05
-	panel_node.anchor_right  = 0.95
-	panel_node.anchor_top    = 0.03
-	panel_node.anchor_bottom = 0.95
-	panel_node.offset_left   = 0
-	panel_node.offset_right  = 0
-	panel_node.offset_top    = 0
-	panel_node.offset_bottom = 0
-	panel_node.custom_minimum_size = Vector2(900, 700)
-
-	if graph_view:
-		graph_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		graph_view.custom_minimum_size.y = 300
-	if graph_canvas:
-		graph_canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		graph_canvas.custom_minimum_size.y = 260
-
-func _style_header_title() -> void:
-	var title_node = get_node_or_null("Panel/VBox/Header/TitleBlock/Title")
-	if not title_node:
-		title_node = get_node_or_null("Panel/VBox/Header/Title")
-	if title_node and title_node is Label:
-		title_node.add_theme_font_size_override("font_size", 64)
-		title_node.add_theme_color_override("font_color", UITheme.CLR_CREAM)
-		var font := UITheme.get_pixel_font()
-		if font: title_node.add_theme_font_override("font", font)
-
-func _grow_tab_fonts() -> void:
-	var tab_container = get_node_or_null("Panel/VBox/Content/TabContainer")
-	if not tab_container:
-		return
-	tab_container.add_theme_font_size_override("font_size", 34)
-	tab_container.add_theme_color_override("font_selected_color", CLR_CYAN)
-	tab_container.add_theme_color_override("font_unselected_color", CLR_DIM)
-	tab_container.add_theme_color_override("font_hovered_color", CLR_WHITE)
-	var font := UITheme.get_pixel_font()
-	if font:
-		tab_container.add_theme_font_override("font", font)
-
-	# Tab strip styling: underline active, no background
-	var sel := StyleBoxFlat.new()
-	sel.bg_color = Color.TRANSPARENT
-	sel.border_color = CLR_CYAN
-	sel.border_width_bottom = 4
-	sel.set_corner_radius_all(0)
-	sel.content_margin_left = 18
-	sel.content_margin_right = 18
-	sel.content_margin_top = 10
-	sel.content_margin_bottom = 10
-	tab_container.add_theme_stylebox_override("tab_selected", sel)
-
-	var unsel: StyleBoxFlat = sel.duplicate()
-	unsel.border_color = Color.TRANSPARENT
-	tab_container.add_theme_stylebox_override("tab_unselected", unsel)
-
-	var hov: StyleBoxFlat = sel.duplicate()
-	hov.border_color = Color(CLR_CYAN.r, CLR_CYAN.g, CLR_CYAN.b, 0.4)
-	tab_container.add_theme_stylebox_override("tab_hovered", hov)
-
-	var tabbar_bg := StyleBoxFlat.new()
-	tabbar_bg.bg_color = CLR_NAVY_DEEP
-	tabbar_bg.border_color = CLR_SKY_DIM
-	tabbar_bg.border_width_bottom = 2
-	tabbar_bg.set_corner_radius_all(0)
-	tab_container.add_theme_stylebox_override("tabbar_background", tabbar_bg)
-
-	var panel_sb := StyleBoxFlat.new()
-	panel_sb.bg_color = CLR_NAVY
-	panel_sb.set_corner_radius_all(0)
-	panel_sb.content_margin_left = 18
-	panel_sb.content_margin_right = 18
-	panel_sb.content_margin_top = 18
-	panel_sb.content_margin_bottom = 18
-	tab_container.add_theme_stylebox_override("panel", panel_sb)
-
-# ── Toggle button styling ─────────────────────────────────────────────────────
+func _style_nav_inactive(btn: Button) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = CLR_PAPER2
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(4)
+	sb.border_width_bottom = 9
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 14
+	sb.content_margin_bottom = 14
+	btn.add_theme_stylebox_override("normal", sb)
+	var sb_h: StyleBoxFlat = sb.duplicate()
+	sb_h.bg_color = CLR_PAPER
+	btn.add_theme_stylebox_override("hover", sb_h)
+	var sb_p: StyleBoxFlat = sb.duplicate()
+	sb_p.bg_color = CLR_PAPER2.darkened(0.06)
+	sb_p.border_width_bottom = 4
+	sb_p.content_margin_top = 19
+	btn.add_theme_stylebox_override("pressed", sb_p)
+	btn.add_theme_color_override("font_color", CLR_INK)
+	btn.add_theme_color_override("font_hover_color", CLR_INK)
+	btn.add_theme_color_override("font_pressed_color", CLR_INK)
 
 func _style_toggle_buttons() -> void:
-	if breakdown_btn:
-		UITheme.style_pixel_button(breakdown_btn, true)
-	if graphs_btn:
-		UITheme.style_pixel_button(graphs_btn, true)
+	if breakdown_btn: UITheme.style_pixel_button(breakdown_btn, true)
+	if graphs_btn:    UITheme.style_pixel_button(graphs_btn, true)
 
 func _style_deposit_withdraw_buttons() -> void:
-	var deposit_btn = get_node_or_null("Panel/VBox/Content/TabContainer/Overview/DepositBtn")
-	var withdraw_btn = get_node_or_null("Panel/VBox/Content/TabContainer/Overview/WithdrawBtn")
-	if deposit_btn:
-		UITheme.style_pixel_button(deposit_btn)
-	if withdraw_btn:
-		UITheme.style_pixel_button(withdraw_btn, true)
+	var deposit_btn  = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow/DepositBtn")
+	var withdraw_btn = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow/WithdrawBtn")
+	if deposit_btn:  UITheme.style_pixel_button(deposit_btn)
+	if withdraw_btn: UITheme.style_pixel_button(withdraw_btn, true)
+	if deposit_input: UITheme.style_line_edit(deposit_input)
+	var font := UITheme.get_pixel_font()
+	for path in ["SpendableLabel", "SavingsLabel", "DepositLabel", "PenaltyWarning", "InterestInfo"]:
+		var n = overview_tab.get_node_or_null(path)
+		if n and font: n.add_theme_font_override("font", font)
 
-# ── Loans tab ─────────────────────────────────────────────────────────────────
-
+# ── Loans ──────────────────────────────────────────────────────────────────────
 func _style_loan_panels() -> void:
-	# Credit card: cream bg with ink border and red accent
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = UITheme.CLR_CREAM
-	sb.border_color = UITheme.CLR_INK
-	sb.set_border_width_all(3)
-	sb.border_width_left = 6
+	sb.bg_color = CLR_PAPER
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(4)
+	sb.border_width_left = 10
 	sb.set_corner_radius_all(0)
-	sb.content_margin_left = 22
-	sb.content_margin_right = 22
-	sb.content_margin_top = 18
-	sb.content_margin_bottom = 18
+	sb.set_content_margin_all(20)
 	credit_card.add_theme_stylebox_override("panel", sb)
-
-	UITheme.style_card(action_card, UITheme.CLR_INK, "all")
+	_apply_sb(action_card, _sb_paper_card())
 	UITheme.style_warning_strip(loan_warning, "red")
-
-	# Style the LoanInput LineEdit
-	if loan_input:
-		UITheme.style_line_edit(loan_input)
-
-	# Apply pixel font + visible ink color to all loan labels
+	if loan_input: UITheme.style_line_edit(loan_input)
 	var font := UITheme.get_pixel_font()
 	for lbl in [loan_balance_label, loan_limit_label, loan_rate_label,
 				loan_accrued_label, loan_impact_label]:
 		if lbl and font: lbl.add_theme_font_override("font", font)
-		if lbl: lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
-
-	# Also style all other labels in the credit card for contrast
 	_apply_ink_to_labels(credit_card)
-
-	# Style BarHeader labels ("Credit used", limit label) — not inside credit_card
-	var credit_bar_section := get_node_or_null(
-		"Panel/VBox/Content/TabContainer/Loans/CreditBarSection")
-	if credit_bar_section:
-		_apply_ink_to_labels(credit_bar_section)
-
-	# Warning label text must be cream — it sits on the maroon tab background
+	var section := get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditBarSection")
+	if section: _apply_ink_to_labels(section)
 	_apply_cream_to_labels(loan_warning)
 
-## Recursively set all Labels in a container to CLR_INK for cream-bg contrast.
 func _apply_ink_to_labels(node: Node) -> void:
 	for child in node.get_children():
 		if child is Label:
-			child.add_theme_color_override("font_color", UITheme.CLR_INK)
+			child.add_theme_color_override("font_color", CLR_INK)
 		_apply_ink_to_labels(child)
 
-## Recursively set all Labels to cream — for labels on the dark maroon background.
 func _apply_cream_to_labels(node: Node) -> void:
 	for child in node.get_children():
 		if child is Label:
-			child.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+			child.add_theme_color_override("font_color", Color("#ffe3c6"))
 		_apply_cream_to_labels(child)
 
 func _hook_credit_bar_canvas() -> void:
@@ -895,52 +1105,46 @@ func _hook_credit_bar_canvas() -> void:
 
 func _draw_credit_bar() -> void:
 	var sz := credit_bar.size
-	var radius: float = min(8.0, sz.y * 0.5)
 	var track_sb := StyleBoxFlat.new()
-	track_sb.bg_color = Color(CLR_GREEN.r, CLR_GREEN.g, CLR_GREEN.b, 0.18)
-	track_sb.set_corner_radius_all(int(radius))
+	track_sb.bg_color = CLR_PAPER2
+	track_sb.border_color = CLR_INK
+	track_sb.set_border_width_all(3)
+	track_sb.set_corner_radius_all(0)
 	credit_bar.draw_style_box(track_sb, Rect2(Vector2.ZERO, sz))
-
 	var ratio: float = clamp(_credit_bar_ratio, 0.0, 1.0)
-	if ratio <= 0.0:
-		return
+	if ratio <= 0.0: return
 	var fill_sb := StyleBoxFlat.new()
 	fill_sb.bg_color = CLR_RED
-	fill_sb.set_corner_radius_all(int(radius))
+	fill_sb.border_color = CLR_INK
+	fill_sb.set_border_width_all(3)
+	fill_sb.set_corner_radius_all(0)
 	credit_bar.draw_style_box(fill_sb, Rect2(Vector2.ZERO, Vector2(sz.x * ratio, sz.y)))
 
 func update_loans() -> void:
-	if not loan_balance_label:
-		return
+	if not loan_balance_label: return
 	var owed := GameState.loan_balance
 	var cap  := GameState.max_loan_amount
-	var weekly_pct := int(round(GameState.loan_interest_rate * 100.0))
+	var weekly_pct  := int(round(GameState.loan_interest_rate * 100.0))
 	var next_charge := int(ceil(float(owed) * GameState.loan_interest_rate))
-
 	loan_balance_label.text = "$%d" % owed
-	loan_balance_label.add_theme_color_override("font_color", CLR_RED if owed > 0 else CLR_GREEN)
+	loan_balance_label.add_theme_color_override("font_color", CLR_RED_D if owed > 0 else CLR_GREEN_D)
 	loan_limit_label.text   = "$%d / $%d available" % [owed, cap]
-	loan_limit_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	loan_limit_label.add_theme_color_override("font_color", CLR_INK2)
 	loan_rate_label.text    = "%d%%" % weekly_pct
 	loan_rate_label.add_theme_color_override("font_color", CLR_ORANGE)
 	loan_accrued_label.text = "$%d" % GameState.loan_interest_accrued
-	loan_accrued_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	loan_accrued_label.add_theme_color_override("font_color", CLR_RED_D)
 	loan_impact_label.text  = "$%d" % next_charge
-	loan_impact_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-
+	loan_impact_label.add_theme_color_override("font_color", CLR_INK)
 	_credit_bar_ratio = 0.0 if cap <= 0 else float(owed) / float(cap)
 	credit_bar.queue_redraw()
 
 func _style_loan_buttons() -> void:
-	if borrow_btn:
-		UITheme.style_pixel_button(borrow_btn)
-	if repay_btn:
-		UITheme.style_pixel_button(repay_btn, true)
+	if borrow_btn: UITheme.style_pixel_button(borrow_btn)
+	if repay_btn:  UITheme.style_pixel_button(repay_btn, true)
 
-# ── Signal handlers ──────────────────────────────────────────────────────────
-
-func _on_close_btn_pressed() -> void:
-	hide_menu()
+# ── Signal handlers ──────────────────────────────────────────────────────────────
+func _on_close_btn_pressed() -> void: hide_menu()
 
 func _on_buy_home_pressed() -> void:
 	if GameState.buy_home():
@@ -948,8 +1152,6 @@ func _on_buy_home_pressed() -> void:
 		var hud = get_tree().get_first_node_in_group("hud")
 		if hud and hud.has_method("show_notification"):
 			hud.show_notification("House purchased successfully!", CLR_GREEN)
-		
-		# Yield briefly for cinematic pacing, then curtain transition to the Final Stats report!
 		await get_tree().create_timer(1.2, false, true).timeout
 		SceneManager.change_scene("res://scenes/ui/FinalStatsScreen.tscn", {"pattern": "curtains"})
 
@@ -1013,3 +1215,11 @@ func _on_repay_btn_pressed() -> void:
 		if paid > 0.0:
 			loan_input.text = ""
 			update_ui()
+
+# Nav handlers
+func _on_nav_overview_pressed() -> void: _switch_view("Overview")
+func _on_nav_spending_pressed() -> void: _switch_view("Spending")
+func _on_nav_budget_pressed()   -> void: _switch_view("BudgetPlanner")
+func _on_nav_loans_pressed()    -> void: _switch_view("Loans")
+func _on_nav_report_pressed()   -> void: _switch_view("WeeklyReport")
+func _on_nav_history_pressed()  -> void: _switch_view("AllTimeHistory")

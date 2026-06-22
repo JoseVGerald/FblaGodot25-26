@@ -41,3 +41,18 @@ For any UI animation, transitions, or loading screens, invoke the **Emil Kowalsk
 ## Model recommendation
 Use **claude-opus-4-5** with **extended thinking (budget ≥ 8000 tokens)** for each step.
 The extra reasoning budget prevents shortcuts on the StyleBoxFlat wiring and scene tree structure.
+
+## QA gate — required before declaring any task done
+
+Before reporting a task complete, spawn a **Haiku subagent** that:
+1. Runs the headless Godot compile check:
+   ```
+   /Applications/Godot.app/Contents/MacOS/Godot --headless --quit-after 3 2>&1
+   ```
+2. Filters output for any `ERROR`, `Parse Error`, or `SCRIPT ERROR` lines that mention files touched in the task.
+3. Reports any findings back — **do not say the task is done if errors exist**.
+
+If the subagent finds errors: fix them first, then re-run the gate.
+If the gate passes clean: only then tell the user the task is complete.
+
+This rule exists because GDScript type-inference errors (e.g. `Cannot infer type of variable` on Dictionary access) are invisible until Godot actually parses the scene, and the headless check catches them instantly.
