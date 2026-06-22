@@ -26,8 +26,8 @@ const PIXELS = [
 
 # Take a Path2D node, extract waypoints, and build a smooth Curve2D
 func setup_path(path2d: Path2D, p_width: float = 6.0, p_color: Color = Color(0.96, 0.93, 0.58, 1.0)) -> void:
-	# Force a thin and highly translucent path line
-	width = clamp(p_width * 0.4, 2.0, 3.0)
+	# Force a moderately thin and highly translucent path line
+	width = clamp(p_width * 0.7, 3.5, 4.5)
 	base_color = Color(p_color.r, p_color.g, p_color.b, 0.15) # 15% opacity for subtle background guide
 	arrow_color = Color(p_color.r, p_color.g, p_color.b, 1.0)  # 100% opacity for arrows to pop out
 	
