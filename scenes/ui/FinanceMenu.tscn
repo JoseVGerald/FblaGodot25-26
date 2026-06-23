@@ -300,28 +300,179 @@ theme_override_constants/separation = 16
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="SpendableLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+[node name="ThisWeekLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
+theme_override_font_sizes/font_size = 30
+text = "THIS WEEK"
+
+[node name="Stat2" type="HBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="IncomeCard" type="PanelContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/IncomeCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="IncomeK" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/IncomeCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.416, 0.267, 1)
+theme_override_font_sizes/font_size = 28
+text = "INCOME"
+
+[node name="IncomeValue" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/IncomeCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.247, 0.494, 0.157, 1)
 theme_override_font_sizes/font_size = 52
-text = "Spending Money: $150"
-horizontal_alignment = 1
+text = "$0"
 
-[node name="SavingsLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+[node name="IncomeSub" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/IncomeCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.416, 0.267, 1)
+theme_override_font_sizes/font_size = 26
+text = "weekly allowance"
+
+[node name="ExpenseCard" type="PanelContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/ExpenseCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ExpenseK" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/ExpenseCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.416, 0.267, 1)
+theme_override_font_sizes/font_size = 28
+text = "EXPENSES"
+
+[node name="ExpenseValue" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/ExpenseCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.659, 0.208, 0.169, 1)
+theme_override_font_sizes/font_size = 52
+text = "$0"
+
+[node name="ExpenseSub" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/ExpenseCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.416, 0.267, 1)
+theme_override_font_sizes/font_size = 26
+text = "spent this week"
+
+[node name="NetCard" type="PanelContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/NetCard"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NetHeader" type="HBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/NetCard/VBox"]
+layout_mode = 2
+
+[node name="NetTitle" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/NetCard/VBox/NetHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.227, 0.149, 0.086, 1)
+theme_override_font_sizes/font_size = 36
+text = "Net This Week"
+
+[node name="NetHint" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/NetCard/VBox/NetHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.416, 0.267, 1)
+theme_override_font_sizes/font_size = 26
+text = "income minus expenses"
+vertical_alignment = 1
+
+[node name="NetValue" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/NetCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.247, 0.494, 0.157, 1)
+theme_override_font_sizes/font_size = 52
+text = "+$0"
+
+[node name="BudgetsLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
+theme_override_font_sizes/font_size = 30
+text = "BUDGETS"
+
+[node name="OvBudgets" type="VBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SavingsGoalLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
+theme_override_font_sizes/font_size = 30
+text = "SAVINGS GOAL"
+
+[node name="GoalCard" type="PanelContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="GoalHeader" type="HBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox"]
+layout_mode = 2
+
+[node name="GoalName" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox/GoalHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.227, 0.149, 0.086, 1)
+theme_override_font_sizes/font_size = 38
+text = "Buy a House"
+
+[node name="GoalAmt" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox/GoalHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.247, 0.494, 0.157, 1)
+theme_override_font_sizes/font_size = 32
+text = "$0 / $0"
+vertical_alignment = 1
+
+[node name="GoalBar" type="Control" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+
+[node name="BuyHomeBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox"]
+custom_minimum_size = Vector2(300, 76)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 34
+text = "Buy House"
+
+[node name="EmergencyLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
+theme_override_font_sizes/font_size = 30
+text = "EMERGENCY SAVINGS"
+
+[node name="EmergencyCard" type="PanelContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SavingsLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.239, 0.545, 0.69, 1)
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 40
 text = "Emergency Savings: $200"
 horizontal_alignment = 1
 
-[node name="DepositLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+[node name="DepositLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 30
 text = "Deposit or withdraw with your Emergency Savings:"
 horizontal_alignment = 1
 
-[node name="DepositInput" type="LineEdit" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+[node name="DepositInput" type="LineEdit" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
 custom_minimum_size = Vector2(420, 70)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -329,31 +480,31 @@ theme_override_font_sizes/font_size = 34
 placeholder_text = "Amount"
 alignment = 1
 
-[node name="BtnRow" type="HBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+[node name="BtnRow" type="HBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 18
 
-[node name="DepositBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow"]
+[node name="DepositBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/BtnRow"]
 custom_minimum_size = Vector2(220, 76)
 layout_mode = 2
 theme_override_font_sizes/font_size = 34
 text = "Deposit"
 
-[node name="WithdrawBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow"]
+[node name="WithdrawBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/BtnRow"]
 custom_minimum_size = Vector2(220, 76)
 layout_mode = 2
 theme_override_font_sizes/font_size = 34
 text = "Withdraw"
 
-[node name="PenaltyWarning" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+[node name="PenaltyWarning" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.824, 0.29, 0.239, 1)
 theme_override_font_sizes/font_size = 28
 text = "Withdrawals incur a 15% early penalty!"
 horizontal_alignment = 1
 
-[node name="InterestInfo" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview"]
+[node name="InterestInfo" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.247, 0.494, 0.157, 1)
 theme_override_font_sizes/font_size = 28
@@ -973,8 +1124,9 @@ text = "✕ CLOSE"
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavLoans" to="." method="_on_nav_loans_pressed"]
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavReport" to="." method="_on_nav_report_pressed"]
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavHistory" to="." method="_on_nav_history_pressed"]
-[connection signal="pressed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow/DepositBtn" to="." method="_on_deposit_btn_pressed"]
-[connection signal="pressed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow/WithdrawBtn" to="." method="_on_withdraw_btn_pressed"]
+[connection signal="pressed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/BtnRow/DepositBtn" to="." method="_on_deposit_btn_pressed"]
+[connection signal="pressed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/BtnRow/WithdrawBtn" to="." method="_on_withdraw_btn_pressed"]
+[connection signal="pressed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox/BuyHomeBtn" to="." method="_on_buy_home_pressed"]
 [connection signal="value_changed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/FoodSlider" to="." method="_on_food_slider_value_changed"]
 [connection signal="value_changed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/VetSlider" to="." method="_on_vet_slider_value_changed"]
 [connection signal="value_changed" from="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/TravelSlider" to="." method="_on_travel_slider_value_changed"]

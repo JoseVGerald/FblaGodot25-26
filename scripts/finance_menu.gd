@@ -6,8 +6,6 @@ extends CanvasLayer
 
 signal menu_closed
 
-var buy_home_btn: Button = null
-var home_progress_lbl: Label = null
 
 # ── Colour palette (paper/ink — matches finance/styles.css :root) ─────────────
 const CLR_PAPER      := Color("#f9dcab")
@@ -48,9 +46,19 @@ const CLR_CAT_LOAN   := Color("#d24a3d")
 @onready var report_tab      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/WeeklyReport
 
 # Overview
-@onready var spendable_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/SpendableLabel
-@onready var savings_label   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/SavingsLabel
-@onready var deposit_input   = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/DepositInput
+# Overview — THIS WEEK / NET / GOAL / EMERGENCY
+@onready var income_value     = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/IncomeCard/VBox/IncomeValue
+@onready var expense_value    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/Stat2/ExpenseCard/VBox/ExpenseValue
+@onready var net_value        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/NetCard/VBox/NetValue
+@onready var ov_budgets       = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/OvBudgets
+@onready var savings_goal_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/SavingsGoalLabel
+@onready var goal_card        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard
+@onready var goal_name        = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox/GoalHeader/GoalName
+@onready var goal_amt         = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox/GoalHeader/GoalAmt
+@onready var goal_bar: Control = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox/GoalBar
+@onready var buy_home_btn     = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/GoalCard/VBox/BuyHomeBtn
+@onready var savings_label    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/SavingsLabel
+@onready var deposit_input    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/DepositInput
 
 # Title / status
 @onready var close_btn   = $Window/VBox/StatusBar/StatusHBox/CloseBtn
@@ -183,28 +191,17 @@ func _ready() -> void:
 	_style_loan_buttons()
 	_wire_numeric_validation()
 
-	# Adult pathway: Buy House goal + Rent & Housing budget card
+	_build_overview_budgets()
+	goal_bar.draw.connect(_draw_goal_bar)
+	UITheme.style_pixel_button(buy_home_btn)
+
+	# Adult pathway: house savings-goal card + Rent & Housing budget card.
+	# Non-adults never see the savings-goal section.
 	if GameState.selected_pathway == "adult":
-		home_progress_lbl = Label.new()
-		home_progress_lbl.name = "HomeProgressLabel"
-		home_progress_lbl.add_theme_font_size_override("font_size", 30)
-		home_progress_lbl.add_theme_color_override("font_color", CLR_GOLD_D)
-		home_progress_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		var font := UITheme.get_pixel_font()
-		if font: home_progress_lbl.add_theme_font_override("font", font)
-		overview_tab.add_child(home_progress_lbl)
-
-		buy_home_btn = Button.new()
-		buy_home_btn.name = "BuyHomeButton"
-		buy_home_btn.text = "Buy House ($%.2f)" % GameState.house_price
-		buy_home_btn.add_theme_font_size_override("font_size", 34)
-		buy_home_btn.custom_minimum_size = Vector2(300, 76)
-		buy_home_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		UITheme.style_pixel_button(buy_home_btn)
-		overview_tab.add_child(buy_home_btn)
-		buy_home_btn.pressed.connect(_on_buy_home_pressed)
-
 		_add_rent_budget_card()
+	else:
+		savings_goal_label.visible = false
+		goal_card.visible = false
 
 	_switch_view("Overview")
 	update_ui()
@@ -330,8 +327,18 @@ func _update_acct_rail() -> void:
 
 # ── Overview tab ───────────────────────────────────────────────────────────────
 func update_overview() -> void:
-	spendable_label.text = "Spending Money: $%.2f" % GameState.money
-	spendable_label.add_theme_color_override("font_color", CLR_GREEN_D)
+	# THIS WEEK — income / expenses / net
+	var w_income: float = GameState.weekly_report.get("income", 0.0)
+	var w_spent: float  = GameState.weekly_report.get("total_spent", 0.0)
+	var w_net: float    = w_income - w_spent
+	income_value.text  = "$%.2f" % w_income
+	expense_value.text = "$%.2f" % w_spent
+	net_value.text     = ("+$%.2f" % w_net) if w_net >= 0 else "-$%.2f" % abs(w_net)
+	net_value.add_theme_color_override("font_color", CLR_GREEN_D if w_net >= 0 else CLR_RED_D)
+	# BUDGETS summary bars + (adult) savings goal
+	_update_overview_budgets()
+	_update_goal_card()
+	# Emergency savings
 	savings_label.text = "Emergency Savings: $%.2f" % GameState.savings_balance
 	savings_label.add_theme_color_override("font_color", CLR_BLUE_D)
 
@@ -383,16 +390,128 @@ func update_overview() -> void:
 		if _pie_canvas: _pie_canvas.queue_redraw()
 	_update_pie_legend()
 
-	if is_instance_valid(home_progress_lbl):
-		if GameState.house_owned:
-			home_progress_lbl.text = "CONGRATULATIONS! House Purchased!"
-			buy_home_btn.visible = false
-		else:
-			home_progress_lbl.text = "Goal: Buy House ($%.2f) — Cash: $%.2f / $%.2f" % [
-				GameState.house_price, GameState.money, GameState.house_price]
-			buy_home_btn.text = "Buy House ($%.2f)" % GameState.house_price
-			buy_home_btn.visible = true
-			buy_home_btn.disabled = GameState.money < GameState.house_price
+# ── Overview: budget summary bars (HTML "BUDGETS" section) ───────────────────────
+var _ov_bars: Array = []   # [{ctrl, amt, cat}]
+
+func _cat_display(cat: String) -> String:
+	match cat:
+		"Food":   return "Food & Water"
+		"Vet":    return "Vet & Medicine"
+		"Travel": return "Travel & Transport"
+		"Rent":   return "Rent & Housing"
+		_:        return cat
+
+func _build_overview_budgets() -> void:
+	for child in ov_budgets.get_children(): child.queue_free()
+	_ov_bars.clear()
+	var px := UITheme.get_pixel_font()
+	var cats := ["Food", "Vet", "Travel"]
+	if GameState.selected_pathway == "adult":
+		cats.append("Rent")
+	for cat in cats:
+		var card := PanelContainer.new()
+		_apply_sb(card, _sb_paper_card())
+		var vb := VBoxContainer.new()
+		vb.add_theme_constant_override("separation", 8)
+		card.add_child(vb)
+		var hr := HBoxContainer.new()
+		vb.add_child(hr)
+		var nm := Label.new()
+		nm.text = _cat_display(cat)
+		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		nm.add_theme_font_size_override("font_size", 34)
+		nm.add_theme_color_override("font_color", CLR_INK)
+		if px: nm.add_theme_font_override("font", px)
+		hr.add_child(nm)
+		var amt := Label.new()
+		amt.add_theme_font_size_override("font_size", 32)
+		amt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		if px: amt.add_theme_font_override("font", px)
+		hr.add_child(amt)
+		var bar := Control.new()
+		bar.custom_minimum_size = Vector2(0, 30)
+		var this_cat: String = cat
+		bar.draw.connect(func(): _draw_ov_budget_bar(bar, this_cat))
+		vb.add_child(bar)
+		ov_budgets.add_child(card)
+		_ov_bars.append({"ctrl": bar, "amt": amt, "cat": cat})
+
+func _update_overview_budgets() -> void:
+	for row in _ov_bars:
+		var cat: String = row["cat"]
+		if not GameState.budget_data.has(cat): continue
+		var spent: float = GameState.budget_data[cat]["spent"]
+		var limit: float = GameState.budget_data[cat]["limit"]
+		var over := spent > limit
+		var amt: Label = row["amt"]
+		amt.text = "$%.2f / $%.2f" % [spent, limit]
+		amt.add_theme_color_override("font_color", CLR_RED_D if over else CLR_GREEN_D)
+		row["ctrl"].queue_redraw()
+
+func _draw_ov_budget_bar(ctrl: Control, cat: String) -> void:
+	var spent: float = GameState.budget_data[cat]["spent"] if GameState.budget_data.has(cat) else 0.0
+	var limit: float = GameState.budget_data[cat]["limit"] if GameState.budget_data.has(cat) else 1.0
+	var ratio := 0.0
+	if limit > 0.0: ratio = clamp(spent / limit, 0.0, 1.0)
+	var fill := CLR_RED if spent > limit else CLR_GOLD
+	_draw_seg_bar(ctrl, ratio, fill)
+
+# ── Overview: adult-only house savings goal ──────────────────────────────────────
+func _update_goal_card() -> void:
+	var is_adult := GameState.selected_pathway == "adult"
+	savings_goal_label.visible = is_adult
+	goal_card.visible = is_adult
+	if not is_adult: return
+	goal_name.text = "Buy a House"
+	if GameState.house_owned:
+		goal_amt.text = "Purchased!"
+		goal_amt.add_theme_color_override("font_color", CLR_GREEN_D)
+		buy_home_btn.visible = false
+	else:
+		var price: float = GameState.house_price
+		var pct := 0
+		if price > 0: pct = int(round(clamp(GameState.money / price, 0.0, 1.0) * 100.0))
+		goal_amt.text = "$%.2f / $%.2f · %d%%" % [GameState.money, price, pct]
+		goal_amt.add_theme_color_override("font_color", CLR_GREEN_D)
+		buy_home_btn.text = "Buy House ($%.2f)" % price
+		buy_home_btn.visible = true
+		buy_home_btn.disabled = GameState.money < price
+	goal_bar.queue_redraw()
+
+func _draw_goal_bar() -> void:
+	var ratio := 0.0
+	if GameState.house_owned:
+		ratio = 1.0
+	elif GameState.house_price > 0:
+		ratio = clamp(GameState.money / GameState.house_price, 0.0, 1.0)
+	_draw_seg_bar(goal_bar, ratio, CLR_GREEN)
+
+## Segmented pixel progress bar (paper track + ink border + blocky accent fill).
+func _draw_seg_bar(ctrl: Control, ratio: float, fill_color: Color) -> void:
+	var sz := ctrl.size
+	var track := StyleBoxFlat.new()
+	track.bg_color = CLR_PAPER2
+	track.border_color = CLR_INK
+	track.set_border_width_all(3)
+	track.set_corner_radius_all(0)
+	ctrl.draw_style_box(track, Rect2(Vector2.ZERO, sz))
+	var inner_x := 3.0
+	var inner_w: float = sz.x - 6.0
+	var inner_y := 3.0
+	var inner_h: float = sz.y - 6.0
+	var fill_w: float = inner_w * clampf(ratio, 0.0, 1.0)
+	if fill_w <= 0.0: return
+	var seg := 22.0
+	var gap := 4.0
+	var x := inner_x
+	var i := 0
+	while x < inner_x + fill_w:
+		var bw: float = min(seg - gap, inner_x + fill_w - x)
+		if bw > 0.0:
+			var c: Color = fill_color if i % 2 == 0 else fill_color.darkened(0.18)
+			ctrl.draw_rect(Rect2(x, inner_y, bw, inner_h), c)
+		x += seg
+		i += 1
 
 # ── Pie chart + legend (Spending view) ───────────────────────────────────────────
 func _ensure_pie_canvas() -> void:
@@ -1056,15 +1175,31 @@ func _style_toggle_buttons() -> void:
 	if graphs_btn:    UITheme.style_pixel_button(graphs_btn, true)
 
 func _style_deposit_withdraw_buttons() -> void:
-	var deposit_btn  = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow/DepositBtn")
-	var withdraw_btn = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/BtnRow/WithdrawBtn")
+	var emer := "Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/"
+	var deposit_btn  = get_node_or_null(emer + "BtnRow/DepositBtn")
+	var withdraw_btn = get_node_or_null(emer + "BtnRow/WithdrawBtn")
 	if deposit_btn:  UITheme.style_pixel_button(deposit_btn)
 	if withdraw_btn: UITheme.style_pixel_button(withdraw_btn, true)
 	if deposit_input: UITheme.style_line_edit(deposit_input)
 	var font := UITheme.get_pixel_font()
-	for path in ["SpendableLabel", "SavingsLabel", "DepositLabel", "PenaltyWarning", "InterestInfo"]:
+	# Pixel font + paper-card styling on the overview's titled cards/labels
+	for path in ["ThisWeekLabel", "BudgetsLabel", "SavingsGoalLabel", "EmergencyLabel",
+				 "EmergencyCard/VBox/SavingsLabel", "EmergencyCard/VBox/DepositLabel",
+				 "EmergencyCard/VBox/PenaltyWarning", "EmergencyCard/VBox/InterestInfo",
+				 "Stat2/IncomeCard/VBox/IncomeK", "Stat2/IncomeCard/VBox/IncomeValue", "Stat2/IncomeCard/VBox/IncomeSub",
+				 "Stat2/ExpenseCard/VBox/ExpenseK", "Stat2/ExpenseCard/VBox/ExpenseValue", "Stat2/ExpenseCard/VBox/ExpenseSub",
+				 "NetCard/VBox/NetHeader/NetTitle", "NetCard/VBox/NetHeader/NetHint", "NetCard/VBox/NetValue",
+				 "GoalCard/VBox/GoalHeader/GoalName", "GoalCard/VBox/GoalHeader/GoalAmt"]:
 		var n = overview_tab.get_node_or_null(path)
 		if n and font: n.add_theme_font_override("font", font)
+	# Paper cards + accent-bordered stat cards
+	for path in ["NetCard", "GoalCard", "EmergencyCard"]:
+		var c = overview_tab.get_node_or_null(path)
+		if c is PanelContainer: _apply_sb(c, _sb_paper_card())
+	var inc = overview_tab.get_node_or_null("Stat2/IncomeCard")
+	if inc is PanelContainer: _style_accent_card(inc, CLR_GREEN_D)
+	var exp = overview_tab.get_node_or_null("Stat2/ExpenseCard")
+	if exp is PanelContainer: _style_accent_card(exp, CLR_RED_D)
 
 # ── Loans ──────────────────────────────────────────────────────────────────────
 func _style_loan_panels() -> void:

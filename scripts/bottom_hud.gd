@@ -39,6 +39,7 @@ var daycare_menu_instance = null
 var daycare_btn: Button = null
 
 var current_pause_menu     = null
+var current_finance_menu   = null
 var supplies_menu_instance = null
 var taxi_menu_instance     = null
 var shop_menu_instance     = null
@@ -666,13 +667,21 @@ func _on_needs_btn_pressed():
 			dog.toggle_menu()
 
 func _on_finance_btn_pressed():
+	# Toggle: if the finance menu is already open, pressing the button closes it.
+	if is_instance_valid(current_finance_menu):
+		current_finance_menu.hide_menu()
+		return
+
 	get_tree().paused = true
 	var finance_menu = finance_menu_scene.instantiate()
+	current_finance_menu = finance_menu
 	add_child(finance_menu)
 	finance_menu_opened.emit()
 	finance_menu.show_menu()
 	finance_menu.menu_closed.connect(func():
 		finance_menu.queue_free()
+		if current_finance_menu == finance_menu:
+			current_finance_menu = null
 		get_tree().paused = false
 	)
 
