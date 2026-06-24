@@ -81,43 +81,12 @@ func run_kid_teen_step():
 	var pathway = GameState.selected_pathway
 	match current_step:
 		1:
-			# Step 1: Conversational Intro, then wait for Needs Menu
+			# Step 1: Conversational Intro, then wait for Supplies Menu (swapped to be first)
 			if pathway == "kid":
 				await run_dialogue("kid_step1")
 			else:
 				await run_dialogue("teen_step1")
 				
-			# Spotlight the Needs button
-			if tutorial_hint:
-				tutorial_hint.show_hint("Press P or Needs to open pet needs.")
-				if hud and "needs_btn" in hud and hud.needs_btn:
-					tutorial_hint.set_highlight_target(hud.needs_btn)
-			
-			# Wait for Needs Menu to be visible
-			var menu_open = false
-			while not menu_open:
-				await get_tree().process_frame
-				if dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
-					menu_open = true
-			
-			if tutorial_hint:
-				tutorial_hint.set_highlight_target(null)
-				tutorial_hint.hide_hint()
-			advance_step()
-		
-		2:
-			# Step 2: Explain needs, then spotlight Supplies button
-			if pathway == "kid":
-				await run_dialogue("kid_step2")
-			else:
-				await run_dialogue("teen_step2")
-				
-			# Close Needs Menu
-			if dog and dog.needs_menu_instance:
-				dog.needs_menu_instance.panel.hide()
-				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
-					dog.needs_menu_instance.arrow.hide()
-			
 			# Spotlight Supplies button
 			if tutorial_hint:
 				tutorial_hint.show_hint("Press Supplies to see your supplies.")
@@ -136,51 +105,62 @@ func run_kid_teen_step():
 				tutorial_hint.hide_hint()
 			advance_step()
 		
-		3:
-			# Step 3: Explain inventory, then spotlight Finance button
+		2:
+			# Step 2: Explain needs, then spotlight Needs button (swapped to be second)
 			if pathway == "kid":
-				await run_dialogue("kid_step3")
+				await run_dialogue("kid_step2")
 			else:
-				await run_dialogue("teen_step3")
+				await run_dialogue("teen_step2")
 				
 			# Close Supplies Menu
 			if hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
 				hud.supplies_menu_instance.hide_menu()
-				
-			# Spotlight Finance button
-			if tutorial_hint:
-				tutorial_hint.show_hint("Click Finances to see your finances.")
-				if hud and "finance_btn" in hud and hud.finance_btn:
-					tutorial_hint.set_highlight_target(hud.finance_btn)
 			
-			# Wait for Finance Menu to open
-			if hud:
-				await hud.finance_menu_opened
-			else:
-				await get_tree().create_timer(3.0, false, true).timeout
+			# Spotlight the Needs button
+			if tutorial_hint:
+				tutorial_hint.show_hint("Press P or Needs to open pet needs.")
+				if hud and "needs_btn" in hud and hud.needs_btn:
+					tutorial_hint.set_highlight_target(hud.needs_btn)
+			
+			# Wait for Needs Menu to be visible
+			var menu_open = false
+			while not menu_open:
+				await get_tree().process_frame
+				if dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
+					menu_open = true
 			
 			if tutorial_hint:
 				tutorial_hint.set_highlight_target(null)
 				tutorial_hint.hide_hint()
 			advance_step()
 		
-		4:
-			# Step 4: Dialogue/Job selection sequence
-			# Auto-close Finance Menu and ensure tree is unpaused
-			var fin_menu = get_tree().root.find_child("FinanceMenu", true, false)
-			if fin_menu and fin_menu.visible:
-				if fin_menu.has_method("hide_menu"):
-					fin_menu.hide_menu()
-				else:
-					fin_menu.hide()
-			# Force unpause — the finance menu pauses the tree and its
-			# cleanup callback (queue_free + unpause) is deferred, so the
-			# tree can still be paused at this point.
-			get_tree().paused = false
-			# Wait two frames so any deferred queue_free settles
-			await get_tree().process_frame
-			await get_tree().process_frame
+		3:
+			# Step 3: Explain inventory, close Needs, and comment out Finances menu step
+			if pathway == "kid":
+				await run_dialogue("kid_step3")
+			else:
+				await run_dialogue("teen_step3")
 				
+			# Close Needs Menu
+			if dog and dog.needs_menu_instance:
+				dog.needs_menu_instance.panel.hide()
+				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
+					dog.needs_menu_instance.arrow.hide()
+					
+			# [FINANCES TUTORIAL STEP COMMENTED OUT]
+			# if tutorial_hint:
+			# 	tutorial_hint.show_hint("Click Finances to see your finances.")
+			# 	if hud and "finance_btn" in hud and hud.finance_btn:
+			# 		tutorial_hint.set_highlight_target(hud.finance_btn)
+			# if hud:
+			# 	await hud.finance_menu_opened
+			# else:
+			# 	await get_tree().create_timer(3.0, false, true).timeout
+			# if tutorial_hint:
+			# 	tutorial_hint.set_highlight_target(null)
+			# 	tutorial_hint.hide_hint()
+			
+			# Proceed directly to Dialogue/Job selection sequence (previously Step 4)
 			if pathway == "kid":
 				await run_dialogue("kid_step4")
 				advance_step()
@@ -196,7 +176,7 @@ func run_kid_teen_step():
 				await run_dialogue("teen_step5")
 				advance_step()
 		
-		5:
+		4:
 			# Complete!
 			end_tutorial()
 
@@ -214,51 +194,7 @@ func run_adult_step():
 			advance_step()
 		
 		2:
-			# Step 2: Open Needs
-			if tutorial_hint:
-				tutorial_hint.show_hint("Press P or Needs to open pet needs.")
-				if hud and "needs_btn" in hud and hud.needs_btn:
-					tutorial_hint.set_highlight_target(hud.needs_btn)
-			
-			var menu_open = false
-			while not menu_open:
-				await get_tree().process_frame
-				if dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
-					menu_open = true
-			
-			if tutorial_hint:
-				tutorial_hint.set_highlight_target(null)
-			advance_step()
-		
-		3:
-			# Step 3: Needs Explanation
-			if tutorial_hint and dog and dog.needs_menu_instance:
-				tutorial_hint.set_highlight_target(dog.needs_menu_instance.panel)
-			if tutorial_hint:
-				tutorial_hint.show_hint("This tells you the needs of your little buddy. When food or water is low, take them back home to feed them.", 4.0)
-				await tutorial_hint.hint_hidden
-			advance_step()
-		
-		4:
-			# Step 4: Needs Energy & Health
-			if tutorial_hint and dog and dog.needs_menu_instance:
-				tutorial_hint.set_highlight_target(dog.needs_menu_instance.panel)
-			if tutorial_hint:
-				tutorial_hint.show_hint("When their energy is low, take them home to sleep. If health is low, take them to the vet.", 6.0)
-				await tutorial_hint.hint_hidden
-				
-			if tutorial_hint:
-				tutorial_hint.set_highlight_target(null)
-			
-			# Auto-close Needs
-			if dog and dog.needs_menu_instance:
-				dog.needs_menu_instance.panel.hide()
-				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
-					dog.needs_menu_instance.arrow.hide()
-			advance_step()
-		
-		5:
-			# Step 5: Open Supplies
+			# Step 2: Open Supplies (swapped to be first)
 			if tutorial_hint:
 				tutorial_hint.show_hint("Press Supplies to see your supplies.")
 				if hud and "supplies_btn" in hud and hud.supplies_btn:
@@ -282,37 +218,55 @@ func run_adult_step():
 				hud.supplies_menu_instance.hide_menu()
 			advance_step()
 		
-		6:
-			# Step 6: Open Finances
+		3:
+			# Step 3: Open Needs (swapped to be second)
 			if tutorial_hint:
-				tutorial_hint.show_hint("Click Finances to see your finances.")
-				if hud and "finance_btn" in hud and hud.finance_btn:
-					tutorial_hint.set_highlight_target(hud.finance_btn)
+				tutorial_hint.show_hint("Press P or Needs to open pet needs.")
+				if hud and "needs_btn" in hud and hud.needs_btn:
+					tutorial_hint.set_highlight_target(hud.needs_btn)
 			
-			if hud:
-				await hud.finance_menu_opened
-			else:
-				await get_tree().create_timer(3.0, false, true).timeout
-				
+			var menu_open = false
+			while not menu_open:
+				await get_tree().process_frame
+				if dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
+					menu_open = true
+			
 			if tutorial_hint:
 				tutorial_hint.set_highlight_target(null)
 			advance_step()
 		
-		7:
-			# Step 7: Auto-close Finances
-			var fin_menu = get_tree().root.find_child("FinanceMenu", true, false)
-			if fin_menu and fin_menu.visible:
-				if fin_menu.has_method("hide_menu"):
-					fin_menu.hide_menu()
-				else:
-					fin_menu.hide()
-			# Force unpause — same deferred-cleanup race as kid/teen step 4
-			get_tree().paused = false
-			await get_tree().process_frame
-			await get_tree().process_frame
+		4:
+			# Step 4: Needs Explanation
+			if tutorial_hint and dog and dog.needs_menu_instance:
+				tutorial_hint.set_highlight_target(dog.needs_menu_instance.panel)
+			if tutorial_hint:
+				tutorial_hint.show_hint("This tells you the needs of your little buddy. When food or water is low, take them back home to feed them.", 4.0)
+				await tutorial_hint.hint_hidden
 			advance_step()
 		
-		8:
+		5:
+			# Step 5: Needs Energy & Health
+			if tutorial_hint and dog and dog.needs_menu_instance:
+				tutorial_hint.set_highlight_target(dog.needs_menu_instance.panel)
+			if tutorial_hint:
+				tutorial_hint.show_hint("When their energy is low, take them home to sleep. If health is low, take them to the vet.", 6.0)
+				await tutorial_hint.hint_hidden
+				
+			if tutorial_hint:
+				tutorial_hint.set_highlight_target(null)
+			
+			# Auto-close Needs
+			if dog and dog.needs_menu_instance:
+				dog.needs_menu_instance.panel.hide()
+				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
+					dog.needs_menu_instance.arrow.hide()
+			
+			# [FINANCES TUTORIAL STEP COMMENTED OUT]
+			# advance_step()
+			# ... proceed directly to complete
+			advance_step()
+		
+		6:
 			# Complete!
 			end_tutorial()
 

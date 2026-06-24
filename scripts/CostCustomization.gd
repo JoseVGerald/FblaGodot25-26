@@ -349,6 +349,31 @@ func setup_layout() -> void:
 	form_vbox.add_theme_constant_override("separation", 10)
 	form_panel.add_child(form_vbox)
 
+	# Preferences Title
+	var pref_title := Label.new()
+	pref_title.text = "Preferences"
+	var pref_font := SystemFont.new()
+	pref_font.font_weight = 850
+	pref_title.add_theme_font_override("font", pref_font)
+	pref_title.add_theme_font_size_override("font_size", 32)
+	pref_title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
+	pref_title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	pref_title.add_theme_constant_override("outline_size", 10)
+	pref_title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.3))
+	pref_title.add_theme_constant_override("shadow_offset_x", 2)
+	pref_title.add_theme_constant_override("shadow_offset_y", 2)
+	pref_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	form_vbox.add_child(pref_title)
+
+	# Separator line below Preferences title (like the black line below Starting Values)
+	var pref_sep := HSeparator.new()
+	var sb_sep := StyleBoxLine.new()
+	sb_sep.color = UITheme.CLR_INK
+	sb_sep.thickness = 4
+	pref_sep.add_theme_stylebox_override("separator", sb_sep)
+	pref_sep.add_theme_constant_override("separation", 24)
+	form_vbox.add_child(pref_sep)
+
 	if scroll_container:
 		remove_child(scroll_container)
 		form_vbox.add_child(scroll_container)

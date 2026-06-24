@@ -81,7 +81,18 @@ func _on_open_shop_requested():
 
 var home_hint_shown = false
 func _on_shop_closed():
-	if GameState.is_day_one and not home_hint_shown:
+	if not GameState.is_day_one:
+		return
+	# Merged day-0 work tutorial: the moment a teen/adult with a job leaves the
+	# shop, Mom points out the shop is near their workplace, then guides them to
+	# drop the dog at daycare and follow the path to work. Fires once.
+	if GameState.selected_pathway in ["teenager", "adult"] \
+			and GameState.active_job != "none" \
+			and not GameState.day_two_tutorial_done:
+		GameState.day_two_tutorial_done = true
+		start_day2_tutorial()
+		return
+	if not home_hint_shown:
 		home_hint_shown = true
 		# Show hint after shop
 		var tutorial_hint_scene = preload("res://scenes/ui/tutorial_hint.tscn")
@@ -110,13 +121,8 @@ func _on_day_started(day_number: int):
 		dog_instance.apply_daily_health_change()
 	# Auto-save at end of each day
 	save_current_game()
-	# Day 2 (first work day) tutorial — teen/adult only, fires once.
-	if day_number == 1 \
-			and GameState.selected_pathway in ["teenager", "adult"] \
-			and GameState.is_tutorial_complete \
-			and not GameState.day_two_tutorial_done:
-		GameState.day_two_tutorial_done = true
-		start_day2_tutorial()
+	# The first-work-day tutorial is now merged into day zero — it fires from
+	# _on_shop_closed() the moment the player first leaves the shop.
 
 func start_day2_tutorial():
 	day2_tutorial_controller = Day2Tutorial.new()

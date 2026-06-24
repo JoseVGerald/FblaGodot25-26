@@ -1,7 +1,7 @@
 # COMMIT: Achievements and Catch Minigame Update
 extends CharacterBody2D
 
-@export var speed := 300
+@export var speed := 600
 
 var input_dir := Vector2.ZERO
 var last_dir := Vector2.ZERO
@@ -46,6 +46,8 @@ func _play_move_anim():
 	elif last_dir.x < 0: anim = "move_left"
 	elif last_dir.y < 0: anim = "move_up"
 	else: anim = "move_down"
+	if sprite_2d:
+		sprite_2d.speed_scale = 2.0
 	_play_if_exists(anim)
 
 func _play_idle_anim():
@@ -54,6 +56,8 @@ func _play_idle_anim():
 	elif last_dir.x < 0: anim = "idle_left"
 	elif last_dir.y < 0: anim = "idle_up"
 	else: anim = "idle_down"
+	if sprite_2d:
+		sprite_2d.speed_scale = 1.0
 	_play_if_exists(anim)
 
 func _play_if_exists(anim_name: String):

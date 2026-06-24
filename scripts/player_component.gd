@@ -5,7 +5,7 @@ extends CharacterBody2D
 ## Each visual layer (Body, Eyes, Outfit, Hairstyle, Accessory) is a separate
 ## AnimatedSprite2D child — this script keeps them all in sync.
 
-@export var speed := 300
+@export var speed := 600
 
 var input_dir := Vector2.ZERO
 var last_dir := Vector2.ZERO
@@ -70,6 +70,9 @@ func _play_move_anim() -> void:
 		anim = "move_up"
 	else:
 		anim = "move_down"
+	for sprite in _sprites:
+		if sprite:
+			sprite.speed_scale = 2.0
 	_play_on_all(anim)
 
 
@@ -83,6 +86,9 @@ func _play_idle_anim() -> void:
 		anim = "idle_up"
 	else:
 		anim = "idle_down"
+	for sprite in _sprites:
+		if sprite:
+			sprite.speed_scale = 1.0
 	_play_on_all(anim)
 
 

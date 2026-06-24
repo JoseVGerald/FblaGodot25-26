@@ -19,7 +19,7 @@ var needs_menu_instance: CanvasLayer
 # Direct-coordinate action movement (food/water/sleep)
 var action_path: Array[Vector2] = []
 var action_callback: Callable
-var action_speed: float = 250.0
+var action_speed: float = 500.0
 
 # Auto-routine when player enters the house
 var was_in_house: bool = false
@@ -509,6 +509,11 @@ func check_emergency_triggers(delta: float):
 func _play_animation(anim_name: String) -> void:
 	if not animated_sprite_2d:
 		return
+	
+	if anim_name == "run":
+		animated_sprite_2d.speed_scale = 2.0
+	else:
+		animated_sprite_2d.speed_scale = 1.0
 	
 	var possible_names = [
 		breed + "_" + anim_name,

@@ -933,13 +933,13 @@ func _setup_notif_button() -> void:
 	for child in notif_btn.get_children():
 		child.queue_free()
 
-	# TextureRect icon inside the button, centered and scaled to 52x52 (original size)
+	# TextureRect icon inside the button, centered and scaled to 80x80 (larger size)
 	_notif_icon = TextureRect.new()
 	_notif_icon.texture = _tex_normal
 	_notif_icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	_notif_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_notif_icon.custom_minimum_size = Vector2(52, 52)
-	_notif_icon.size = Vector2(52, 52)
+	_notif_icon.custom_minimum_size = Vector2(80, 80)
+	_notif_icon.size = Vector2(80, 80)
 	_notif_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	notif_btn.add_child(_notif_icon)
 
@@ -950,10 +950,10 @@ func _setup_notif_button() -> void:
 	_notif_icon.anchor_bottom = 0.5
 	_notif_icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_notif_icon.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_notif_icon.offset_left = -26.0
-	_notif_icon.offset_right = 26.0
-	_notif_icon.offset_top = -26.0
-	_notif_icon.offset_bottom = 26.0
+	_notif_icon.offset_left = -40.0
+	_notif_icon.offset_right = 40.0
+	_notif_icon.offset_top = -40.0
+	_notif_icon.offset_bottom = 40.0
 
 	# Wire pressed signal if not connected
 	if not notif_btn.pressed.is_connected(_on_notif_btn_pressed):
@@ -969,27 +969,37 @@ func _update_notif_badge() -> void:
 	if _notif_pulse_tween and _notif_pulse_tween.is_valid():
 		_notif_pulse_tween.kill()
 
+	var normal_sb = notif_btn.get_theme_stylebox("normal") as StyleBoxFlat
+	# Always reset self_modulate and modulate
+	notif_btn.self_modulate = Color.WHITE
+	notif_btn.modulate = Color.WHITE
+
 	if NotificationCenter.has_unread_warning:
-		# WARNING state: exclamation envelope icon + red pulse animation
+		# WARNING state: exclamation envelope icon + red pulse background animation
 		_notif_icon.texture = _tex_warning
 		_notif_pulse_tween = create_tween().set_loops()
 		_notif_pulse_tween.tween_callback(
-				func(): notif_btn.self_modulate = UITheme.CLR_RED)
+				func():
+					if normal_sb:
+						normal_sb.bg_color = UITheme.CLR_RED
+		)
 		_notif_pulse_tween.tween_interval(0.6)
 		_notif_pulse_tween.tween_callback(
-				func(): notif_btn.self_modulate = Color.WHITE)
+				func():
+					if normal_sb:
+						normal_sb.bg_color = UITheme.CLR_CREAM_LT
+		)
 		_notif_pulse_tween.tween_interval(0.6)
-		notif_btn.modulate = Color.WHITE
 	elif NotificationCenter.has_unread:
 		# UNREAD state: red-badge envelope icon, no pulse
 		_notif_icon.texture = _tex_badge
-		notif_btn.self_modulate = Color.WHITE
-		notif_btn.modulate = Color.WHITE
+		if normal_sb:
+			normal_sb.bg_color = UITheme.CLR_CREAM_LT
 	else:
 		# CLEAR state: plain envelope icon
 		_notif_icon.texture = _tex_normal
-		notif_btn.self_modulate = Color.WHITE
-		notif_btn.modulate = Color.WHITE
+		if normal_sb:
+			normal_sb.bg_color = UITheme.CLR_CREAM_LT
 
 ## Open the notification panel as a child of this CanvasLayer.
 func _on_notif_btn_pressed() -> void:

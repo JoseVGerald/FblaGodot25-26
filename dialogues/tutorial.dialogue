@@ -62,3 +62,12 @@ Mother: And don't forget to drop your buddy off at daycare first — none of the
 Me: Ugh... morning already. Time to head to work.
 Me: I'd better drop my buddy off at daycare on the way — none of these jobs want me bringing my dog in to work.
 => END
+
+
+~ day0_teen_work
+Mother: Hey {{GameState.player_name}}, the shop is pretty close to your job at {{GameState.active_job_location}}. You should go and get a shift there!
+=> END
+
+~ day0_adult_work
+Me: Hey, the shop is pretty close to my job at {{GameState.active_job_location}}. I should head over and pick up a shift there.
+=> END

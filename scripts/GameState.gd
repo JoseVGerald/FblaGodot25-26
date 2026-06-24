@@ -1151,6 +1151,10 @@ var active_job_display_name: String:
 			"bank_accountant": return "Bank Accountant"
 			_: return "None"
 
+var active_job_location: String:
+	get:
+		return str(JOB_PROGRESSION.get(active_job, {}).get("location", "town"))
+
 var active_job_benefit_description: String:
 	get:
 		match active_job:

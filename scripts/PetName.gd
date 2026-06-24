@@ -13,6 +13,32 @@ func _ready():
 	update_preview()
 	pet_name_input.grab_focus()
 	pet_name_input.text_changed.connect(_on_pet_name_changed)
+	
+	# Override LineEdit styling to match the Character Creator name input style
+	var pixel_font = UITheme.get_pixel_font()
+	if pixel_font:
+		pet_name_input.add_theme_font_override("font", pixel_font)
+	pet_name_input.add_theme_font_size_override("font_size", 36)
+	pet_name_input.add_theme_color_override("font_color", UITheme.CLR_INK)
+	pet_name_input.add_theme_color_override("font_placeholder_color", UITheme.CLR_GRAY_DRK)
+	pet_name_input.custom_minimum_size = Vector2(510, 72)
+	
+	var input_sb := StyleBoxFlat.new()
+	input_sb.bg_color = UITheme.CLR_CREAM_LT
+	input_sb.border_color = UITheme.CLR_INK
+	input_sb.set_border_width_all(5)
+	input_sb.content_margin_left = 18
+	input_sb.content_margin_right = 18
+	input_sb.content_margin_top = 9
+	input_sb.content_margin_bottom = 9
+	input_sb.set_corner_radius_all(0)
+	pet_name_input.add_theme_stylebox_override("normal", input_sb)
+	
+	var input_sb_focus: StyleBoxFlat = input_sb.duplicate()
+	input_sb_focus.border_color = UITheme.CLR_ORANGE_PX
+	input_sb_focus.border_width_bottom = 6
+	pet_name_input.add_theme_stylebox_override("focus", input_sb_focus)
+
 	# New UI pixel-art styling
 	var cont_btn = get_node_or_null("VBoxContainer/ContinueButton")
 	if cont_btn: UITheme.style_pixel_button(cont_btn)

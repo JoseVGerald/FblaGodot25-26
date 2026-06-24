@@ -423,12 +423,20 @@ func _build_right_sidebar() -> VBoxContainer:
 	sidebar.alignment = BoxContainer.ALIGNMENT_CENTER
 	sidebar.add_theme_constant_override("separation", 20)
 
+	# Centered inner box to group randomize button and visibility checkboxes together
+	var inner_box := VBoxContainer.new()
+	inner_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	inner_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	inner_box.add_theme_constant_override("separation", 20)
+	sidebar.add_child(inner_box)
+
+	# Left-aligned randomize button inside the centered inner box
 	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
-	randomize_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	randomize_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	randomize_btn.custom_minimum_size = Vector2(260, 90)
 	randomize_btn.add_theme_font_size_override("font_size", 32)
 	randomize_btn.pressed.connect(_on_randomize_pressed)
-	sidebar.add_child(randomize_btn)
+	inner_box.add_child(randomize_btn)
 
 	var viewport_h := get_viewport_rect().size.y
 	var is_small := viewport_h < 1200
@@ -445,7 +453,7 @@ func _build_right_sidebar() -> VBoxContainer:
 		if pixel_font:
 			check.add_theme_font_override("font", pixel_font)
 		check.toggled.connect(_on_visibility_toggled.bind(cat))
-		sidebar.add_child(check)
+		inner_box.add_child(check)
 		vis_checks[cat] = check
 
 	return sidebar
