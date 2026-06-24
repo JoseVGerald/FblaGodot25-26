@@ -278,24 +278,24 @@ static func style_line_edit(input: LineEdit) -> void:
 	var font := get_pixel_font()
 	if font:
 		input.add_theme_font_override("font", font)
-	# Black text on white background so you can clearly see what you're typing
-	input.add_theme_color_override("font_color", Color.BLACK)
-	input.add_theme_color_override("font_placeholder_color", Color(0.45, 0.45, 0.45))
+	
+	input.add_theme_color_override("font_color", CLR_INK)
+	input.add_theme_color_override("font_placeholder_color", CLR_GRAY_DRK)
 
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color.WHITE
-	sb.border_color = Color(0.4, 0.45, 0.5)
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(4)
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
-	sb.content_margin_top = 6
-	sb.content_margin_bottom = 6
+	sb.bg_color = CLR_CREAM_LT
+	sb.border_color = CLR_INK
+	sb.set_border_width_all(5)
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	sb.content_margin_top = 9
+	sb.content_margin_bottom = 9
 	input.add_theme_stylebox_override("normal", sb)
 
 	var sb_focus: StyleBoxFlat = sb.duplicate()
-	sb_focus.border_color = Color(0.85, 0.80, 0.2)
-	sb_focus.border_width_bottom = 4
+	sb_focus.border_color = CLR_ORANGE_PX
+	sb_focus.border_width_bottom = 6
 	input.add_theme_stylebox_override("focus", sb_focus)
 
 

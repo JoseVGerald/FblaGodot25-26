@@ -80,12 +80,24 @@ func _on_open_shop_requested():
 		shop_path.visible = false
 
 var home_hint_shown = false
+# True only after the shop UI was fully opened (show_shop emitted shop_opened).
+# Guards _on_shop_closed so walking out of the shop zone without opening the
+# menu can never accidentally trigger the tutorial.
+var _shop_menu_was_opened: bool = false
+
+func _on_shop_opened():
+	_shop_menu_was_opened = true
+
 func _on_shop_closed():
 	if not GameState.is_day_one:
 		return
-	# Merged day-0 work tutorial: the moment a teen/adult with a job leaves the
-	# shop, Mom points out the shop is near their workplace, then guides them to
-	# drop the dog at daycare and follow the path to work. Fires once.
+	# Only act if the player actually opened the shop UI this visit.
+	if not _shop_menu_was_opened:
+		return
+	_shop_menu_was_opened = false
+	# Merged day-0 work tutorial: the moment a teen/adult with a job closes the
+	# shop menu, Mom points out the shop is near their workplace, then guides
+	# them to drop the dog at daycare and follow the path to work. Fires once.
 	if GameState.selected_pathway in ["teenager", "adult"] \
 			and GameState.active_job != "none" \
 			and not GameState.day_two_tutorial_done:
@@ -175,8 +187,9 @@ func setup_hud():
 		# Store reference for tutorial
 		hud_instance = hud
 
-		# Connect to shop closed signal for home hint
+		# Connect to shop open/close signals for the post-shop tutorial
 		if hud.shop_menu_instance:
+			hud.shop_menu_instance.shop_opened.connect(_on_shop_opened)
 			hud.shop_menu_instance.shop_closed.connect(_on_shop_closed)
 
 func spawn_player():

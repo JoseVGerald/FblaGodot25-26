@@ -131,10 +131,11 @@ func _build_ui() -> void:
 	header_hbox.add_child(title)
 
 	var close_btn := Button.new()
-	close_btn.text = "✕"
+	close_btn.text = "X"
 	close_btn.custom_minimum_size = Vector2(64, 64)
 	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
 	close_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	close_btn.focus_mode = Control.FOCUS_NONE
 	UITheme.style_pixel_button_colored(close_btn, Color("#EF5350"))
 	close_btn.pressed.connect(_close_panel)
 	header_hbox.add_child(close_btn)
@@ -193,7 +194,7 @@ func _build_ui() -> void:
 
 	var filters_hbox := HBoxContainer.new()
 	filters_hbox.size_flags_horizontal = Control.SIZE_SHRINK_END
-	filters_hbox.add_theme_constant_override("separation", 8)
+	filters_hbox.add_theme_constant_override("separation", 24)
 	top_row.add_child(filters_hbox)
 
 	# Filter toggles (Warnings / Achievements / Events)
@@ -234,14 +235,16 @@ func _build_ui() -> void:
 
 	var mark_all := Button.new()
 	mark_all.text = "Mark All Read"
-	mark_all.custom_minimum_size = Vector2(180, 56)
+	mark_all.custom_minimum_size = Vector2(240, 64)
+	mark_all.add_theme_font_size_override("font_size", 24)
 	UITheme.style_pixel_button(mark_all, true)
 	mark_all.pressed.connect(func(): NotificationCenter.mark_all_read(); _fill_list())
 	footer_hbox.add_child(mark_all)
 
 	var close_btn2 := Button.new()
 	close_btn2.text = "Close"
-	close_btn2.custom_minimum_size = Vector2(160, 56)
+	close_btn2.custom_minimum_size = Vector2(180, 64)
+	close_btn2.add_theme_font_size_override("font_size", 24)
 	UITheme.style_pixel_button(close_btn2, false)
 	close_btn2.pressed.connect(_close_panel)
 	footer_hbox.add_child(close_btn2)
@@ -309,11 +312,14 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color     = CLR_ROW_BG
 	sb.border_color = CLR_BORDER
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(4)
-	sb.set_content_margin_all(12)
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(0)
+	sb.content_margin_left = 20
+	sb.content_margin_top = 16
+	sb.content_margin_right = 20
+	sb.content_margin_bottom = 16
 	row_bg.add_theme_stylebox_override("panel", sb)
-	row_bg.custom_minimum_size   = Vector2(0, 72)
+	row_bg.custom_minimum_size   = Vector2(0, 96)
 	row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row_bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_list_container.add_child(row_bg)
@@ -368,6 +374,13 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	tile.add_child(icon_lbl)
 	row.add_child(tile)
 
+	# Text content on separate lines
+	var text_vbox := VBoxContainer.new()
+	text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	text_vbox.add_theme_constant_override("separation", 4)
+	row.add_child(text_vbox)
+
 	# ── Title (notification type + day) ────────────────────────────────────
 	var type_text := ""
 	if is_warning:
@@ -379,27 +392,24 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 
 	var name_label := Label.new()
 	name_label.text = type_text
-	name_label.add_theme_font_size_override("font_size", 34)
+	name_label.add_theme_font_size_override("font_size", 32)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", CLR_GREY_TITLE)
 	name_label.clip_text = true
 	if font:
 		name_label.add_theme_font_override("font", font)
-	row.add_child(name_label)
+	text_vbox.add_child(name_label)
 
-	# ── Description (right-aligned, grayed like achievements) ──────────────
+	# ── Description (grayed) ─────────────────────────────────────────────
 	var desc_label := Label.new()
 	desc_label.text = entry.message
 	desc_label.add_theme_font_size_override("font_size", 28)
 	desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	desc_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_RIGHT
-	desc_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
 	desc_label.add_theme_color_override("font_color", CLR_GREY_DESC)
 	desc_label.clip_text = true
 	if font:
 		desc_label.add_theme_font_override("font", font)
-	row.add_child(desc_label)
+	text_vbox.add_child(desc_label)
 
 	# ── Hover: brighten text like achievements unlocked state ──────────────
 	row_bg.mouse_entered.connect(func():
@@ -411,26 +421,16 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 		desc_label.add_theme_color_override("font_color", CLR_GREY_DESC)
 	)
 
-	# ── Action arrow indicator (→) for clickable rows ─────────────────────
-	if action["kind"] != "none":
-		var arrow := Label.new()
-		arrow.text = "→"
-		arrow.add_theme_font_size_override("font_size", 32)
-		arrow.add_theme_color_override("font_color", CLR_GOLD)
-		arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		if font:
-			arrow.add_theme_font_override("font", font)
-		row.add_child(arrow)
+
 
 	# ── Dismiss button (Red X) ────────────────────────────────────────────
 	# Uses a smaller button on the far right to clear this specific entry.
 	var x_btn := Button.new()
-	x_btn.text = "✕"
+	x_btn.text = "X"
 	x_btn.custom_minimum_size = Vector2(56, 56)
 	x_btn.add_theme_font_size_override("font_size", 26)
+	x_btn.focus_mode = Control.FOCUS_NONE
 	UITheme.style_close_button(x_btn)
-	if font:
-		x_btn.add_theme_font_override("font", font)
 	row.add_child(x_btn)
 
 	x_btn.pressed.connect(func():

@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameState="*res://scripts/GameState.gd"
+InputValidator="*res://scripts/InputValidator.gd"
 BurgerLauncher="*res://burger_minigame/BurgerLauncher.gd"
 LoanLauncher="*res://loan_minigame/LoanLauncher.gd"
 NotificationCenter="*res://scripts/NotificationCenter.gd"

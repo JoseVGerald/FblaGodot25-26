@@ -102,6 +102,13 @@ func run_kid_teen_step():
 			
 			if tutorial_hint:
 				tutorial_hint.set_highlight_target(null)
+				tutorial_hint.show_hint("Close the Supplies menu to continue.")
+			
+			# Wait for Supplies Menu to be closed
+			while hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
+				await get_tree().process_frame
+			
+			if tutorial_hint:
 				tutorial_hint.hide_hint()
 			advance_step()
 		
@@ -112,9 +119,7 @@ func run_kid_teen_step():
 			else:
 				await run_dialogue("teen_step2")
 				
-			# Close Supplies Menu
-			if hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
-				hud.supplies_menu_instance.hide_menu()
+			# Note: Supplies menu was closed by user in Step 1
 			
 			# Spotlight the Needs button
 			if tutorial_hint:
@@ -131,6 +136,13 @@ func run_kid_teen_step():
 			
 			if tutorial_hint:
 				tutorial_hint.set_highlight_target(null)
+				tutorial_hint.show_hint("Close the Needs menu to continue.")
+			
+			# Wait for Needs Menu to be closed
+			while dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
+				await get_tree().process_frame
+				
+			if tutorial_hint:
 				tutorial_hint.hide_hint()
 			advance_step()
 		
@@ -141,11 +153,7 @@ func run_kid_teen_step():
 			else:
 				await run_dialogue("teen_step3")
 				
-			# Close Needs Menu
-			if dog and dog.needs_menu_instance:
-				dog.needs_menu_instance.panel.hide()
-				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
-					dog.needs_menu_instance.arrow.hide()
+			# Note: Needs menu was closed by user in Step 2
 					
 			# [FINANCES TUTORIAL STEP COMMENTED OUT]
 			# if tutorial_hint:
@@ -212,10 +220,14 @@ func run_adult_step():
 				tutorial_hint.show_hint("This shows your supplies. Food, water, and medication are essential to care for your buddy.", 4.0)
 				await tutorial_hint.hint_hidden
 				tutorial_hint.set_highlight_target(null)
+				tutorial_hint.show_hint("Close the Supplies menu to continue.")
 				
-			# Auto-close Supplies
-			if hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
-				hud.supplies_menu_instance.hide_menu()
+			# Wait for Supplies Menu to be closed
+			while hud and hud.supplies_menu_instance and hud.supplies_menu_instance.get_menu_visible():
+				await get_tree().process_frame
+				
+			if tutorial_hint:
+				tutorial_hint.hide_hint()
 			advance_step()
 		
 		3:
@@ -254,12 +266,14 @@ func run_adult_step():
 				
 			if tutorial_hint:
 				tutorial_hint.set_highlight_target(null)
+				tutorial_hint.show_hint("Close the Needs menu to continue.")
 			
-			# Auto-close Needs
-			if dog and dog.needs_menu_instance:
-				dog.needs_menu_instance.panel.hide()
-				if dog.needs_menu_instance.has_node("../Download7_44_10Pm"):
-					dog.needs_menu_instance.arrow.hide()
+			# Wait for Needs Menu to be closed
+			while dog and dog.needs_menu_instance and dog.needs_menu_instance.panel.visible:
+				await get_tree().process_frame
+				
+			if tutorial_hint:
+				tutorial_hint.hide_hint()
 			
 			# [FINANCES TUTORIAL STEP COMMENTED OUT]
 			# advance_step()
