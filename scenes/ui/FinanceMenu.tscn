@@ -17,13 +17,16 @@ grow_vertical = 2
 color = Color(0.05, 0.08, 0.11, 0.72)
 
 [node name="Window" type="PanelContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 121.0
-offset_top = 74.0
-offset_right = -121.0
-offset_bottom = -74.0
+custom_minimum_size = Vector2(1150, 640)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -575.0
+offset_top = -320.0
+offset_right = 575.0
+offset_bottom = 320.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -468,10 +471,10 @@ text = "Deposit or withdraw with your Emergency Savings:"
 horizontal_alignment = 1
 
 [node name="DepositInput" type="LineEdit" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
-custom_minimum_size = Vector2(420, 70)
+custom_minimum_size = Vector2(360, 64)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 30
 placeholder_text = "Amount"
 alignment = 1
 
@@ -481,15 +484,15 @@ size_flags_horizontal = 4
 theme_override_constants/separation = 18
 
 [node name="DepositBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/BtnRow"]
-custom_minimum_size = Vector2(220, 76)
+custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 30
 text = "Deposit"
 
 [node name="WithdrawBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/BtnRow"]
-custom_minimum_size = Vector2(220, 76)
+custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 30
 text = "Withdraw"
 
 [node name="PenaltyWarning" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox"]
@@ -552,13 +555,13 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.369, 0.659, 0.235, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 36
 text = "Food & Water"
 
 [node name="FoodLimitLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/HeaderRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.369, 0.659, 0.235, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 36
 text = "$50"
 horizontal_alignment = 2
 
@@ -573,13 +576,13 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 33
+theme_override_font_sizes/font_size = 26
 text = "Spent: $0"
 
 [node name="LimitLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard/VBox/MetaRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 33
+theme_override_font_sizes/font_size = 26
 text = "Limit: $50"
 horizontal_alignment = 2
 
@@ -604,13 +607,13 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.341, 0.714, 0.875, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 36
 text = "Vet & Medicine"
 
 [node name="VetLimitLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/HeaderRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.341, 0.714, 0.875, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 36
 text = "$50"
 horizontal_alignment = 2
 
@@ -625,13 +628,13 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 33
+theme_override_font_sizes/font_size = 26
 text = "Spent: $0"
 
 [node name="LimitLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/VetCard/VBox/MetaRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 33
+theme_override_font_sizes/font_size = 26
 text = "Limit: $50"
 horizontal_alignment = 2
 
@@ -656,13 +659,13 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.878, 0.522, 0.18, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 36
 text = "Travel & Transport"
 
 [node name="TravelLimitLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/HeaderRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.878, 0.522, 0.18, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 36
 text = "$50"
 horizontal_alignment = 2
 
@@ -677,13 +680,13 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 33
+theme_override_font_sizes/font_size = 26
 text = "Spent: $0"
 
 [node name="LimitLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/TravelCard/VBox/MetaRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 33
+theme_override_font_sizes/font_size = 26
 text = "Limit: $50"
 horizontal_alignment = 2
 
@@ -722,7 +725,7 @@ theme_override_constants/separation = 18
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.227, 0.149, 0.086, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 36
 text = "WEEK 1"
 vertical_alignment = 1
 
@@ -845,24 +848,6 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="TopRow" type="HBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox"]
-layout_mode = 2
-
-[node name="Chip" type="ColorRect" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/TopRow"]
-custom_minimum_size = Vector2(84, 60)
-layout_mode = 2
-color = Color(0.91, 0.71, 0.247, 1)
-
-[node name="Spacer" type="Control" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/TopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="BankLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/TopRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.659, 0.208, 0.169, 1)
-theme_override_font_sizes/font_size = 33
-text = "BUDDY BANK™"
-vertical_alignment = 1
 
 [node name="OwedLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox"]
 layout_mode = 2
@@ -873,7 +858,7 @@ text = "CURRENT BALANCE OWED"
 [node name="LoanBalanceLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.659, 0.208, 0.169, 1)
-theme_override_font_sizes/font_size = 96
+theme_override_font_sizes/font_size = 52
 text = "$0"
 
 [node name="HSep" type="ColorRect" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox"]
@@ -892,7 +877,7 @@ size_flags_horizontal = 3
 [node name="LoanRateLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/RateStat"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.878, 0.522, 0.18, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 32
 text = "10%"
 
 [node name="Sub" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/RateStat"]
@@ -908,7 +893,7 @@ size_flags_horizontal = 3
 [node name="ImpactLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/NextStat"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.361, 0.239, 0.137, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 32
 text = "$0"
 
 [node name="Sub" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/NextStat"]
@@ -924,7 +909,7 @@ size_flags_horizontal = 3
 [node name="LoanAccruedLabel" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/AccruedStat"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.659, 0.208, 0.169, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 32
 text = "$0"
 
 [node name="Sub" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditCard/VBox/FooterRow/AccruedStat"]
@@ -970,23 +955,23 @@ layout_mode = 2
 theme_override_constants/separation = 18
 
 [node name="LoanInput" type="LineEdit" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/ActionCard/VBox/ActionRow"]
-custom_minimum_size = Vector2(360, 90)
+custom_minimum_size = Vector2(360, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 30
 placeholder_text = "Amount"
 alignment = 1
 
 [node name="BorrowBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/ActionCard/VBox/ActionRow"]
-custom_minimum_size = Vector2(280, 100)
+custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 30
 text = "Borrow"
 
 [node name="RepayBtn" type="Button" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/ActionCard/VBox/ActionRow"]
-custom_minimum_size = Vector2(280, 100)
+custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 30
 text = "Repay"
 
 [node name="LoanWarning" type="PanelContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans"]
@@ -1106,13 +1091,6 @@ text = "DAY 1 · WEEK 1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CloseBtn" type="Button" parent="Window/VBox/StatusBar/StatusHBox"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "✕ CLOSE"
-
-[connection signal="pressed" from="Window/VBox/StatusBar/StatusHBox/CloseBtn" to="." method="_on_close_btn_pressed"]
 [connection signal="pressed" from="Window/VBox/TitleBarMargin/TitleBar/TitleCloseBtn" to="." method="_on_close_btn_pressed"]
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavOverview" to="." method="_on_nav_overview_pressed"]
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavSpending" to="." method="_on_nav_spending_pressed"]

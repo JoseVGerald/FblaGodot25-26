@@ -61,7 +61,7 @@ const CLR_CAT_LOAN   := Color("#d24a3d")
 @onready var deposit_input    = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Overview/EmergencyCard/VBox/DepositInput
 
 # Title / status
-@onready var close_btn   = $Window/VBox/StatusBar/StatusHBox/CloseBtn
+@onready var close_btn   = get_node_or_null("Window/VBox/StatusBar/StatusHBox/CloseBtn")
 @onready var day_label   = $Window/VBox/StatusBar/StatusHBox/DayLabel
 @onready var status_cash = $Window/VBox/StatusBar/StatusHBox/StatusCash
 
@@ -169,6 +169,51 @@ var _rent_progress   : Control        = null
 
 # ── Lifecycle ───────────────────────────────────────────────────────────────────
 func _ready() -> void:
+	# Restructure layout at runtime to place section title/hint outside the main box
+	var body = get_node_or_null("Window/VBox/BodyMargin/Body")
+	var main_panel = get_node_or_null("Window/VBox/BodyMargin/Body/Main")
+	var title_bar = get_node_or_null("Window/VBox/TitleBarMargin/TitleBar")
+	
+	if body and main_panel and title_bar and main_title_label and main_hint:
+		# 1. Create wrapper container
+		var main_container := VBoxContainer.new()
+		main_container.name = "MainContainer"
+		main_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		main_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		main_container.add_theme_constant_override("separation", 10)
+		
+		# Get index of main_panel in body, remove and insert main_container
+		var idx = main_panel.get_index()
+		body.remove_child(main_panel)
+		body.add_child(main_container)
+		body.move_child(main_container, idx)
+		
+		# 2. Create header row for section title/hint
+		var main_header_row := HBoxContainer.new()
+		main_header_row.name = "MainHeaderRow"
+		main_header_row.add_theme_constant_override("separation", 12)
+		main_header_row.alignment = BoxContainer.ALIGNMENT_BEGIN
+		main_container.add_child(main_header_row)
+		
+		# Move MainTitle and MainHint from title_bar to main_header_row
+		title_bar.remove_child(main_title_label)
+		title_bar.remove_child(main_hint)
+		main_header_row.add_child(main_title_label)
+		main_header_row.add_child(main_hint)
+		
+		# Apply outer text styling (CLR_INK for title, CLR_MUTED for hint, Minecraft font)
+		var font = UITheme.get_pixel_font()
+		if font:
+			main_title_label.add_theme_font_override("font", font)
+			main_hint.add_theme_font_override("font", font)
+		main_title_label.add_theme_font_size_override("font_size", 36)
+		main_hint.add_theme_font_size_override("font_size", 24)
+		main_title_label.add_theme_color_override("font_color", CLR_INK)
+		main_hint.add_theme_color_override("font_color", CLR_MUTED)
+		
+		# 3. Add the main panel (the content box) back into the container
+		main_container.add_child(main_panel)
+
 	_style_window_chrome()
 	_style_nav_buttons()
 	_style_acct_card()
@@ -190,6 +235,7 @@ func _ready() -> void:
 		GameState.day_started.connect(func(_d): _update_day_label())
 	_style_loan_buttons()
 	_wire_numeric_validation()
+	_style_text_inputs()
 
 	_build_overview_budgets()
 	goal_bar.draw.connect(_draw_goal_bar)
@@ -209,32 +255,33 @@ func _ready() -> void:
 # ── Numeric input validation ────────────────────────────────────────────────────
 func _wire_numeric_validation() -> void:
 	if deposit_input:
-		deposit_input.text_changed.connect(_on_money_text_changed.bind(deposit_input))
+		InputValidator.register_number_field(deposit_input)
 	if loan_input:
-		loan_input.text_changed.connect(_on_money_text_changed.bind(loan_input))
+		InputValidator.register_number_field(loan_input)
 
-func _on_money_text_changed(new_text: String, inp: LineEdit) -> void:
-	if new_text.strip_edges() == "":
-		return
-	if not _is_valid_money(new_text):
-		inp.text = ""
-		inp.caret_column = 0
-		var hud := get_tree().get_first_node_in_group("hud")
-		if hud and hud.has_method("show_notification"):
-			hud.show_notification("Only numbers and decimals allowed", CLR_RED)
+func _style_text_inputs() -> void:
+	var input_sb := StyleBoxFlat.new()
+	input_sb.bg_color = CLR_PAPER
+	input_sb.border_color = CLR_INK
+	input_sb.set_border_width_all(5)
+	input_sb.content_margin_left = 18
+	input_sb.content_margin_right = 18
+	input_sb.content_margin_top = 9
+	input_sb.content_margin_bottom = 9
 
-func _is_valid_money(s: String) -> bool:
-	var t := s.strip_edges().lstrip("$").strip_edges()
-	if t == "":
-		return true
-	var dots := 0
-	for c in t:
-		if c == ".":
-			dots += 1
-			if dots > 1: return false
-		elif c < "0" or c > "9":
-			return false
-	return true
+	var input_sb_focus: StyleBoxFlat = input_sb.duplicate()
+	input_sb_focus.border_color = CLR_ORANGE
+	input_sb_focus.border_width_bottom = 6
+
+	for input_node in [deposit_input, loan_input]:
+		if input_node:
+			input_node.add_theme_stylebox_override("normal", input_sb)
+			input_node.add_theme_stylebox_override("focus", input_sb_focus)
+			input_node.add_theme_color_override("font_color", CLR_INK)
+			input_node.add_theme_color_override("font_placeholder_color", CLR_MUTED)
+			var pixel_font = UITheme.get_pixel_font()
+			if pixel_font:
+				input_node.add_theme_font_override("font", pixel_font)
 
 # ── Public API ───────────────────────────────────────────────────────────────────
 func show_menu() -> void:
@@ -419,12 +466,12 @@ func _build_overview_budgets() -> void:
 		var nm := Label.new()
 		nm.text = _cat_display(cat)
 		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		nm.add_theme_font_size_override("font_size", 34)
+		nm.add_theme_font_size_override("font_size", 30)
 		nm.add_theme_color_override("font_color", CLR_INK)
 		if px: nm.add_theme_font_override("font", px)
 		hr.add_child(nm)
 		var amt := Label.new()
-		amt.add_theme_font_size_override("font_size", 32)
+		amt.add_theme_font_size_override("font_size", 30)
 		amt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		if px: amt.add_theme_font_override("font", px)
 		hr.add_child(amt)
@@ -637,29 +684,61 @@ func _style_budget_cards() -> void:
 	_style_accent_card(vet_card,    CLR_CAT_VET)
 	_style_accent_card(travel_card, CLR_CAT_TRAVEL)
 	UITheme.style_warning_strip(budget_warning, "orange")
+	
+	food_slider.custom_minimum_size.y = 40
+	vet_slider.custom_minimum_size.y = 40
+	travel_slider.custom_minimum_size.y = 40
+
 	_style_slider(food_slider,   CLR_CAT_FOOD)
 	_style_slider(vet_slider,    CLR_CAT_VET)
 	_style_slider(travel_slider, CLR_CAT_TRAVEL)
+	
+	var pixel_font := UITheme.get_pixel_font()
+	var cards_data := [
+		{"card": food_card, "spent": food_spent_label, "limit_meta": food_limit_meta, "limit_lbl": food_limit_label, "color": CLR_CAT_FOOD},
+		{"card": vet_card, "spent": vet_spent_label, "limit_meta": vet_limit_meta, "limit_lbl": vet_limit_label, "color": CLR_CAT_VET},
+		{"card": travel_card, "spent": travel_spent_label, "limit_meta": travel_limit_meta, "limit_lbl": travel_limit_label, "color": CLR_CAT_TRAVEL}
+	]
+	
+	for d in cards_data:
+		var cat_name = d["card"].get_node_or_null("VBox/HeaderRow/CatName")
+		if cat_name:
+			if pixel_font: cat_name.add_theme_font_override("font", pixel_font)
+			cat_name.add_theme_font_size_override("font_size", 30)
+			cat_name.add_theme_color_override("font_color", d["color"])
+		
+		var limit_lbl: Label = d["limit_lbl"]
+		if limit_lbl:
+			if pixel_font: limit_lbl.add_theme_font_override("font", pixel_font)
+			limit_lbl.add_theme_font_size_override("font_size", 30)
+			limit_lbl.add_theme_color_override("font_color", d["color"])
+			
+		var spent_lbl: Label = d["spent"]
+		if spent_lbl:
+			if pixel_font: spent_lbl.add_theme_font_override("font", pixel_font)
+			spent_lbl.add_theme_font_size_override("font_size", 24)
+			spent_lbl.add_theme_color_override("font_color", CLR_INK2)
+			
+		var limit_meta: Label = d["limit_meta"]
+		if limit_meta:
+			if pixel_font: limit_meta.add_theme_font_override("font", pixel_font)
+			limit_meta.add_theme_font_size_override("font_size", 24)
+			limit_meta.add_theme_color_override("font_color", CLR_INK2)
 
 func _style_slider(slider: HSlider, accent: Color) -> void:
-	var track := StyleBoxFlat.new()
-	track.bg_color = CLR_PAPER2
-	track.border_color = CLR_INK
-	track.set_border_width_all(3)
-	track.set_corner_radius_all(0)
-	track.content_margin_top = 5
-	track.content_margin_bottom = 5
-	slider.add_theme_stylebox_override("slider", track)
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = accent
-	fill.border_color = CLR_INK
-	fill.set_border_width_all(3)
-	fill.set_corner_radius_all(0)
-	slider.add_theme_stylebox_override("grabber_area", fill)
-	# grabber_area_highlight slightly brighter for press feedback (Emil rule)
-	var fill_hi: StyleBoxFlat = fill.duplicate()
-	fill_hi.bg_color = accent.lightened(0.12)
-	slider.add_theme_stylebox_override("grabber_area_highlight", fill_hi)
+	var empty := StyleBoxEmpty.new()
+	slider.add_theme_stylebox_override("slider", empty)
+	slider.add_theme_stylebox_override("grabber_area", empty)
+	slider.add_theme_stylebox_override("grabber_area_highlight", empty)
+	
+	if not slider.draw.is_connected(_draw_slider_seg_bar):
+		slider.draw.connect(_draw_slider_seg_bar.bind(slider, accent))
+
+func _draw_slider_seg_bar(slider: HSlider, accent: Color) -> void:
+	var ratio := 0.0
+	if slider.max_value > 0:
+		ratio = clamp(slider.value / slider.max_value, 0.0, 1.0)
+	_draw_seg_bar(slider, ratio, accent)
 
 func _hook_progress_canvases() -> void:
 	food_progress_bar.draw.connect(func(): _draw_progress_bar(food_progress_bar, "Food"))
@@ -667,25 +746,12 @@ func _hook_progress_canvases() -> void:
 	travel_progress_bar.draw.connect(func(): _draw_progress_bar(travel_progress_bar, "Travel"))
 
 func _draw_progress_bar(ctrl: Control, category: String) -> void:
-	var sz := ctrl.size
-	var track_sb := StyleBoxFlat.new()
-	track_sb.bg_color = CLR_PAPER2
-	track_sb.border_color = CLR_INK
-	track_sb.set_border_width_all(2)
-	track_sb.set_corner_radius_all(0)
-	ctrl.draw_style_box(track_sb, Rect2(Vector2.ZERO, sz))
 	var info: Dictionary = _budget_progress.get(category, {"ratio": 0.0, "color": CLR_BLUE})
 	var ratio: float = clamp(info.get("ratio", 0.0), 0.0, 1.0)
-	if ratio <= 0.0: return
 	var fill_color: Color = info.get("color", CLR_BLUE)
 	if ratio > 0.85:   fill_color = CLR_RED
 	elif ratio > 0.60: fill_color = CLR_ORANGE
-	var fill_sb := StyleBoxFlat.new()
-	fill_sb.bg_color = fill_color
-	fill_sb.border_color = CLR_INK
-	fill_sb.set_border_width_all(2)
-	fill_sb.set_corner_radius_all(0)
-	ctrl.draw_style_box(fill_sb, Rect2(Vector2.ZERO, Vector2(sz.x * ratio, sz.y)))
+	_draw_seg_bar(ctrl, ratio, fill_color)
 
 func update_budget_inputs() -> void:
 	if not food_slider.has_focus():
@@ -734,12 +800,13 @@ func _add_rent_budget_card() -> void:
 	var title_lbl := Label.new()
 	title_lbl.text = "Rent & Housing"
 	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_lbl.add_theme_font_size_override("font_size", 44)
+	title_lbl.add_theme_font_size_override("font_size", 30)
 	title_lbl.add_theme_color_override("font_color", CLR_CAT_RENT)
+	if px: title_lbl.add_theme_font_override("font", px)
 	header.add_child(title_lbl)
 	_rent_limit_lbl = Label.new()
 	_rent_limit_lbl.text = "$%.2f" % GameState.budget_data["Rent"]["limit"]
-	_rent_limit_lbl.add_theme_font_size_override("font_size", 52)
+	_rent_limit_lbl.add_theme_font_size_override("font_size", 30)
 	_rent_limit_lbl.add_theme_color_override("font_color", CLR_CAT_RENT)
 	_rent_limit_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	if px: _rent_limit_lbl.add_theme_font_override("font", px)
@@ -756,13 +823,13 @@ func _add_rent_budget_card() -> void:
 	_rent_spent_lbl = Label.new()
 	_rent_spent_lbl.text = "Spent: $%.2f" % GameState.budget_data["Rent"]["spent"]
 	_rent_spent_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_rent_spent_lbl.add_theme_font_size_override("font_size", 33)
+	_rent_spent_lbl.add_theme_font_size_override("font_size", 24)
 	_rent_spent_lbl.add_theme_color_override("font_color", CLR_INK2)
 	if px: _rent_spent_lbl.add_theme_font_override("font", px)
 	meta.add_child(_rent_spent_lbl)
 	_rent_limit_meta = Label.new()
 	_rent_limit_meta.text = "Limit: $%.2f" % GameState.budget_data["Rent"]["limit"]
-	_rent_limit_meta.add_theme_font_size_override("font_size", 33)
+	_rent_limit_meta.add_theme_font_size_override("font_size", 24)
 	_rent_limit_meta.add_theme_color_override("font_color", CLR_INK2)
 	_rent_limit_meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	if px: _rent_limit_meta.add_theme_font_override("font", px)
@@ -770,7 +837,7 @@ func _add_rent_budget_card() -> void:
 
 	_rent_slider = HSlider.new()
 	_rent_slider.name = "RentSlider"
-	_rent_slider.custom_minimum_size = Vector2(0, 54)
+	_rent_slider.custom_minimum_size = Vector2(0, 40)
 	_rent_slider.min_value = 0.0
 	_rent_slider.max_value = 1000.0
 	_rent_slider.step = 10.0
@@ -809,8 +876,23 @@ func _style_report_panels() -> void:
 	for lbl in [breakdown_title, events_title]:
 		if font: lbl.add_theme_font_override("font", font)
 		lbl.add_theme_color_override("font_color", CLR_INK2)
+		lbl.add_theme_font_size_override("font_size", 30)
 	if week_label:
+		if font: week_label.add_theme_font_override("font", font)
 		week_label.add_theme_color_override("font_color", CLR_INK)
+		week_label.add_theme_font_size_override("font_size", 30)
+
+	for stat_name in ["IncomeStat", "SpentStat", "NetStat", "EmergencyStat"]:
+		var stat_node = report_tab.get_node_or_null("WeekStrip/HBox/" + stat_name)
+		if stat_node:
+			var val_lbl = stat_node.get_node_or_null("Value")
+			if val_lbl:
+				if font: val_lbl.add_theme_font_override("font", font)
+				val_lbl.add_theme_font_size_override("font_size", 30)
+			var sub_lbl = stat_node.get_node_or_null("Sub")
+			if sub_lbl:
+				if font: sub_lbl.add_theme_font_override("font", font)
+				sub_lbl.add_theme_font_size_override("font_size", 24)
 
 func update_report() -> void:
 	var r    := GameState.weekly_report
@@ -841,7 +923,7 @@ func _populate_breakdown_grid(r: Dictionary) -> void:
 		var spent: float     = breakdown.get(cat, 0.0)
 		var limit: float     = GameState.budget_data[cat]["limit"]
 		var remaining: float = limit - spent
-		var pill := UITheme.make_cat_pill(cat, 33)
+		var pill := UITheme.make_cat_pill(cat, 24)
 		pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		breakdown_grid.add_child(pill)
 		var spent_color := CLR_RED_D if spent > 0 else CLR_INK
@@ -896,13 +978,18 @@ func _make_cell(text: String, color: Color) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", color)
-	lbl.add_theme_font_size_override("font_size", 36)
+	lbl.add_theme_font_size_override("font_size", 24)
 	var font := UITheme.get_pixel_font()
 	if font: lbl.add_theme_font_override("font", font)
 	return lbl
 
 # ── History ──────────────────────────────────────────────────────────────────────
 func update_history_header() -> void:
+	var font := UITheme.get_pixel_font()
+	for lbl in [history_cash_label, history_spent_label]:
+		if lbl:
+			if font: lbl.add_theme_font_override("font", font)
+			lbl.add_theme_font_size_override("font_size", 30)
 	history_cash_label.text  = "Spending Cash: $%.2f" % GameState.money
 	history_cash_label.add_theme_color_override("font_color", CLR_GREEN_D)
 	history_spent_label.text = "All-Time Total Spent: $%.2f" % GameState.all_time_spent
@@ -918,7 +1005,7 @@ func update_history() -> void:
 		row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var h_box := HBoxContainer.new()
 		h_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var FONT_SIZE := 34
+		var FONT_SIZE := 24
 		var dot := ColorRect.new()
 		dot.color = _category_color(entry["category"])
 		dot.custom_minimum_size = Vector2(16, 16)
@@ -1023,6 +1110,7 @@ func _style_window_chrome() -> void:
 	if title_lbl:
 		_pf(title_lbl)
 		title_lbl.add_theme_color_override("font_color", CLR_INK)
+		title_lbl.add_theme_font_size_override("font_size", 36)
 	var chip = get_node_or_null("Window/VBox/TitleBarMargin/TitleBar/TitleChip")
 	if chip:
 		var csb := StyleBoxFlat.new()
@@ -1056,10 +1144,10 @@ func _style_window_chrome() -> void:
 		msb.set_border_width_all(4)
 		msb.set_corner_radius_all(0)
 		# Inner padding so view content (cards/labels) never jams against the border
-		# or the scrollbar. Top stays 0 so the header sits flush under the title.
+		# or the scrollbar.
 		msb.content_margin_left = 22
 		msb.content_margin_right = 22
-		msb.content_margin_top = 0
+		msb.content_margin_top = 22
 		msb.content_margin_bottom = 18
 		main_panel.add_theme_stylebox_override("panel", msb)
 	var head = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead")
@@ -1191,16 +1279,34 @@ func _style_deposit_withdraw_buttons() -> void:
 	if withdraw_btn: UITheme.style_pixel_button(withdraw_btn, true)
 	if deposit_input: UITheme.style_line_edit(deposit_input)
 	var font := UITheme.get_pixel_font()
-	# Pixel font + paper-card styling on the overview's titled cards/labels
-	for path in ["ThisWeekLabel", "BudgetsLabel", "SavingsGoalLabel", "EmergencyLabel",
-				 "EmergencyCard/VBox/SavingsLabel", "EmergencyCard/VBox/DepositLabel",
-				 "EmergencyCard/VBox/PenaltyWarning", "EmergencyCard/VBox/InterestInfo",
-				 "Stat2/IncomeCard/VBox/IncomeK", "Stat2/IncomeCard/VBox/IncomeValue", "Stat2/IncomeCard/VBox/IncomeSub",
-				 "Stat2/ExpenseCard/VBox/ExpenseK", "Stat2/ExpenseCard/VBox/ExpenseValue", "Stat2/ExpenseCard/VBox/ExpenseSub",
-				 "NetCard/VBox/NetHeader/NetTitle", "NetCard/VBox/NetHeader/NetHint", "NetCard/VBox/NetValue",
-				 "GoalCard/VBox/GoalHeader/GoalName", "GoalCard/VBox/GoalHeader/GoalAmt"]:
+	
+	var ov_font_sizes := {
+		"ThisWeekLabel": 36,
+		"BudgetsLabel": 36,
+		"SavingsGoalLabel": 36,
+		"EmergencyLabel": 36,
+		"Stat2/IncomeCard/VBox/IncomeK": 30,
+		"Stat2/IncomeCard/VBox/IncomeSub": 24,
+		"Stat2/ExpenseCard/VBox/ExpenseK": 30,
+		"Stat2/ExpenseCard/VBox/ExpenseSub": 24,
+		"NetCard/VBox/NetHeader/NetTitle": 30,
+		"NetCard/VBox/NetHeader/NetHint": 24,
+		"GoalCard/VBox/GoalHeader/GoalName": 30,
+		"GoalCard/VBox/GoalHeader/GoalAmt": 30,
+		"EmergencyCard/VBox/SavingsLabel": 30,
+		"EmergencyCard/VBox/DepositLabel": 24,
+		"EmergencyCard/VBox/PenaltyWarning": 24,
+		"EmergencyCard/VBox/InterestInfo": 24,
+		"Stat2/IncomeCard/VBox/IncomeValue": 30,
+		"Stat2/ExpenseCard/VBox/ExpenseValue": 30,
+		"NetCard/VBox/NetValue": 30
+	}
+	for path in ov_font_sizes:
 		var n = overview_tab.get_node_or_null(path)
-		if n and font: n.add_theme_font_override("font", font)
+		if n:
+			if font: n.add_theme_font_override("font", font)
+			n.add_theme_font_size_override("font_size", ov_font_sizes[path])
+			
 	# Paper cards + accent-bordered stat cards
 	for path in ["NetCard", "GoalCard", "EmergencyCard"]:
 		var c = overview_tab.get_node_or_null(path)
@@ -1223,14 +1329,55 @@ func _style_loan_panels() -> void:
 	_apply_sb(action_card, _sb_paper_card())
 	UITheme.style_warning_strip(loan_warning, "red")
 	if loan_input: UITheme.style_line_edit(loan_input)
+	
 	var font := UITheme.get_pixel_font()
-	for lbl in [loan_balance_label, loan_limit_label, loan_rate_label,
-				loan_accrued_label, loan_impact_label]:
-		if lbl and font: lbl.add_theme_font_override("font", font)
+	var loan_lbl_sizes := {
+		"CreditCard/VBox/TopRow/BankLabel": 30,
+		"CreditCard/VBox/OwedLabel": 24,
+		"CreditCard/VBox/LoanBalanceLabel": 30,
+		"CreditCard/VBox/FooterRow/RateStat/LoanRateLabel": 30,
+		"CreditCard/VBox/FooterRow/RateStat/Sub": 24,
+		"CreditCard/VBox/FooterRow/NextStat/ImpactLabel": 30,
+		"CreditCard/VBox/FooterRow/NextStat/Sub": 24,
+		"CreditCard/VBox/FooterRow/AccruedStat/LoanAccruedLabel": 30,
+		"CreditCard/VBox/FooterRow/AccruedStat/Sub": 24,
+		"CreditBarSection/BarHeader/LeftLabel": 24,
+		"CreditBarSection/BarHeader/LoanLimitLabel": 30,
+		"LoanWarning/Label": 24
+	}
+	var views_loans = views_container.get_node("Loans")
+	for rel_path in loan_lbl_sizes:
+		var lbl = views_loans.get_node_or_null(rel_path)
+		if lbl:
+			if font: lbl.add_theme_font_override("font", font)
+			lbl.add_theme_font_size_override("font_size", loan_lbl_sizes[rel_path])
+			
+	var chip_node = views_loans.get_node_or_null("CreditCard/VBox/TopRow/Chip")
+	if chip_node and not chip_node.draw.is_connected(_draw_credit_card_chip):
+		chip_node.draw.connect(_draw_credit_card_chip.bind(chip_node))
+			
 	_apply_ink_to_labels(credit_card)
 	var section := get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/Loans/CreditBarSection")
 	if section: _apply_ink_to_labels(section)
 	_apply_cream_to_labels(loan_warning)
+
+func _draw_credit_card_chip(ctrl: Control) -> void:
+	var sz := ctrl.size
+	var bg_color := Color("#fcd116")
+	var outline_color := CLR_INK
+	ctrl.draw_rect(Rect2(Vector2.ZERO, sz), bg_color)
+	ctrl.draw_rect(Rect2(Vector2.ZERO, sz), outline_color, false, 2.0)
+	var mid_x := sz.x / 2.0
+	ctrl.draw_line(Vector2(mid_x, 0), Vector2(mid_x, sz.y), outline_color, 2.0)
+	var inner_w := sz.x * 0.35
+	var inner_h := sz.y * 0.4
+	var inner_x := (sz.x - inner_w) / 2.0
+	var inner_y := (sz.y - inner_h) / 2.0
+	ctrl.draw_rect(Rect2(inner_x, inner_y, inner_w, inner_h), outline_color, false, 2.0)
+	ctrl.draw_line(Vector2(0, inner_y), Vector2(inner_x, inner_y), outline_color, 2.0)
+	ctrl.draw_line(Vector2(inner_x + inner_w, inner_y), Vector2(sz.x, inner_y), outline_color, 2.0)
+	ctrl.draw_line(Vector2(0, inner_y + inner_h), Vector2(inner_x, inner_y + inner_h), outline_color, 2.0)
+	ctrl.draw_line(Vector2(inner_x + inner_w, inner_y + inner_h), Vector2(sz.x, inner_y + inner_h), outline_color, 2.0)
 
 func _apply_ink_to_labels(node: Node) -> void:
 	for child in node.get_children():

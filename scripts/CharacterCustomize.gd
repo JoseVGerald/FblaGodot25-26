@@ -610,7 +610,8 @@ func _create_bottom_bar() -> PanelContainer:
 	input_sb_focus.border_color = UITheme.CLR_ORANGE_PX
 	input_sb_focus.border_width_bottom = 4 if is_small else 6
 	name_input.add_theme_stylebox_override("focus", input_sb_focus)
-	name_input.text_changed.connect(_on_name_changed)
+	InputValidator.register_text_field(name_input)
+	name_input.text_changed.connect(func(_t: String) -> void: _update_continue())
 	name_box.add_child(name_input)
 
 	# ── RIGHT CLUSTER: visibility checkboxes + CONTINUE ──
@@ -878,17 +879,6 @@ func _on_visibility_toggled(toggled: bool, category: String) -> void:
 	_refresh_main_preview()
 	_refresh_mini_previews()
 
-
-func _on_name_changed(new_text: String) -> void:
-	var filtered := ""
-	for c in new_text:
-		if (c >= "A" and c <= "Z") or (c >= "a" and c <= "z") or c == " ":
-			filtered += c
-	if filtered != new_text:
-		var caret: int = name_input.caret_column - (new_text.length() - filtered.length())
-		name_input.text = filtered
-		name_input.caret_column = max(0, min(caret, filtered.length()))
-	_update_continue()
 
 
 func _update_continue() -> void:

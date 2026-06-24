@@ -3,6 +3,7 @@
 # Redesigned from the ground up to match the game's premium minigame UI standards.
 extends CanvasLayer
 signal shop_closed
+signal shop_opened
 
 # ── Color palette matching UITheme ─────────────────────────────────────────────
 const CLR_NAVY  := Color("#1a2a4a")
@@ -1228,6 +1229,7 @@ func show_shop() -> void:
 	update_ui()
 	visible = true
 	get_tree().paused = true
+	shop_opened.emit()
 
 # Symmetric exit method
 func hide_shop() -> void:
