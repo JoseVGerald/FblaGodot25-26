@@ -28,6 +28,7 @@ const CLR_GREY_DESC  := Color(UITheme.CLR_INK.r, UITheme.CLR_INK.g, UITheme.CLR_
 var _list_container : VBoxContainer = null
 var _counter_label  : Label = null
 var _taxi_dialog    : PanelContainer = null
+var _filters : Dictionary = { "warnings": true, "achievements": true, "events": true }
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  LIFECYCLE
@@ -54,7 +55,7 @@ func _build_ui() -> void:
 	bg.mouse_filter   = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	# Main panel (960×680, centered — same size as achievements)
+	# Main panel (match SettingsMenu shell style & structure)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(960, 680)
 	panel.anchors_preset      = Control.PRESET_CENTER
@@ -68,74 +69,185 @@ func _build_ui() -> void:
 	panel.offset_bottom = 340
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel.grow_vertical   = Control.GROW_DIRECTION_BOTH
-	panel.modulate.a      = 1.0
 
 	var panel_sb := StyleBoxFlat.new()
 	panel_sb.bg_color     = CLR_PANEL_BG
 	panel_sb.border_color = CLR_BORDER
-	panel_sb.set_border_width_all(4)
+	panel_sb.set_border_width_all(3)
 	panel_sb.set_corner_radius_all(0)
-	panel_sb.set_content_margin_all(20)
+	panel_sb.set_content_margin_all(0)
 	panel.add_theme_stylebox_override("panel", panel_sb)
 	add_child(panel)
 
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 14)
+	vbox.add_theme_constant_override("separation", 0)
 	panel.add_child(vbox)
 
-	# Header: title + close
-	var header := HBoxContainer.new()
-	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(header)
+	# HEADER PANEL (cream band with centered title + close)
+	var header_panel := PanelContainer.new()
+	header_panel.name = "HeaderPanel"
+	header_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var header_sb := StyleBoxFlat.new()
+	header_sb.bg_color = UITheme.CLR_CREAM
+	header_sb.border_color = UITheme.CLR_INK
+	header_sb.border_width_bottom = 3
+	header_sb.set_corner_radius_all(0)
+	header_sb.content_margin_left = 20
+	header_sb.content_margin_top = 12
+	header_sb.content_margin_right = 20
+	header_sb.content_margin_bottom = 12
+	header_panel.add_theme_stylebox_override("panel", header_sb)
+
+	var header_hbox := HBoxContainer.new()
+	header_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_panel.add_child(header_hbox)
+
+	var left_spacer := Control.new()
+	left_spacer.custom_minimum_size = Vector2(64, 0)
+	header_hbox.add_child(left_spacer)
 
 	var title := Label.new()
 	title.text = "Notifications"
-	title.add_theme_font_size_override("font_size", 58)
-	title.size_flags_horizontal  = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment   = HORIZONTAL_ALIGNMENT_CENTER
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 56)
 	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	var font := UITheme.get_pixel_font()
 	if font:
 		title.add_theme_font_override("font", font)
-	header.add_child(title)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_hbox.add_child(title)
 
 	var close_btn := Button.new()
 	close_btn.text = "✕"
-	close_btn.custom_minimum_size = Vector2(80, 80)
-	close_btn.add_theme_font_size_override("font_size", 42)
-	close_btn.pressed.connect(_close_panel)
+	close_btn.custom_minimum_size = Vector2(64, 64)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
 	UITheme.style_close_button(close_btn)
-	header.add_child(close_btn)
+	close_btn.pressed.connect(_close_panel)
+	header_hbox.add_child(close_btn)
 
-	# Separator
-	var title_sep := ColorRect.new()
-	title_sep.color                 = CLR_BORDER
-	title_sep.custom_minimum_size   = Vector2(0, 3)
-	title_sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(title_sep)
+	vbox.add_child(header_panel)
 
-	# Counter
+	# Content frame (cream-lite area with padding)
+	var content_margin := MarginContainer.new()
+	content_margin.name = "ContentMargin"
+	content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(content_margin)
+
+	var scroll_frame := PanelContainer.new()
+	scroll_frame.name = "ScrollFrame"
+	scroll_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var frame_sb := StyleBoxFlat.new()
+	frame_sb.bg_color = UITheme.CLR_CREAM_LT
+	frame_sb.set_border_width_all(0)
+	frame_sb.set_corner_radius_all(0)
+	frame_sb.content_margin_left = 20
+	frame_sb.content_margin_top = 16
+	frame_sb.content_margin_right = 20
+	frame_sb.content_margin_bottom = 16
+	scroll_frame.add_theme_stylebox_override("panel", frame_sb)
+	content_margin.add_child(scroll_frame)
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "ScrollContainer"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_frame.add_child(scroll)
+
+	var content_vbox := VBoxContainer.new()
+	content_vbox.name = "ContentVBox"
+	content_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_vbox.add_theme_constant_override("separation", 12)
+	scroll.add_child(content_vbox)
+
+	# Counter + Filters row
+	var top_row := HBoxContainer.new()
+	top_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_row.add_theme_constant_override("separation", 12)
+	content_vbox.add_child(top_row)
+
 	_counter_label = Label.new()
-	_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_counter_label.add_theme_font_size_override("font_size", 32)
+	_counter_label.add_theme_font_size_override("font_size", 36)
 	_counter_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if font:
 		_counter_label.add_theme_font_override("font", font)
-	vbox.add_child(_counter_label)
+	_counter_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_row.add_child(_counter_label)
 
-	# Scroll list
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical    = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	vbox.add_child(scroll)
+	var filters_hbox := HBoxContainer.new()
+	filters_hbox.size_flags_horizontal = Control.SIZE_SHRINK_END
+	filters_hbox.add_theme_constant_override("separation", 8)
+	top_row.add_child(filters_hbox)
 
+	# Filter toggles (Warnings / Achievements / Events)
+	# Use CheckBox (consistent with shop/customize UI)
+	var warn_cb := CheckBox.new()
+	warn_cb.button_pressed = _filters["warnings"]
+	warn_cb.focus_mode = Control.FOCUS_NONE
+	UITheme.style_check_box(warn_cb)
+	warn_cb.toggled.connect(func(v): _on_filter_toggled("warnings", v))
+	filters_hbox.add_child(_wrap_toggle_with_label(warn_cb, "Warnings"))
+
+	var ach_cb := CheckBox.new()
+	ach_cb.button_pressed = _filters["achievements"]
+	ach_cb.focus_mode = Control.FOCUS_NONE
+	UITheme.style_check_box(ach_cb)
+	ach_cb.toggled.connect(func(v): _on_filter_toggled("achievements", v))
+	filters_hbox.add_child(_wrap_toggle_with_label(ach_cb, "Achievements"))
+
+	var ev_cb := CheckBox.new()
+	ev_cb.button_pressed = _filters["events"]
+	ev_cb.focus_mode = Control.FOCUS_NONE
+	UITheme.style_check_box(ev_cb)
+	ev_cb.toggled.connect(func(v): _on_filter_toggled("events", v))
+	filters_hbox.add_child(_wrap_toggle_with_label(ev_cb, "Events"))
+
+	# List container (inside scroll)
 	_list_container = VBoxContainer.new()
 	_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list_container.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-	_list_container.add_theme_constant_override("separation", 0)
-	scroll.add_child(_list_container)
+	_list_container.add_theme_constant_override("separation", 10)
+	content_vbox.add_child(_list_container)
+
+	# FOOTER (Close + Mark All Read)
+	var footer_panel := PanelContainer.new()
+	footer_panel.name = "FooterPanel"
+	footer_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var footer_sb := StyleBoxFlat.new()
+	footer_sb.bg_color = UITheme.CLR_CREAM
+	footer_sb.border_color = UITheme.CLR_INK
+	footer_sb.border_width_top = 3
+	footer_sb.set_corner_radius_all(0)
+	footer_sb.content_margin_left = 16
+	footer_sb.content_margin_top = 12
+	footer_sb.content_margin_right = 16
+	footer_sb.content_margin_bottom = 12
+	footer_panel.add_theme_stylebox_override("panel", footer_sb)
+
+	var footer_hbox := HBoxContainer.new()
+	footer_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	footer_panel.add_child(footer_hbox)
+
+	var mark_all := Button.new()
+	mark_all.text = "Mark All Read"
+	mark_all.custom_minimum_size = Vector2(180, 56)
+	UITheme.style_pixel_button(mark_all, true)
+	mark_all.pressed.connect(func(): NotificationCenter.mark_all_read(); _fill_list())
+	footer_hbox.add_child(mark_all)
+
+	var close_btn2 := Button.new()
+	close_btn2.text = "Close"
+	close_btn2.custom_minimum_size = Vector2(160, 56)
+	UITheme.style_pixel_button(close_btn2, false)
+	close_btn2.pressed.connect(_close_panel)
+	footer_hbox.add_child(close_btn2)
+
+	vbox.add_child(footer_panel)
 
 	_fill_list()
 
@@ -151,25 +263,37 @@ func _fill_list() -> void:
 	var font := UITheme.get_pixel_font()
 	var all_notifs: Array = NotificationCenter.notifications
 
-	# Refresh counter text
-	if _counter_label:
-		_counter_label.text = "%d Notification%s" % [all_notifs.size(), "" if all_notifs.size() == 1 else "s"]
-
-	# Iterate in reverse so newest entries appear at the top
+	# Apply filters and build a filtered list
+	var filtered := []
 	for i in range(all_notifs.size() - 1, -1, -1):
 		var entry : Dictionary = all_notifs[i]
-		_add_row(entry, font)
+		var t = entry.get("type", NotificationCenter.NotifType.EVENT)
+		if t == NotificationCenter.NotifType.WARNING and not _filters["warnings"]:
+			continue
+		if t == NotificationCenter.NotifType.ACHIEVEMENT and not _filters["achievements"]:
+			continue
+		if t == NotificationCenter.NotifType.EVENT and not _filters["events"]:
+			continue
+		filtered.append(entry)
 
-	# Show placeholder when empty
-	if all_notifs.is_empty():
+	# Refresh counter text: show filtered / total
+	if _counter_label:
+		_counter_label.text = "%d of %d Notification%s" % [filtered.size(), all_notifs.size(), "" if all_notifs.size() == 1 else "s"]
+
+	# Populate rows
+	if filtered.size() == 0:
 		var empty_lbl := Label.new()
-		empty_lbl.text = "No notifications yet."
+		empty_lbl.text = "No notifications match your filters."
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.add_theme_color_override("font_color", Color(CLR_TEXT.r, CLR_TEXT.g, CLR_TEXT.b, 0.4))
-		empty_lbl.add_theme_font_size_override("font_size", 32)
+		empty_lbl.add_theme_font_size_override("font_size", 28)
 		if font:
 			empty_lbl.add_theme_font_override("font", font)
 		_list_container.add_child(empty_lbl)
+		return
+
+	for entry in filtered:
+		_add_row(entry, font)
 
 
 ## Create one notification row — same structure as achievements_popup.gd:
@@ -181,34 +305,40 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	var is_achievement: bool = (entry.type == NotificationCenter.NotifType.ACHIEVEMENT)
 	var _is_event: bool      = (entry.type == NotificationCenter.NotifType.EVENT)
 
-	# ── Background bar (ColorRect, same as achievements_popup.gd) ──────────
-	var row_bg := ColorRect.new()
-	row_bg.color = CLR_ROW_BG
-	row_bg.custom_minimum_size   = Vector2(0, 64)
+	# ── Row container (PanelContainer used as a padded card) ────────────
+	var row_bg := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color     = CLR_ROW_BG
+	sb.border_color = CLR_BORDER
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin_all(12)
+	row_bg.add_theme_stylebox_override("panel", sb)
+	row_bg.custom_minimum_size   = Vector2(0, 72)
 	row_bg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row_bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	_list_container.add_child(row_bg)
 
-	# ── Content row (HBoxContainer, sibling of row_bg) ─────────────────────
 	var row := HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 18)
-	row.mouse_filter = Control.MOUSE_FILTER_STOP
-	row.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_list_container.add_child(row)
+	row.add_theme_constant_override("separation", 14)
+	row_bg.add_child(row)
 
-	# ── Hover highlighting ──────────────────────────────────────────
-	row.mouse_entered.connect(func():
-		row_bg.color = CLR_ROW_HOVER
+	# ── Hover highlighting on the panel's background ─────────────────
+	row_bg.mouse_entered.connect(func():
+		var s: StyleBoxFlat = row_bg.get_theme_stylebox("panel") as StyleBoxFlat
+		if s: s.bg_color = CLR_ROW_HOVER
 	)
-	row.mouse_exited.connect(func():
-		row_bg.color = CLR_ROW_BG
+	row_bg.mouse_exited.connect(func():
+		var s: StyleBoxFlat = row_bg.get_theme_stylebox("panel") as StyleBoxFlat
+		if s: s.bg_color = CLR_ROW_BG
 	)
 
 	# ── Determine action for this row ─────────────────────────────────────
 	var action := _get_action(entry)
 
 	# ── Click handling via gui_input on the HBox ───────────────────────────
-	row.gui_input.connect(func(event: InputEvent):
+	row_bg.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			match action["kind"]:
 				"taxi":         _show_taxi_dialog(action["dest"])
@@ -217,23 +347,27 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 				_:              _close_panel()
 	)
 
-	# ── Icon column (54px wide) ────────────────────────────────────────────
-	var icon := Label.new()
+	# ── Icon tile (small colored square) ─────────────────────────────────
+	var tile_color := CLR_GREY_ICON
 	if is_warning:
-		icon.text = "!"
-		icon.add_theme_color_override("font_color", CLR_RED)
+		tile_color = CLR_RED
 	elif is_achievement:
-		icon.text = "T"
-		icon.add_theme_color_override("font_color", CLR_GOLD)
+		tile_color = CLR_GOLD
+	var tile := UITheme.make_icon_tile(tile_color, 52)
+	var icon_lbl := Label.new()
+	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_lbl.add_theme_font_size_override("font_size", 34)
+	if is_warning:
+		icon_lbl.text = "!"
+	elif is_achievement:
+		icon_lbl.text = "T"
 	else:
-		icon.text = "-"
-		icon.add_theme_color_override("font_color", CLR_GREY_ICON)
-	icon.add_theme_font_size_override("font_size", 40)
-	icon.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
-	icon.custom_minimum_size.x = 54
+		icon_lbl.text = "-"
 	if font:
-		icon.add_theme_font_override("font", font)
-	row.add_child(icon)
+		icon_lbl.add_theme_font_override("font", font)
+	tile.add_child(icon_lbl)
+	row.add_child(tile)
 
 	# ── Title (notification type + day) ────────────────────────────────────
 	var type_text := ""
@@ -246,10 +380,11 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 
 	var name_label := Label.new()
 	name_label.text = type_text
-	name_label.add_theme_font_size_override("font_size", 36)
+	name_label.add_theme_font_size_override("font_size", 34)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
 	name_label.add_theme_color_override("font_color", CLR_GREY_TITLE)
+	name_label.clip_text = true
 	if font:
 		name_label.add_theme_font_override("font", font)
 	row.add_child(name_label)
@@ -257,21 +392,22 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	# ── Description (right-aligned, grayed like achievements) ──────────────
 	var desc_label := Label.new()
 	desc_label.text = entry.message
-	desc_label.add_theme_font_size_override("font_size", 24)
+	desc_label.add_theme_font_size_override("font_size", 28)
 	desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	desc_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_RIGHT
 	desc_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
 	desc_label.add_theme_color_override("font_color", CLR_GREY_DESC)
+	desc_label.clip_text = true
 	if font:
 		desc_label.add_theme_font_override("font", font)
 	row.add_child(desc_label)
 
 	# ── Hover: brighten text like achievements unlocked state ──────────────
-	row.mouse_entered.connect(func():
+	row_bg.mouse_entered.connect(func():
 		name_label.add_theme_color_override("font_color", CLR_TEXT)
 		desc_label.add_theme_color_override("font_color", CLR_GREEN if is_achievement else CLR_RED if is_warning else CLR_TEXT)
 	)
-	row.mouse_exited.connect(func():
+	row_bg.mouse_exited.connect(func():
 		name_label.add_theme_color_override("font_color", CLR_GREY_TITLE)
 		desc_label.add_theme_color_override("font_color", CLR_GREY_DESC)
 	)
@@ -291,8 +427,8 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 	# Uses a smaller button on the far right to clear this specific entry.
 	var x_btn := Button.new()
 	x_btn.text = "✕"
-	x_btn.custom_minimum_size = Vector2(48, 48)
-	x_btn.add_theme_font_size_override("font_size", 24)
+	x_btn.custom_minimum_size = Vector2(56, 56)
+	x_btn.add_theme_font_size_override("font_size", 26)
 	UITheme.style_close_button(x_btn)
 	if font:
 		x_btn.add_theme_font_override("font", font)
@@ -332,6 +468,35 @@ func _get_action(entry: Dictionary) -> Dictionary:
 		return { "kind": "taxi", "dest": "Vet" }
 
 	return { "kind": "none", "dest": "" }
+
+
+## Wrap a toggle button with a small label for the header filters.
+func _wrap_toggle_with_label(toggle: Button, text: String) -> HBoxContainer:
+	var hb := HBoxContainer.new()
+	hb.add_theme_constant_override("separation", 8)
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", 28)
+	lbl.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+	var f := UITheme.get_pixel_font()
+	if f:
+		lbl.add_theme_font_override("font", f)
+
+	# Prefer the centered label with an icon-style checkbox; clear checkbox text
+	if toggle is CheckBox:
+		toggle.text = ""
+		toggle.focus_mode = Control.FOCUS_NONE
+		# make the toggle visually match the label size slightly
+		toggle.add_theme_font_size_override("font_size", 24)
+
+	hb.add_child(lbl)
+	hb.add_child(toggle)
+	return hb
+
+
+func _on_filter_toggled(key: String, val: bool) -> void:
+	_filters[key] = val
+	_fill_list()
 
 
 func _open_achievements_popup() -> void:
