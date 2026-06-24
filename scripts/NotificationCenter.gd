@@ -16,6 +16,7 @@ enum NotifType { EVENT, ACHIEVEMENT, WARNING }
 var notifications: Array = []
 var has_unread_warning: bool = false
 var has_unread: bool = false
+var first_open_done: bool = false
 
 # ── Signals ───────────────────────────────────────────────────────────────────
 signal notification_added(entry: Dictionary)

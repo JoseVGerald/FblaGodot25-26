@@ -74,6 +74,9 @@ func _ready() -> void:
 
 	# Style all SpinBox/LineEdit inputs with cream background
 	call_deferred("_style_all_inputs")
+	
+	# Set up input validation for all LineEdits (only digits/decimals allowed)
+	_setup_all_input_validation()
 
 func _style_all_inputs() -> void:
 	var sb := StyleBoxFlat.new()
@@ -924,3 +927,144 @@ func _on_continue_pressed() -> void:
 	
 	print("[CostCustomization] Configured Pathway: ", _selected_pathway)
 	SceneManager.change_scene("res://scenes/ui/ConfirmSelection.tscn", {"pattern": "curtains"})
+
+
+# ── Input Validation & Warnings ──────────────────────────────────────────────
+var _warning_toast: PanelContainer = null
+var _toast_tween: Tween = null
+
+func _setup_all_input_validation() -> void:
+	_connect_validation_recursive(self)
+
+func _connect_validation_recursive(node: Node) -> void:
+	if node is LineEdit:
+		_setup_line_edit_validation(node)
+	for child in node.get_children():
+		_connect_validation_recursive(child)
+
+func _setup_line_edit_validation(le: LineEdit) -> void:
+	# Initialize the last valid text state in metadata
+	le.set_meta("last_valid_text", le.text)
+	
+	# Connect to the text_changed signal
+	le.text_changed.connect(func(new_text: String):
+		if le.get_meta("is_reverting", false):
+			return
+			
+		var is_valid := true
+		var dot_count := 0
+		for i in range(new_text.length()):
+			var c = new_text[i]
+			if c == ".":
+				dot_count += 1
+				if dot_count > 1:
+					is_valid = false
+					break
+			elif not c in "0123456789":
+				is_valid = false
+				break
+				
+		# Empty is valid (e.g. backspace/re-typing)
+		if new_text.is_empty():
+			is_valid = true
+			
+		if is_valid:
+			le.set_meta("last_valid_text", new_text)
+		else:
+			var last_valid: String = le.get_meta("last_valid_text", "")
+			if le.text != last_valid:
+				le.set_meta("is_reverting", true)
+				le.text = last_valid
+				le.caret_column = last_valid.length()
+				le.set_meta("is_reverting", false)
+				_show_validation_warning()
+	)
+
+func _show_validation_warning() -> void:
+	var base_left := -480
+	var offset_dist := 40
+	
+	if _warning_toast and is_instance_valid(_warning_toast):
+		# If the toast is already visible, shake it and reset its fade-out timer
+		if _toast_tween and _toast_tween.is_valid():
+			_toast_tween.kill()
+		_warning_toast.modulate.a = 1.0
+		
+		# Shake animation
+		var shake := create_tween()
+		shake.tween_property(_warning_toast, "offset_left", base_left - 15, 0.05)
+		shake.tween_property(_warning_toast, "offset_left", base_left + 15, 0.05)
+		shake.tween_property(_warning_toast, "offset_left", base_left - 10, 0.05)
+		shake.tween_property(_warning_toast, "offset_left", base_left + 10, 0.05)
+		shake.tween_property(_warning_toast, "offset_left", base_left, 0.05)
+		
+		_toast_tween = create_tween()
+		_toast_tween.tween_interval(2.5)
+		_toast_tween.tween_property(_warning_toast, "modulate:a", 0.0, 0.4)
+		_toast_tween.tween_callback(func():
+			if _warning_toast and is_instance_valid(_warning_toast):
+				_warning_toast.queue_free()
+				_warning_toast = null
+		)
+		return
+
+	# Construct a styled toast container in the bottom right corner
+	_warning_toast = PanelContainer.new()
+	_warning_toast.custom_minimum_size = Vector2(440, 80)
+	_warning_toast.anchors_preset = Control.PRESET_BOTTOM_RIGHT
+	_warning_toast.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_warning_toast.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_warning_toast.anchor_left = 1.0
+	_warning_toast.anchor_top = 1.0
+	_warning_toast.anchor_right = 1.0
+	_warning_toast.anchor_bottom = 1.0
+	_warning_toast.offset_left = base_left
+	_warning_toast.offset_top = -120
+	_warning_toast.offset_right = -offset_dist
+	_warning_toast.offset_bottom = -offset_dist
+
+	# Match the game's cream stylebox with a thick ink border
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = UITheme.CLR_CREAM
+	sb.border_color = UITheme.CLR_INK
+	sb.set_border_width_all(3)
+	sb.set_corner_radius_all(0)
+	sb.set_content_margin_all(12)
+	_warning_toast.add_theme_stylebox_override("panel", sb)
+
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 12)
+	_warning_toast.add_child(hbox)
+
+	# Warning sign
+	var icon := Label.new()
+	icon.text = "⚠️"
+	icon.add_theme_font_size_override("font_size", 32)
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hbox.add_child(icon)
+
+	# Toast text
+	var lbl := Label.new()
+	lbl.text = "you can't enter letters, you are only\nnumbers or decimals"
+	lbl.add_theme_font_size_override("font_size", 22)
+	lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
+	var font := UITheme.get_pixel_font()
+	if font:
+		lbl.add_theme_font_override("font", font)
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(lbl)
+
+	add_child(_warning_toast)
+
+	# Smooth entry and slide-out
+	_warning_toast.modulate.a = 0.0
+	_toast_tween = create_tween()
+	_toast_tween.tween_property(_warning_toast, "modulate:a", 1.0, 0.2)
+	_toast_tween.tween_interval(2.5)
+	_toast_tween.tween_property(_warning_toast, "modulate:a", 0.0, 0.4)
+	_toast_tween.tween_callback(func():
+		if _warning_toast and is_instance_valid(_warning_toast):
+			_warning_toast.queue_free()
+			_warning_toast = null
+	)

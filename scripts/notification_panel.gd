@@ -39,6 +39,14 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	UITheme.apply_overlay_theme(self)
 	NotificationCenter.mark_all_read()
+
+	# On first open on Day 0, show Warnings only
+	if GameState.current_day == 0 and not NotificationCenter.first_open_done:
+		_filters["warnings"] = true
+		_filters["achievements"] = false
+		_filters["events"] = false
+		NotificationCenter.first_open_done = true
+
 	_build_ui()
 
 # ══════════════════════════════════════════════════════════════════════════════
