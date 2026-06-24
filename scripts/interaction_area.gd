@@ -79,7 +79,10 @@ func teleport():
 	if dog and not GameState.is_dog_sleeping:
 		if dog is CharacterBody2D:
 			dog.velocity = Vector2.ZERO
-		dog.global_position = dest + Vector2(40, 0)
+		if is_house and entering:
+			dog.global_position = Vector2(560, -755)
+		else:
+			dog.global_position = dest + Vector2(40, 0)
 		if "path" in dog:
 			dog.path.clear()
 	

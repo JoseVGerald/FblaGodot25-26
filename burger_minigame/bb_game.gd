@@ -16,7 +16,7 @@ var money := 0.0
 var score := 0
 var day_length := 95.0
 var day_time_left := 95.0
-var day_customers := 5
+var day_customers := 1
 var spawned_count := 0
 var spawn_interval := 8.0
 var spawn_timer := 0.0
@@ -373,7 +373,7 @@ func start_day() -> void:
 	paused = false
 	day_length = 95.0
 	day_time_left = day_length
-	day_customers = 4 + day
+	day_customers = 1
 	spawned_count = 0
 	spawn_interval = maxf(5.5, 8.0 - day * 0.3)
 	spawn_timer = 0.0
@@ -918,7 +918,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 # =========================================================== editor preview
 
 func _populate_demo() -> void:
-	day_customers = 5
+	day_customers = 1
 	spawned_count = 3
 	queue = [
 		{
