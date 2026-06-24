@@ -5,6 +5,7 @@
 
 [node name="FinanceMenu" type="CanvasLayer"]
 process_mode = 3
+layer = 10
 script = ExtResource("1_script")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -40,6 +41,7 @@ theme_override_constants/margin_bottom = 6
 
 [node name="TitleBar" type="HBoxContainer" parent="Window/VBox/TitleBarMargin"]
 layout_mode = 2
+theme_override_constants/separation = 16
 
 [node name="TitleChip" type="PanelContainer" parent="Window/VBox/TitleBarMargin/TitleBar"]
 layout_mode = 2
@@ -55,6 +57,22 @@ theme_override_font_sizes/font_size = 44
 text = "FINANCES"
 vertical_alignment = 1
 
+[node name="MainTitle" type="Label" parent="Window/VBox/TitleBarMargin/TitleBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "OVERVIEW"
+vertical_alignment = 1
+
+[node name="MainHint" type="Label" parent="Window/VBox/TitleBarMargin/TitleBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "your money at a glance"
+vertical_alignment = 1
+
+[node name="Spacer" type="Control" parent="Window/VBox/TitleBarMargin/TitleBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="TitleCloseBtn" type="Button" parent="Window/VBox/TitleBarMargin/TitleBar"]
 custom_minimum_size = Vector2(58, 58)
 layout_mode = 2
@@ -62,16 +80,7 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 34
 text = "✕"
 
-[node name="Spacer" type="Control" parent="Window/VBox/TitleBarMargin/TitleBar"]
-layout_mode = 2
-size_flags_horizontal = 3
 
-; ── DIVIDER ─────────────────────────────────────────────────────────────────
-[node name="Divider" type="Label" parent="Window/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "❖  ❖  ❖"
-horizontal_alignment = 1
 
 ; ── BODY ────────────────────────────────────────────────────────────────────
 [node name="BodyMargin" type="MarginContainer" parent="Window/VBox"]
@@ -268,28 +277,7 @@ size_flags_vertical = 3
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="MainHead" type="PanelContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox"]
-layout_mode = 2
 
-[node name="HeadRow" type="HBoxContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="MainTitle" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead/HeadRow"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 40
-text = "OVERVIEW"
-vertical_alignment = 1
-
-[node name="HeadSpacer" type="Control" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead/HeadRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="MainHint" type="Label" parent="Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead/HeadRow"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "your money at a glance"
-vertical_alignment = 1
 
 [node name="ViewScroll" type="ScrollContainer" parent="Window/VBox/BodyMargin/Body/Main/MainVBox"]
 layout_mode = 2

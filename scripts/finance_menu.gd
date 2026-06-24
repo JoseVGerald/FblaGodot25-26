@@ -80,8 +80,8 @@ const CLR_CAT_LOAN   := Color("#d24a3d")
 @onready var nav_history  = $Window/VBox/BodyMargin/Body/Rail/Nav/NavHistory
 
 # Main header
-@onready var main_title_label = $Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead/HeadRow/MainTitle
-@onready var main_hint        = $Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead/HeadRow/MainHint
+@onready var main_title_label = $Window/VBox/TitleBarMargin/TitleBar/MainTitle
+@onready var main_hint        = $Window/VBox/TitleBarMargin/TitleBar/MainHint
 
 # Budget Planner
 @onready var food_card      = $Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll/Views/BudgetPlanner/FoodCard
@@ -1055,12 +1055,17 @@ func _style_window_chrome() -> void:
 		msb.border_color = CLR_INK
 		msb.set_border_width_all(4)
 		msb.set_corner_radius_all(0)
-		msb.set_content_margin_all(0)
+		# Inner padding so view content (cards/labels) never jams against the border
+		# or the scrollbar. Top stays 0 so the header sits flush under the title.
+		msb.content_margin_left = 22
+		msb.content_margin_right = 22
+		msb.content_margin_top = 0
+		msb.content_margin_bottom = 18
 		main_panel.add_theme_stylebox_override("panel", msb)
 	var head = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead")
 	if head:
 		var hsb := StyleBoxFlat.new()
-		hsb.bg_color = CLR_PAPER
+		hsb.bg_color = Color(0, 0, 0, 0)
 		hsb.border_color = CLR_INK
 		hsb.border_width_bottom = 4
 		hsb.set_corner_radius_all(0)

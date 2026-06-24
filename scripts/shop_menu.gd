@@ -10,6 +10,33 @@ const CLR_SKY   := Color("#4A90D9")
 const CLR_GREEN := Color("#4CAF50")
 const CLR_RED   := Color("#EF5350")
 
+# ── Finance-menu paper/ink palette (matches finance_menu.gd) ────────────────────
+const CLR_PAPER   := Color("#f9dcab")
+const CLR_PAPER2  := Color("#f3cf95")
+const CLR_INK     := Color("#3a2616")
+const CLR_INK2    := Color("#5c3d23")
+const CLR_MUTED   := Color("#8a6a44")
+const CLR_GREEN_D := Color("#3f7e28")
+const CLR_RED_D   := Color("#a8352b")
+const CLR_GOLD_D  := Color("#c4902a")
+const CLR_BLUE_D  := Color("#3d8bb0")
+const CLR_ORANGE_D := Color("#b8651c")
+
+## Paper card stylebox (matches finance _sb_paper_card / _style_accent_card).
+## accent = ink for a plain card, or a category colour for a left-accent card.
+func _sb_card(accent: Color = CLR_INK, left_accent: bool = false) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = CLR_PAPER
+	sb.border_color = accent if left_accent else CLR_INK
+	sb.set_border_width_all(4)
+	if left_accent:
+		sb.border_color = accent
+		sb.border_width_left = 10
+	sb.set_corner_radius_all(0)
+	sb.anti_aliasing = false
+	sb.set_content_margin_all(16)
+	return sb
+
 # Cart State
 var food_cart_count := 0
 var water_cart_count := 0
@@ -147,12 +174,10 @@ func _build_ui() -> void:
 
 	var title_label = Label.new()
 	title_label.name = "Title"
-	title_label.text = "BUDDY'S BOUTIQUE 🏪"
+	title_label.text = "BUDDY'S BOUTIQUE"
 	title_label.add_theme_font_override("font", UITheme.get_pixel_font())
 	title_label.add_theme_font_size_override("font_size", 40)
-	title_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
-	title_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
-	title_label.add_theme_constant_override("outline_size", 12)
+	title_label.add_theme_color_override("font_color", CLR_INK)
 	title_plaque.add_child(title_label)
 
 	# Spacer
@@ -182,12 +207,7 @@ func _build_ui() -> void:
 	left_line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	divider.add_child(left_line)
 
-	var center_lbl = Label.new()
-	center_lbl.text = " 🐾 ✦ 🐾 "
-	center_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
-	center_lbl.add_theme_font_size_override("font_size", 24)
-	center_lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
-	divider.add_child(center_lbl)
+
 
 	var right_line = ColorRect.new()
 	right_line.color = UITheme.CLR_INK
@@ -312,7 +332,7 @@ func _build_ui() -> void:
 	
 	# Stock tip line
 	var tip_lbl = Label.new()
-	tip_lbl.text = "✦ Premium pet supplies\n✦ Daily deals available\n✦ Loyalty points earned"
+	tip_lbl.text = "·  Premium pet supplies\n·  Daily deals available\n·  Loyalty points earned"
 	tip_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tip_lbl.add_theme_font_size_override("font_size", 18)
 	tip_lbl.add_theme_color_override("font_color", Color("#8aaad4"))
@@ -337,13 +357,13 @@ func _build_ui() -> void:
 	var speaker_triangle = Label.new()
 	speaker_triangle.text = "\u25B6"
 	speaker_triangle.add_theme_font_size_override("font_size", 20)
-	speaker_triangle.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	speaker_triangle.add_theme_color_override("font_color", CLR_INK2)
 	speaker_row.add_child(speaker_triangle)
 	var speaker_name = Label.new()
 	speaker_name.text = "SHOPKEEPER"
 	speaker_name.add_theme_font_override("font", UITheme.get_pixel_font())
 	speaker_name.add_theme_font_size_override("font_size", 20)
-	speaker_name.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	speaker_name.add_theme_color_override("font_color", CLR_INK2)
 	speaker_row.add_child(speaker_name)
 	
 	# Speech text
@@ -397,7 +417,7 @@ func _build_ui() -> void:
 	ad2_vbox.add_theme_constant_override("separation", 4)
 	ad2.add_child(ad2_vbox)
 	var ad2_title_lbl = Label.new()
-	ad2_title_lbl.text = "💧 HYDRATION MATTERS"
+	ad2_title_lbl.text = "HYDRATION MATTERS"
 	ad2_title_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
 	ad2_title_lbl.add_theme_font_size_override("font_size", 32)
 	ad2_title_lbl.add_theme_color_override("font_color", Color("#53d8fb"))
@@ -417,7 +437,7 @@ func _build_ui() -> void:
 	ad3_vbox.add_theme_constant_override("separation", 4)
 	ad3.add_child(ad3_vbox)
 	var ad3_title_lbl = Label.new()
-	ad3_title_lbl.text = "📦 BUNDLE & SAVE 15%"
+	ad3_title_lbl.text = "BUNDLE & SAVE 15%"
 	ad3_title_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
 	ad3_title_lbl.add_theme_font_size_override("font_size", 32)
 	ad3_title_lbl.add_theme_color_override("font_color", Color("#ffa34d"))
@@ -437,7 +457,7 @@ func _build_ui() -> void:
 	ad4_vbox.add_theme_constant_override("separation", 4)
 	ad4.add_child(ad4_vbox)
 	var ad4_title_lbl = Label.new()
-	ad4_title_lbl.text = "🌟 LOYALTY REWARDS"
+	ad4_title_lbl.text = "LOYALTY REWARDS"
 	ad4_title_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
 	ad4_title_lbl.add_theme_font_size_override("font_size", 32)
 	ad4_title_lbl.add_theme_color_override("font_color", UIColors.BTN_GREEN)
@@ -592,122 +612,101 @@ func _build_ui() -> void:
 	)
 	clear_btn.add_theme_font_size_override("font_size", 32)
 
-	# ── Apply Styling via UITheme ──────────────────────────────────────────────
-	# Recursive overlay theme styles default labels/buttons
+	# ── Apply Styling — finance-menu paper/ink components ──────────────────────
 	UITheme.apply_overlay_theme(self)
-	
-	# Specific component overrides (navy backgrounds instead of cream)
-	UITheme.style_panel(main_panel)
-	
-	# NPC portrait card — dark immersive background, gold accent border on left
-	var _sk_portrait_sb = StyleBoxFlat.new()
-	_sk_portrait_sb.bg_color = Color("#0d1a33")
-	_sk_portrait_sb.border_color = UITheme.CLR_GOLD
-	_sk_portrait_sb.border_width_left = 4
-	_sk_portrait_sb.border_width_top = 2
-	_sk_portrait_sb.border_width_right = 2
-	_sk_portrait_sb.border_width_bottom = 2
-	_sk_portrait_sb.set_corner_radius_all(8)
-	_sk_portrait_sb.set_content_margin_all(0)  # Zero padding — inner panels control their own
+
+	# Main window: paper bg + ink border + inner padding (matches finance window)
+	var _win_sb := StyleBoxFlat.new()
+	_win_sb.bg_color = CLR_PAPER
+	_win_sb.border_color = CLR_INK
+	_win_sb.set_border_width_all(5)
+	_win_sb.set_corner_radius_all(0)
+	_win_sb.anti_aliasing = false
+	_win_sb.set_content_margin_all(24)
+	main_panel.add_theme_stylebox_override("panel", _win_sb)
+
+	# Title chip — paper-2 bg + ink border (matches finance FINANCES chip).
+	# Re-applied here because apply_overlay_theme() re-styles every panel above.
+	var _chip_sb := StyleBoxFlat.new()
+	_chip_sb.bg_color = CLR_PAPER2
+	_chip_sb.border_color = CLR_INK
+	_chip_sb.set_border_width_all(4)
+	_chip_sb.set_corner_radius_all(0)
+	_chip_sb.anti_aliasing = false
+	_chip_sb.content_margin_left = 22
+	_chip_sb.content_margin_right = 22
+	_chip_sb.content_margin_top = 10
+	_chip_sb.content_margin_bottom = 10
+	title_plaque.add_theme_stylebox_override("panel", _chip_sb)
+	title_label.add_theme_color_override("font_color", CLR_INK)
+
+	# Shopkeeper portrait — navy card (like the finance account card)
+	var _sk_portrait_sb := StyleBoxFlat.new()
+	_sk_portrait_sb.bg_color = Color("#16273e")
+	_sk_portrait_sb.border_color = CLR_INK
+	_sk_portrait_sb.set_border_width_all(4)
+	_sk_portrait_sb.set_corner_radius_all(0)
+	_sk_portrait_sb.anti_aliasing = false
+	_sk_portrait_sb.set_content_margin_all(0)
 	sk_portrait_card.add_theme_stylebox_override("panel", _sk_portrait_sb)
-	
-	# Speech bubble: cream background with ink border — classic NPC dialogue box style
-	var _speech_sb = StyleBoxFlat.new()
-	_speech_sb.bg_color = Color("#152038")
-	_speech_sb.border_color = UITheme.CLR_GOLD
-	_speech_sb.border_width_left = 3
-	_speech_sb.border_width_top = 3
-	_speech_sb.border_width_right = 3
-	_speech_sb.border_width_bottom = 5  # heavier bottom = cartoon speech bubble depth
-	_speech_sb.set_corner_radius_all(6)
-	_speech_sb.content_margin_left = 16
-	_speech_sb.content_margin_right = 16
-	_speech_sb.content_margin_top = 10
-	_speech_sb.content_margin_bottom = 12
+
+	# Speech bubble — paper card with ink border
+	var _speech_sb := _sb_card()
+	_speech_sb.border_width_bottom = 6
 	speech_card.add_theme_stylebox_override("panel", _speech_sb)
-	
-	UITheme.style_card(cart_card)
-	
-	# Pixel button configurations
+
+	# Cart — paper card
+	cart_card.add_theme_stylebox_override("panel", _sb_card())
+
+	# Pixel buttons
 	UITheme.style_close_button(close_btn)
 	UITheme.style_pixel_button_colored(purchase_btn, UIColors.BTN_GREEN)
 	UITheme.style_pixel_button(clear_btn, true)
-	
-	UITheme.style_accent_card(food_card, UIColors.BTN_GREEN)
-	UITheme.style_accent_card(water_card, UIColors.BAR_THIRST)
-	UITheme.style_accent_card(presc_card, UIColors.BTN_RED)
-	UITheme.style_accent_card(bundle_card, UITheme.CLR_GOLD)
-	UITheme.style_accent_card(grooming_card, Color("#c97dd4"))  # soft purple for grooming
-	UITheme.style_accent_card(toy_card, Color("#d4a017"))       # warm amber for toy
 
-	# Style the advertisement panels with opaque, clearly-visible dark backgrounds
-	var _ad_sb := func(bg_hex: String, bdr: Color) -> StyleBoxFlat:
-		var s := StyleBoxFlat.new()
-		s.bg_color = Color(bg_hex)
-		s.border_color = bdr
-		s.border_width_left = 6
-		s.border_width_top = 2
-		s.border_width_right = 2
-		s.border_width_bottom = 3
-		s.set_corner_radius_all(8)
-		s.content_margin_left = 18
-		s.content_margin_right = 18
-		s.content_margin_top = 12
-		s.content_margin_bottom = 12
-		return s
-	deal_strip.add_theme_stylebox_override("panel", _ad_sb.call("#271e0c", Color("#ffd84d")))
-	ad2.add_theme_stylebox_override("panel", _ad_sb.call("#0a1e2c", Color("#53d8fb")))
-	ad3.add_theme_stylebox_override("panel", _ad_sb.call("#221508", Color("#ffa34d")))
-	ad4.add_theme_stylebox_override("panel", _ad_sb.call("#0d2010", UIColors.BTN_GREEN))
+	# Item cards — paper cards with category left-accent (matches finance budget cards)
+	food_card.add_theme_stylebox_override("panel", _sb_card(UIColors.BTN_GREEN, true))
+	water_card.add_theme_stylebox_override("panel", _sb_card(UIColors.BAR_THIRST, true))
+	presc_card.add_theme_stylebox_override("panel", _sb_card(UIColors.BTN_RED, true))
+	bundle_card.add_theme_stylebox_override("panel", _sb_card(UITheme.CLR_GOLD, true))
+	grooming_card.add_theme_stylebox_override("panel", _sb_card(Color("#a86fc4"), true))
+	toy_card.add_theme_stylebox_override("panel", _sb_card(Color("#d4a017"), true))
 
-	# Post-overlay fixes — re-assert colors that the recursive styler may have reset
-	# Speech bubble: white text on dark navy card
-	speech_label.add_theme_color_override("font_color", Color.WHITE)
-	speech_label.add_theme_constant_override("shadow_offset_x", 0)
-	speech_label.add_theme_constant_override("shadow_offset_y", 0)
-	# Deal strip: remove drop-shadow, make description white for legibility
-	deal_title_label.add_theme_constant_override("shadow_offset_x", 0)
-	deal_title_label.add_theme_constant_override("shadow_offset_y", 0)
-	deal_desc_label.add_theme_color_override("font_color", Color.WHITE)
-	deal_desc_label.add_theme_constant_override("shadow_offset_x", 0)
-	deal_desc_label.add_theme_constant_override("shadow_offset_y", 0)
-	# Cart: funds_label must be light-coloured on the dark navy card background
-	funds_label.add_theme_color_override("font_color", Color(0.65, 0.80, 1.0))
-	funds_label.add_theme_constant_override("shadow_offset_x", 0)
-	funds_label.add_theme_constant_override("shadow_offset_y", 0)
-	
-	# Prescription checkbox: matches character customization page checkbox style
-	if presc_checkbox:
-		presc_checkbox.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
-		presc_checkbox.add_theme_color_override("font_hover_color", Color.WHITE)
-		presc_checkbox.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
-		presc_checkbox.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
-		presc_checkbox.add_theme_constant_override("outline_size", 6)
-	# Ad panels: strip shadows from every label inside
+	# Ad / deal panels — paper cards with colored left accent
+	deal_strip.add_theme_stylebox_override("panel", _sb_card(CLR_GOLD_D, true))
+	ad2.add_theme_stylebox_override("panel", _sb_card(CLR_BLUE_D, true))
+	ad3.add_theme_stylebox_override("panel", _sb_card(CLR_ORANGE_D, true))
+	ad4.add_theme_stylebox_override("panel", _sb_card(CLR_GREEN_D, true))
+
+	# ── Text colours for the paper background ──────────────────────────────────
+	speech_label.add_theme_color_override("font_color", CLR_INK)
+	deal_title_label.add_theme_color_override("font_color", CLR_GOLD_D)
+	deal_desc_label.add_theme_color_override("font_color", CLR_INK)
+	funds_label.add_theme_color_override("font_color", CLR_INK2)
+	# Ad titles keep an accent colour; descriptions go ink. (child0 = vbox)
+	ad2.get_child(0).get_child(0).add_theme_color_override("font_color", CLR_BLUE_D)
+	ad2.get_child(0).get_child(1).add_theme_color_override("font_color", CLR_INK)
+	ad3.get_child(0).get_child(0).add_theme_color_override("font_color", CLR_ORANGE_D)
+	ad3.get_child(0).get_child(1).add_theme_color_override("font_color", CLR_INK)
+	ad4.get_child(0).get_child(0).add_theme_color_override("font_color", CLR_GREEN_D)
+	ad4.get_child(0).get_child(1).add_theme_color_override("font_color", CLR_INK)
+	# Strip drop-shadows from all ad / deal labels for a clean flat look
 	for ad_panel in [deal_strip, ad2, ad3, ad4]:
 		for c in ad_panel.get_child(0).get_children():
 			if c is Label:
 				c.add_theme_constant_override("shadow_offset_x", 0)
 				c.add_theme_constant_override("shadow_offset_y", 0)
+	for lbl in [speech_label, deal_title_label, deal_desc_label, funds_label]:
+		lbl.add_theme_constant_override("shadow_offset_x", 0)
+		lbl.add_theme_constant_override("shadow_offset_y", 0)
 
-	# Custom styling for item quantity buttons (overrides generic theme settings)
-	# Colors: minus = red-tinted navy, count = neutral, plus = green, +5 = gold/amber
-	var _qty_btn_sb := func(bg: Color, border: Color) -> StyleBoxFlat:
-		var s := StyleBoxFlat.new()
-		s.bg_color = bg
-		s.border_color = border
-		s.border_width_left = 2
-		s.border_width_top = 2
-		s.border_width_right = 2
-		s.border_width_bottom = 4  # bottom-heavy for 3-D feel
-		s.set_corner_radius_all(6)
-		s.content_margin_left = 8
-		s.content_margin_right = 8
-		s.content_margin_top = 6
-		s.content_margin_bottom = 6
-		s.anti_aliasing = false
-		return s
+	# Prescription checkbox — ink text on paper
+	if presc_checkbox:
+		presc_checkbox.add_theme_color_override("font_color", CLR_INK)
+		presc_checkbox.add_theme_color_override("font_hover_color", CLR_INK)
+		presc_checkbox.add_theme_color_override("font_pressed_color", CLR_INK)
+		presc_checkbox.add_theme_constant_override("outline_size", 0)
 
+	# Quantity buttons — colored pixel buttons (matches finance button style)
 	for card_name in ["FoodCard", "WaterCard", "BundleCard", "GroomingCard", "ToyCard"]:
 		var card = shelves_vbox.get_node(card_name)
 		var ctrl_hbox = card.get_child(0).get_child(2)
@@ -715,32 +714,19 @@ func _build_ui() -> void:
 			var minus = ctrl_hbox.get_child(0) as Button
 			var plus  = ctrl_hbox.get_child(2) as Button
 			var plus5 = ctrl_hbox.get_child(3) as Button
-			# Minus: dark crimson background with bright red border
-			minus.add_theme_stylebox_override("normal",   _qty_btn_sb.call(Color("#4a1a1a"), Color("#e05555")))
-			minus.add_theme_stylebox_override("hover",    _qty_btn_sb.call(Color("#6b2020"), Color("#ff7070")))
-			minus.add_theme_stylebox_override("pressed",  _qty_btn_sb.call(Color("#3a1010"), Color("#cc3333")))
-			# Plus: dark green background with bright green border
-			plus.add_theme_stylebox_override("normal",    _qty_btn_sb.call(Color("#0f3320"), Color("#4CAF50")))
-			plus.add_theme_stylebox_override("hover",     _qty_btn_sb.call(Color("#1a4d2e"), Color("#66d472")))
-			plus.add_theme_stylebox_override("pressed",   _qty_btn_sb.call(Color("#0a2416"), Color("#3a9640")))
-			# +5: dark gold background with amber border
-			plus5.add_theme_stylebox_override("normal",   _qty_btn_sb.call(Color("#3a2800"), Color("#f0c040")))
-			plus5.add_theme_stylebox_override("hover",    _qty_btn_sb.call(Color("#573c00"), Color("#ffd84d")))
-			plus5.add_theme_stylebox_override("pressed",  _qty_btn_sb.call(Color("#281c00"), Color("#c8a020")))
-			# Re-assert large font size on all three
+			UITheme.style_pixel_button_colored(minus, CLR_RED_D)
+			UITheme.style_pixel_button_colored(plus,  CLR_GREEN_D)
+			UITheme.style_pixel_button_colored(plus5, CLR_GOLD_D)
 			minus.add_theme_font_size_override("font_size", 32)
 			plus.add_theme_font_size_override("font_size",  32)
 			plus5.add_theme_font_size_override("font_size", 32)
-			# Font color: white for legibility on dark backgrounds
-			minus.add_theme_color_override("font_color",         Color.WHITE)
-			minus.add_theme_color_override("font_hover_color",   Color.WHITE)
-			minus.add_theme_color_override("font_pressed_color", Color.WHITE)
-			plus.add_theme_color_override("font_color",          Color.WHITE)
-			plus.add_theme_color_override("font_hover_color",    Color.WHITE)
-			plus.add_theme_color_override("font_pressed_color",  Color.WHITE)
-			plus5.add_theme_color_override("font_color",         Color.WHITE)
-			plus5.add_theme_color_override("font_hover_color",   Color.WHITE)
-			plus5.add_theme_color_override("font_pressed_color", Color.WHITE)
+	
+	# Hide Ads and Deals on the left rail as requested
+	deals_title.visible = false
+	deal_strip.visible = false
+	ad2.visible = false
+	ad3.visible = false
+	ad4.visible = false
 
 
 # Helper function to construct structured item cards programmatically
@@ -790,7 +776,7 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 	icon_col.add_child(icon_bg)
 	
 	var emoji_lbl = Label.new()
-	emoji_lbl.text = emoji
+	emoji_lbl.text = ""
 	emoji_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	emoji_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	emoji_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -811,16 +797,16 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 	var title_lbl = Label.new()
 	title_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
 	title_lbl.add_theme_font_size_override("font_size", 32)
-	title_lbl.add_theme_color_override("font_color", Color.WHITE)
+	title_lbl.add_theme_color_override("font_color", CLR_INK)
 	title_hbox.add_child(title_lbl)
 
 	# Recommended label (different design: no background panel, no padding)
 	var recom_badge = Label.new()
 	recom_badge.name = "RecomLabel"
-	recom_badge.text = "⭐ RECOMMENDED"
+	recom_badge.text = "RECOMMENDED"
 	recom_badge.add_theme_font_override("font", UITheme.get_pixel_font())
 	recom_badge.add_theme_font_size_override("font_size", 24)
-	recom_badge.add_theme_color_override("font_color", Color("#ffd071"))
+	recom_badge.add_theme_color_override("font_color", CLR_GOLD_D)
 	title_hbox.add_child(recom_badge)
 	recom_badge.visible = false
 
@@ -828,7 +814,7 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 	var desc_lbl = Label.new()
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_lbl.add_theme_font_size_override("font_size", 24)
-	desc_lbl.add_theme_color_override("font_color", Color("#b2c2e0"))
+	desc_lbl.add_theme_color_override("font_color", CLR_MUTED)
 	mid_vbox.add_child(desc_lbl)
 
 	# Pricing details
@@ -873,7 +859,7 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 		"grooming":
 			# Cosmetic item — deducts money but no major stat effect
 			title_lbl.text = "Deluxe Grooming Kit"
-			desc_lbl.text = "Pamper Buddy with a full brush, shampoo & nail trim session! 🛁"
+			desc_lbl.text = "Pamper Buddy with a full brush, shampoo & nail trim session!"
 			recom_badge.visible = false
 			owned_lbl.text = "Cosmetic"
 			owned_lbl.add_theme_color_override("font_color", Color("#c97dd4"))
@@ -882,7 +868,7 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 		"toy":
 			# Cosmetic item — keeps Buddy entertained
 			title_lbl.text = "Squeaky Chew Toy"
-			desc_lbl.text = "A durable rubber toy to keep Buddy busy and happy all day! 🦴"
+			desc_lbl.text = "A durable rubber toy to keep Buddy busy and happy all day!"
 			recom_badge.visible = false
 			owned_lbl.text = "Cosmetic"
 			owned_lbl.add_theme_color_override("font_color", Color("#d4a017"))
@@ -918,7 +904,7 @@ func _build_item_card(card: PanelContainer, type: String) -> void:
 		count_lbl.custom_minimum_size = Vector2(48, 0)
 		count_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
 		count_lbl.add_theme_font_size_override("font_size", 32)
-		count_lbl.add_theme_color_override("font_color", Color.WHITE)
+		count_lbl.add_theme_color_override("font_color", CLR_INK)
 		ctrl_hbox.add_child(count_lbl)
 
 		var plus_btn = Button.new()
@@ -1026,15 +1012,15 @@ func _choose_daily_deal() -> void:
 	
 	match choice:
 		0:  # 🍗 Kibble on sale — 20% off
-			active_deal_title = "🍗 KIBBLE SALE — 20% OFF!"
+			active_deal_title = "KIBBLE SALE — 20% OFF!"
 			active_deal_desc  = "Premium Dog Kibble is discounted today only! Stock up & save."
 			food_price_current = max(1, round(GameState.food_cost * 0.80))
 		1:  # 💧 Water on sale — 20% off
-			active_deal_title = "💧 WATER DEAL — 20% OFF!"
+			active_deal_title = "WATER DEAL — 20% OFF!"
 			active_deal_desc  = "Fresh Spring Water is cheaper today. Hydrate Buddy for less!"
 			water_price_current = max(1, round(GameState.water_cost * 0.80))
 		2:  # 📦 Bundle on sale — 25% off (stacks on top of the bundle's built-in 15% discount)
-			active_deal_title = "📦 BUNDLE BLOWOUT — 25% OFF!"
+			active_deal_title = "BUNDLE BLOWOUT — 25% OFF!"
 			active_deal_desc  = "The Care Bundle is at its lowest price ever. Don't miss out!"
 			bundle_price_current = max(1, round((2 * GameState.food_cost + 2 * GameState.water_cost) * 0.75))
 
@@ -1043,10 +1029,10 @@ func _update_price_display(lbl: Label, current: int, base: int) -> void:
 	if lbl == null: return
 	if current < base:
 		lbl.text = "$" + str(current) + " (Was $" + str(base) + ")"
-		lbl.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+		lbl.add_theme_color_override("font_color", CLR_GOLD_D)
 	else:
 		lbl.text = "$" + str(current)
-		lbl.add_theme_color_override("font_color", UIColors.BTN_GREEN)
+		lbl.add_theme_color_override("font_color", CLR_GREEN_D)
 
 # Refresh all UI dynamic stats, cart listings, and shopkeeper face reactions
 func update_ui() -> void:
@@ -1147,7 +1133,7 @@ func update_ui() -> void:
 		var empty_lbl = Label.new()
 		empty_lbl.text = "Your cart is empty."
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty_lbl.add_theme_color_override("font_color", Color("#8fa8c8"))
+		empty_lbl.add_theme_color_override("font_color", CLR_MUTED)
 		empty_lbl.add_theme_font_size_override("font_size", 24)
 		cart_items_list.add_child(empty_lbl)
 
@@ -1187,14 +1173,14 @@ func _add_cart_row(item_name: String, qty: int, cost: int) -> void:
 	name_lbl.text = item_name + " x" + str(qty)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.add_theme_font_size_override("font_size", 24)
-	name_lbl.add_theme_color_override("font_color", Color.WHITE)
+	name_lbl.add_theme_color_override("font_color", CLR_INK)
 	row.add_child(name_lbl)
 	
 	var cost_lbl = Label.new()
 	cost_lbl.text = "$" + str(cost)
 	cost_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
 	cost_lbl.add_theme_font_size_override("font_size", 24)
-	cost_lbl.add_theme_color_override("font_color", UITheme.CLR_GOLD)
+	cost_lbl.add_theme_color_override("font_color", CLR_INK)
 	row.add_child(cost_lbl)
 	
 	cart_items_list.add_child(row)

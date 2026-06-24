@@ -57,16 +57,16 @@ func _build_ui() -> void:
 
 	# Main panel (match SettingsMenu shell style & structure)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(960, 680)
+	panel.custom_minimum_size = Vector2(1150, 800)
 	panel.anchors_preset      = Control.PRESET_CENTER
 	panel.anchor_left   = 0.5
 	panel.anchor_top    = 0.5
 	panel.anchor_right  = 0.5
 	panel.anchor_bottom = 0.5
-	panel.offset_left   = -480
-	panel.offset_top    = -340
-	panel.offset_right  = 480
-	panel.offset_bottom = 340
+	panel.offset_left   = -575
+	panel.offset_top    = -400
+	panel.offset_right  = 575
+	panel.offset_bottom = 400
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel.grow_vertical   = Control.GROW_DIRECTION_BOTH
 
@@ -111,19 +111,23 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "Notifications"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 56)
-	title.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	var font := UITheme.get_pixel_font()
 	if font:
 		title.add_theme_font_override("font", font)
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", UITheme.CLR_CREAM)
+	title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	title.add_theme_constant_override("outline_size", 14)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header_hbox.add_child(title)
 
 	var close_btn := Button.new()
 	close_btn.text = "✕"
 	close_btn.custom_minimum_size = Vector2(64, 64)
 	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-	UITheme.style_close_button(close_btn)
+	close_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UITheme.style_pixel_button_colored(close_btn, Color("#EF5350"))
 	close_btn.pressed.connect(_close_panel)
 	header_hbox.add_child(close_btn)
 
@@ -185,26 +189,13 @@ func _build_ui() -> void:
 	top_row.add_child(filters_hbox)
 
 	# Filter toggles (Warnings / Achievements / Events)
-	# Use CheckBox (consistent with shop/customize UI)
-	var warn_cb := CheckBox.new()
-	warn_cb.button_pressed = _filters["warnings"]
-	warn_cb.focus_mode = Control.FOCUS_NONE
-	UITheme.style_check_box(warn_cb)
-	warn_cb.toggled.connect(func(v): _on_filter_toggled("warnings", v))
+	var warn_cb := _create_custom_checkbox(_filters["warnings"], func(v): _on_filter_toggled("warnings", v))
 	filters_hbox.add_child(_wrap_toggle_with_label(warn_cb, "Warnings"))
 
-	var ach_cb := CheckBox.new()
-	ach_cb.button_pressed = _filters["achievements"]
-	ach_cb.focus_mode = Control.FOCUS_NONE
-	UITheme.style_check_box(ach_cb)
-	ach_cb.toggled.connect(func(v): _on_filter_toggled("achievements", v))
+	var ach_cb := _create_custom_checkbox(_filters["achievements"], func(v): _on_filter_toggled("achievements", v))
 	filters_hbox.add_child(_wrap_toggle_with_label(ach_cb, "Achievements"))
 
-	var ev_cb := CheckBox.new()
-	ev_cb.button_pressed = _filters["events"]
-	ev_cb.focus_mode = Control.FOCUS_NONE
-	UITheme.style_check_box(ev_cb)
-	ev_cb.toggled.connect(func(v): _on_filter_toggled("events", v))
+	var ev_cb := _create_custom_checkbox(_filters["events"], func(v): _on_filter_toggled("events", v))
 	filters_hbox.add_child(_wrap_toggle_with_label(ev_cb, "Events"))
 
 	# List container (inside scroll)
@@ -439,12 +430,8 @@ func _add_row(entry: Dictionary, font: Font) -> void:
 		_fill_list()
 	)
 
-	# ── Separator ──────────────────────────────────────────────────────────
-	var sep := ColorRect.new()
-	sep.color                   = CLR_BORDER
-	sep.custom_minimum_size     = Vector2(0, 2)
-	sep.size_flags_horizontal   = Control.SIZE_EXPAND_FILL
-	_list_container.add_child(sep)
+	# (No separator ColorRect to match SettingsMenu cleaner design)
+	pass
 
 func _get_action(entry: Dictionary) -> Dictionary:
 	var msg: String = entry.get("message", "").to_lower()
@@ -474,6 +461,7 @@ func _get_action(entry: Dictionary) -> Dictionary:
 func _wrap_toggle_with_label(toggle: Button, text: String) -> HBoxContainer:
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 8)
+	hb.alignment = BoxContainer.ALIGNMENT_CENTER
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_font_size_override("font_size", 28)
@@ -482,16 +470,54 @@ func _wrap_toggle_with_label(toggle: Button, text: String) -> HBoxContainer:
 	if f:
 		lbl.add_theme_font_override("font", f)
 
-	# Prefer the centered label with an icon-style checkbox; clear checkbox text
-	if toggle is CheckBox:
-		toggle.text = ""
-		toggle.focus_mode = Control.FOCUS_NONE
-		# make the toggle visually match the label size slightly
-		toggle.add_theme_font_size_override("font_size", 24)
-
 	hb.add_child(lbl)
 	hb.add_child(toggle)
 	return hb
+
+
+func _create_custom_checkbox(initial_on: bool, on_toggled: Callable) -> Button:
+	var btn := Button.new()
+	btn.toggle_mode = true
+	btn.button_pressed = initial_on
+	btn.custom_minimum_size = Vector2(30, 30)
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.text = ""
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = UITheme.CLR_CREAM_LT
+	sb.border_color = UITheme.CLR_INK
+	sb.border_width_left = 3
+	sb.border_width_top = 3
+	sb.border_width_right = 3
+	sb.border_width_bottom = 3
+	sb.set_corner_radius_all(0)
+	btn.add_theme_stylebox_override("normal",  sb)
+	btn.add_theme_stylebox_override("hover",   sb)
+	btn.add_theme_stylebox_override("pressed", sb)
+	btn.add_theme_stylebox_override("focus",   StyleBoxEmpty.new())
+
+	var center_container = CenterContainer.new()
+	center_container.name = "Center"
+	center_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	btn.add_child(center_container)
+
+	var thumb_rect := ColorRect.new()
+	thumb_rect.name = "Thumb"
+	thumb_rect.custom_minimum_size = Vector2(16, 16)
+	thumb_rect.size = Vector2(16, 16)
+	thumb_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	thumb_rect.color = UITheme.CLR_MAROON_D
+	thumb_rect.visible = initial_on
+	center_container.add_child(thumb_rect)
+	
+	btn.toggled.connect(func(on: bool):
+		thumb_rect.visible = on
+		on_toggled.call(on)
+	)
+	return btn
 
 
 func _on_filter_toggled(key: String, val: bool) -> void:

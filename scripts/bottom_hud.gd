@@ -59,6 +59,8 @@ var _sim_day_label     : Label   = null  # "Day X / 7" counter
 var _sim_tooltip       : Label   = null  # Hover tooltip for time_label
 var _time_label_hovered: bool   = false  # RichTextLabel hover (no scale/font-size change)
 
+var _active_notifs: Array = []
+
 # ── Signal for tutorial system ────────────────────────────────────────────────
 signal supplies_menu_opened
 signal finance_menu_opened
@@ -762,6 +764,8 @@ func _on_budget_to_center(cat: String, msg: String) -> void:
 
 ## Returns true if any overlay/submenu is currently visible.
 func _is_any_overlay_open() -> bool:
+	if is_instance_valid(current_finance_menu) and current_finance_menu.visible:
+		return true
 	if supplies_menu_instance and supplies_menu_instance.get_menu_visible():
 		return true
 	if taxi_menu_instance and taxi_menu_instance.get_menu_visible():
@@ -788,6 +792,8 @@ func _input(event):
 			_close_all_bottom_menus()
 			if shop_menu_instance and shop_menu_instance.visible:
 				shop_menu_instance.hide_shop()
+			if is_instance_valid(current_finance_menu) and current_finance_menu.visible:
+				current_finance_menu.hide_menu()
 		else:
 			_on_pause_btn_pressed()
 	elif event.is_action_pressed("chore_menu"):
@@ -808,7 +814,15 @@ func _on_budget_warning(category: String, message: String):
 	show_notification("%s: %s" % [category, message], Color(1, 0.5, 0.2))
 
 ## Display a tween-animated notification at bottom of screen.
-func show_notification(text: String, color: Color):
+func show_notification(text: String, color: Color) -> void:
+	# Clean up any invalid references in our list first
+	var temp: Array = []
+	for n in _active_notifs:
+		if is_instance_valid(n.label):
+			temp.append(n)
+	_active_notifs = temp
+
+	# Create a new label
 	var label = Label.new()
 	label.text = text
 	label.add_theme_color_override("font_color", color)
@@ -819,14 +833,78 @@ func show_notification(text: String, color: Color):
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
-	label.position = Vector2(40, get_viewport().get_visible_rect().size.y - 215)
+	
+	var viewport_h := get_viewport().get_visible_rect().size.y
+	var base_y := viewport_h - 215
+	
+	# Start slightly below base_y and fully transparent (slide up + fade in)
+	label.position = Vector2(40, base_y + 40)
 	label.modulate.a = 0.0
 	add_child(label)
-	var tween = create_tween()
-	tween.tween_property(label, "modulate:a", 1.0, 0.5)
-	tween.tween_interval(3.0)
-	tween.tween_property(label, "modulate:a", 0.0, 0.5)
-	tween.tween_callback(label.queue_free)
+
+	# Store this notification item
+	var new_notif := {
+		"label": label,
+		"base_y": base_y,
+		"offset_y": 0.0,
+		"tween": null,
+		"fade_out_tween": null
+	}
+	
+	# Animate the new notification's appearance
+	var appear_tween := create_tween().set_parallel(true)
+	appear_tween.tween_property(label, "position:y", base_y, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	appear_tween.tween_property(label, "modulate:a", 1.0, 0.35)
+	
+	# Push existing notifications upwards
+	var spacing := 65.0
+	var to_remove := []
+	for i in range(_active_notifs.size()):
+		var existing = _active_notifs[i]
+		existing.offset_y += spacing
+		var target_y = existing.base_y - existing.offset_y
+		
+		# Cancel previous position tween if valid
+		if existing.tween and existing.tween.is_valid():
+			existing.tween.kill()
+		
+		if i >= 1: # The new insertion will make this index 2 (third active toast) -> fade it out
+			to_remove.append(existing)
+			if existing.fade_out_tween and existing.fade_out_tween.is_valid():
+				continue
+			var fade_tween := create_tween().set_parallel(true)
+			fade_tween.tween_property(existing.label, "position:y", target_y - 20.0, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			fade_tween.tween_property(existing.label, "modulate:a", 0.0, 0.4)
+			fade_tween.set_parallel(false)
+			fade_tween.tween_callback(existing.label.queue_free)
+			existing.fade_out_tween = fade_tween
+		else:
+			# Smoothly slide the existing one up to its new position
+			existing.tween = create_tween()
+			existing.tween.tween_property(existing.label, "position:y", target_y, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+	# Clean up any removed entries from active list
+	for r in to_remove:
+		_active_notifs.erase(r)
+
+	# Insert newest at front of tracking list
+	_active_notifs.insert(0, new_notif)
+
+	# Schedule automatic fade out and dismissal after 3 seconds
+	var timer := get_tree().create_timer(3.0)
+	timer.timeout.connect(func():
+		if is_instance_valid(label) and new_notif in _active_notifs:
+			_active_notifs.erase(new_notif)
+			if new_notif.fade_out_tween and new_notif.fade_out_tween.is_valid():
+				return
+			var fade_tween := create_tween().set_parallel(true)
+			var current_target_y = label.position.y - 30.0
+			fade_tween.tween_property(label, "position:y", current_target_y, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			fade_tween.tween_property(label, "modulate:a", 0.0, 0.4)
+			fade_tween.set_parallel(false)
+			fade_tween.tween_callback(label.queue_free)
+			new_notif.fade_out_tween = fade_tween
+	)
 
 func _on_open_shop_requested():
 	if shop_menu_instance:

@@ -162,7 +162,7 @@ func _create_job_card(parent: Control, id: String, title: String, emoji: String,
 	panel.add_child(vbox)
 	
 	var emoji_lbl := Label.new()
-	emoji_lbl.text = emoji
+	emoji_lbl.text = ""
 	emoji_lbl.add_theme_font_size_override("font_size", 44)
 	emoji_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(emoji_lbl)

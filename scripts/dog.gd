@@ -17,8 +17,7 @@ var path: Array[Vector2] = []
 var needs_menu_instance: CanvasLayer
 
 # Direct-coordinate action movement (food/water/sleep)
-var action_target: Vector2 = Vector2.ZERO
-var action_has_target: bool = false
+var action_path: Array[Vector2] = []
 var action_callback: Callable
 var action_speed: float = 250.0
 
@@ -34,7 +33,7 @@ const SLEEP_TARGET: Vector2 = Vector2(310, -590)
 # Where the dog snaps to the moment the player enters the house, so its
 # straight-line routine path to the food bowl doesn't have to cross walls
 # from wherever it was standing out in the world.
-const HOUSE_ENTRY_POS: Vector2 = Vector2(565, -693)
+const HOUSE_ENTRY_POS: Vector2 = Vector2(560, -755)
 
 var hunger: float = 80.0
 var thirst: float = 70.0
@@ -147,24 +146,39 @@ func _input(event: InputEvent) -> void:
 	# Dog action keys (only when following player)
 	if current_state == DogState.FOLLOWING_PLAYER and event is InputEventKey and event.pressed:
 		if event.keycode == KEY_1:
-			start_action(FOOD_TARGET, DogState.GOING_TO_FOOD, _on_food_complete)
+			start_action("food path", DogState.GOING_TO_FOOD, _on_food_complete)
 		elif event.keycode == KEY_2:
-			start_action(WATER_TARGET, DogState.GOING_TO_WATER, _on_water_complete)
+			start_action("water path", DogState.GOING_TO_WATER, _on_water_complete)
 		elif event.keycode == KEY_3:
-			start_action(SLEEP_TARGET, DogState.GOING_TO_SLEEP, _on_sleep_complete)
+			start_action("Sleep path", DogState.GOING_TO_SLEEP, _on_sleep_complete)
 
 	# Wake the dog early by pressing 4 while inside the house.
 	if event is InputEventKey and event.pressed and event.keycode == KEY_4:
 		if GameState.Inside_house and current_state == DogState.SLEEPING:
 			_wake_up_dog(true)
 
-func start_action(target: Vector2, state: DogState, callback: Callable):
-	action_target = target
-	action_has_target = true
+func start_action(path_name: String, state: DogState, callback: Callable):
+	var main_game = get_tree().current_scene
+	var path_node = main_game.get_node_or_null(path_name)
+	if not path_node or not path_node is Path2D:
+		print("Path not found: ", path_name)
+		var fallback_target = Vector2.ZERO
+		match state:
+			DogState.GOING_TO_FOOD: fallback_target = FOOD_TARGET
+			DogState.GOING_TO_WATER: fallback_target = WATER_TARGET
+			DogState.GOING_TO_SLEEP: fallback_target = SLEEP_TARGET
+		action_path = [fallback_target]
+	else:
+		# Get baked points and convert to GLOBAL coordinates
+		var local_points = path_node.curve.get_baked_points()
+		action_path.clear()
+		for point in local_points:
+			action_path.append(path_node.to_global(point))
+	
 	action_callback = callback
 	current_state = state
 	path.clear()
-	print("Started action → target: ", target)
+	print("Started action: ", path_name, " with ", action_path.size(), " points")
 
 func _on_food_complete():
 	if GameState.food <= 0:
@@ -221,27 +235,27 @@ func _start_evening_routine() -> void:
 	if is_in_evening_routine or current_state == DogState.SLEEPING:
 		return
 	is_in_evening_routine = true
-	start_action(FOOD_TARGET, DogState.GOING_TO_FOOD, _on_routine_food_done)
+	start_action("food path", DogState.GOING_TO_FOOD, _on_routine_food_done)
 
 func _on_routine_food_done() -> void:
 	_on_food_complete()
 	# Hold position during the dwell — otherwise FOLLOWING_PLAYER pulls the
 	# dog back to the player before it can finish its routine.
 	current_state = DogState.GOING_TO_FOOD
-	action_has_target = false
+	action_path.clear()
 	await get_tree().create_timer(1.0).timeout
 	if not is_in_evening_routine:
 		return
-	start_action(WATER_TARGET, DogState.GOING_TO_WATER, _on_routine_water_done)
+	start_action("water path", DogState.GOING_TO_WATER, _on_routine_water_done)
 
 func _on_routine_water_done() -> void:
 	_on_water_complete()
 	current_state = DogState.GOING_TO_WATER
-	action_has_target = false
+	action_path.clear()
 	await get_tree().create_timer(1.0).timeout
 	if not is_in_evening_routine:
 		return
-	start_action(SLEEP_TARGET, DogState.GOING_TO_SLEEP, _on_sleep_complete)
+	start_action("Sleep path", DogState.GOING_TO_SLEEP, _on_sleep_complete)
 
 # Wake from sleep. `is_early` = woken via KEY_4 (add 40); otherwise full 100 restore.
 # Health is not touched here — it's governed by daily roll / medication.
@@ -351,28 +365,29 @@ func _apply_dynamic_appearance(delta: float) -> void:
 		animated_sprite_2d.position = Vector2.ZERO
 
 func _process_action_path():
-	if not action_has_target:
+	if action_path.is_empty():
 		velocity = Vector2.ZERO
 		_play_animation("idle")
 		return
 
-	var distance = global_position.distance_to(action_target)
+	var target = action_path[0]
+	var distance = global_position.distance_to(target)
 	if distance < 10.0:
-		# Reached destination — snap, stop, fire callback.
-		global_position = action_target
-		velocity = Vector2.ZERO
-		_play_animation("idle")
-		action_has_target = false
-		if action_callback.is_valid():
-			var cb = action_callback
-			action_callback = Callable()
-			cb.call()
-		# Open pet needs menu when path action finishes
-		if needs_menu_instance and GameState.is_tutorial_complete:
-			needs_menu_instance.show_menu(self)
+		action_path.remove_at(0)
+		if action_path.is_empty():
+			# Reached final destination
+			velocity = Vector2.ZERO
+			_play_animation("idle")
+			if action_callback.is_valid():
+				var cb = action_callback
+				action_callback = Callable()
+				cb.call()
+			# Open pet needs menu when path action finishes
+			if needs_menu_instance and GameState.is_tutorial_complete:
+				needs_menu_instance.show_menu(self)
 		return
 
-	var direction = (action_target - global_position).normalized()
+	var direction = (target - global_position).normalized()
 	velocity = direction * action_speed
 	move_and_slide()
 

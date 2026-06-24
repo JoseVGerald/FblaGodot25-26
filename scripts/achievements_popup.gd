@@ -93,16 +93,16 @@ func _build_ui() -> void:
 
 	# Main panel
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(960, 680)
+	panel.custom_minimum_size = Vector2(1150, 800)
 	panel.anchors_preset      = Control.PRESET_CENTER
 	panel.anchor_left   = 0.5
 	panel.anchor_top    = 0.5
 	panel.anchor_right  = 0.5
 	panel.anchor_bottom = 0.5
-	panel.offset_left   = -480
-	panel.offset_top    = -340
-	panel.offset_right  = 480
-	panel.offset_bottom = 340
+	panel.offset_left   = -575
+	panel.offset_top    = -400
+	panel.offset_right  = 575
+	panel.offset_bottom = 400
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel.grow_vertical   = Control.GROW_DIRECTION_BOTH
 	panel.modulate.a      = 1.0
@@ -119,39 +119,85 @@ func _build_ui() -> void:
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 14)
+	vbox.add_theme_constant_override("separation", 0) # zero separation between major panels
 	panel.add_child(vbox)
 
-	# Header: title + close
-	var header := HBoxContainer.new()
-	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(header)
+	# HEADER PANEL (match SettingsMenu shell style & structure)
+	var header_panel := PanelContainer.new()
+	header_panel.name = "HeaderPanel"
+	header_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var header_sb := StyleBoxFlat.new()
+	header_sb.bg_color = UITheme.CLR_CREAM
+	header_sb.border_color = UITheme.CLR_INK
+	header_sb.border_width_bottom = 3
+	header_sb.set_corner_radius_all(0)
+	header_sb.content_margin_left = 20
+	header_sb.content_margin_top = 12
+	header_sb.content_margin_right = 20
+	header_sb.content_margin_bottom = 12
+	header_panel.add_theme_stylebox_override("panel", header_sb)
+
+	var header_hbox := HBoxContainer.new()
+	header_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_panel.add_child(header_hbox)
+
+	var left_spacer := Control.new()
+	left_spacer.custom_minimum_size = Vector2(64, 0)
+	header_hbox.add_child(left_spacer)
 
 	var title := Label.new()
 	title.text = "Achievements"
-	title.add_theme_font_size_override("font_size", 58)
-	title.size_flags_horizontal  = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment   = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", CLR_TITLE)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var font := UITheme.get_pixel_font()
 	if font:
 		title.add_theme_font_override("font", font)
-	header.add_child(title)
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", UITheme.CLR_CREAM)
+	title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
+	title.add_theme_constant_override("outline_size", 14)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header_hbox.add_child(title)
 
 	var close_btn := Button.new()
-	close_btn.text = " X "
-	close_btn.custom_minimum_size = Vector2(80, 80)
-	close_btn.add_theme_font_size_override("font_size", 42)
+	close_btn.text = "✕"
+	close_btn.custom_minimum_size = Vector2(64, 64)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
+	close_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	UITheme.style_pixel_button_colored(close_btn, Color("#EF5350"))
 	close_btn.pressed.connect(_close_popup)
-	UITheme.style_button(close_btn, CLR_RED)
-	header.add_child(close_btn)
+	header_hbox.add_child(close_btn)
 
-	# Separator
-	var title_sep := ColorRect.new()
-	title_sep.color                 = CLR_SEPARATOR
-	title_sep.custom_minimum_size   = Vector2(0, 2)
-	title_sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(title_sep)
+	vbox.add_child(header_panel)
+
+	# Content frame (cream-lite area with padding)
+	var content_margin := MarginContainer.new()
+	content_margin.name = "ContentMargin"
+	content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(content_margin)
+
+	var scroll_frame := PanelContainer.new()
+	scroll_frame.name = "ScrollFrame"
+	scroll_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var frame_sb := StyleBoxFlat.new()
+	frame_sb.bg_color = UITheme.CLR_CREAM_LT
+	frame_sb.set_border_width_all(0)
+	frame_sb.set_corner_radius_all(0)
+	frame_sb.content_margin_left = 20
+	frame_sb.content_margin_top = 16
+	frame_sb.content_margin_right = 20
+	frame_sb.content_margin_bottom = 16
+	scroll_frame.add_theme_stylebox_override("panel", frame_sb)
+	content_margin.add_child(scroll_frame)
+
+	var content_vbox := VBoxContainer.new()
+	content_vbox.name = "ContentVBox"
+	content_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_vbox.add_theme_constant_override("separation", 12)
+	scroll_frame.add_child(content_vbox)
 
 	# Counter
 	var unlocked_count := GameState.achievements.values().filter(func(v): return v).size()
@@ -163,20 +209,50 @@ func _build_ui() -> void:
 	counter.add_theme_color_override("font_color", CLR_COUNTER)
 	if font:
 		counter.add_theme_font_override("font", font)
-	vbox.add_child(counter)
+	content_vbox.add_child(counter)
 
 	# Scroll list
 	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical    = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	vbox.add_child(scroll)
+	content_vbox.add_child(scroll)
 
 	list_container = VBoxContainer.new()
 	list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list_container.size_flags_vertical   = Control.SIZE_EXPAND_FILL
-	list_container.add_theme_constant_override("separation", 0)
+	list_container.add_theme_constant_override("separation", 12) # spacing between card rows
 	scroll.add_child(list_container)
 	_fill_list(list_container)
+
+	# FOOTER PANEL
+	var footer_panel := PanelContainer.new()
+	footer_panel.name = "FooterPanel"
+	footer_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var footer_sb := StyleBoxFlat.new()
+	footer_sb.bg_color = UITheme.CLR_CREAM
+	footer_sb.border_color = UITheme.CLR_INK
+	footer_sb.border_width_top = 3
+	footer_sb.set_corner_radius_all(0)
+	footer_sb.content_margin_left = 16
+	footer_sb.content_margin_top = 12
+	footer_sb.content_margin_right = 16
+	footer_sb.content_margin_bottom = 12
+	footer_panel.add_theme_stylebox_override("panel", footer_sb)
+
+	var footer_hbox := HBoxContainer.new()
+	footer_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	footer_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	footer_panel.add_child(footer_hbox)
+
+	var footer_close := Button.new()
+	footer_close.text = "Close"
+	footer_close.custom_minimum_size = Vector2(180, 56)
+	UITheme.style_pixel_button(footer_close, false)
+	footer_close.pressed.connect(_close_popup)
+	footer_hbox.add_child(footer_close)
+
+	vbox.add_child(footer_panel)
 
 func _fill_list(list: VBoxContainer) -> void:
 	var font := UITheme.get_pixel_font()
@@ -184,13 +260,15 @@ func _fill_list(list: VBoxContainer) -> void:
 		var is_unlocked : bool   = GameState.achievements[achievement_name]
 		var description : String = ACHIEVEMENT_DESCRIPTIONS.get(achievement_name, "")
 
-		# Row wrapper — background color comes from the panel stylebox
+		# Row wrapper — styled as a clear bordered card
 		var row_panel := PanelContainer.new()
 		row_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var row_sb := StyleBoxFlat.new()
 		row_sb.bg_color = CLR_ROW_UNLOCK if is_unlocked else CLR_ROW_LOCK
-		row_sb.set_border_width_all(0)
-		row_sb.set_content_margin_all(10)
+		row_sb.border_color = CLR_BORDER
+		row_sb.set_border_width_all(3) # Nice thick ink borders
+		row_sb.set_corner_radius_all(0)
+		row_sb.set_content_margin_all(14)
 		row_panel.add_theme_stylebox_override("panel", row_sb)
 		list.add_child(row_panel)
 
@@ -218,8 +296,9 @@ func _fill_list(list: VBoxContainer) -> void:
 		# Name
 		var name_label := Label.new()
 		name_label.text = achievement_name
-		name_label.add_theme_font_size_override("font_size", 36)
+		name_label.add_theme_font_size_override("font_size", 34)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.size_flags_stretch_ratio = 1.0 # 40% width ratio
 		name_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
 		name_label.add_theme_color_override("font_color", CLR_WHITE if is_unlocked else CLR_GREY_TITLE)
 		if font:
@@ -229,8 +308,9 @@ func _fill_list(list: VBoxContainer) -> void:
 		# Description
 		var desc_label := Label.new()
 		desc_label.text = description
-		desc_label.add_theme_font_size_override("font_size", 24)
+		desc_label.add_theme_font_size_override("font_size", 26)
 		desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		desc_label.size_flags_stretch_ratio = 1.5 # 60% width ratio
 		desc_label.horizontal_alignment  = HORIZONTAL_ALIGNMENT_RIGHT
 		desc_label.vertical_alignment    = VERTICAL_ALIGNMENT_CENTER
 		desc_label.add_theme_color_override("font_color", CLR_GREEN if is_unlocked else CLR_GREY_DESC)
@@ -238,12 +318,8 @@ func _fill_list(list: VBoxContainer) -> void:
 			desc_label.add_theme_font_override("font", font)
 		row.add_child(desc_label)
 
-		# Thin separator between rows
-		var sep := ColorRect.new()
-		sep.color                 = Color(UITheme.CLR_INK, 0.25)
-		sep.custom_minimum_size   = Vector2(0, 1)
-		sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		list.add_child(sep)
+		# (No separator ColorRect to match clean bordered card spacing)
+		pass
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):

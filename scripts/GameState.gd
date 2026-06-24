@@ -730,6 +730,7 @@ func complete_work_shift() -> String:
 	event_triggered.emit("Completed work shift! Earned $%.2f%s" % [pay, extra])
 	budget_updated.emit()
 	_advance_promotion_progress(job)
+	end_daycare_and_return_dog()
 	return "Shift done! You earned $%.2f%s.\nPromotion standing: %d%%." % [pay, extra, int(round(get_promotion_standing(job) * 100.0))]
 
 
@@ -754,6 +755,7 @@ func complete_burger_work_shift(earnings: float, tips: float) -> void:
 	event_triggered.emit("Shift done! Earned $%.2f ($%.2f tips), +%d food." % [base_credit + tip_credit, tip_credit, food_bonus])
 	budget_updated.emit()
 	_advance_promotion_progress(job)
+	end_daycare_and_return_dog()
 
 
 ## Credit a finished Loan Decision Desk shift. earnings is the player's total
@@ -778,6 +780,25 @@ func complete_bank_work_shift(earnings: float, bonus: float) -> void:
 	event_triggered.emit("Shift done! Earned $%.2f ($%.2f commission) at the desk." % [base_credit + bonus_credit, bonus_credit])
 	budget_updated.emit()
 	_advance_promotion_progress(job)
+	end_daycare_and_return_dog()
+
+
+## Ends the daycare session immediately and returns the dog next to the player.
+func end_daycare_and_return_dog() -> void:
+	if dog_at_daycare:
+		dog_at_daycare = false
+	if not get_tree():
+		return
+	var player = get_tree().get_first_node_in_group("player")
+	var dog = get_tree().get_first_node_in_group("dog")
+	if player and dog:
+		dog.global_position = player.global_position + Vector2(40, 0)
+		dog.visible = true
+		dog.input_pickable = true
+		if "current_state" in dog:
+			dog.current_state = 0 # 0 corresponds to DogState.FOLLOWING_PLAYER
+		if "path" in dog:
+			dog.path.clear()
 
 
 ## Random tip for a shift, rounded to cents, from the level's tip range.
