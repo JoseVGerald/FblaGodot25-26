@@ -1035,6 +1035,10 @@ func _style_window_chrome() -> void:
 		csb.content_margin_top = 10
 		csb.content_margin_bottom = 10
 		chip.add_theme_stylebox_override("panel", csb)
+	var title_close = get_node_or_null("Window/VBox/TitleBarMargin/TitleBar/TitleCloseBtn")
+	if title_close:
+		UITheme.style_close_button(title_close)
+		title_close.add_theme_font_size_override("font_size", 34)
 	var div = get_node_or_null("Window/VBox/Divider")
 	if div:
 		_pf(div)

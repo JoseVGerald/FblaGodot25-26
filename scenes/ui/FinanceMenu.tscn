@@ -55,6 +55,13 @@ theme_override_font_sizes/font_size = 44
 text = "FINANCES"
 vertical_alignment = 1
 
+[node name="TitleCloseBtn" type="Button" parent="Window/VBox/TitleBarMargin/TitleBar"]
+custom_minimum_size = Vector2(58, 58)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 34
+text = "✕"
+
 [node name="Spacer" type="Control" parent="Window/VBox/TitleBarMargin/TitleBar"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -1118,6 +1125,7 @@ theme_override_font_sizes/font_size = 30
 text = "✕ CLOSE"
 
 [connection signal="pressed" from="Window/VBox/StatusBar/StatusHBox/CloseBtn" to="." method="_on_close_btn_pressed"]
+[connection signal="pressed" from="Window/VBox/TitleBarMargin/TitleBar/TitleCloseBtn" to="." method="_on_close_btn_pressed"]
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavOverview" to="." method="_on_nav_overview_pressed"]
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavSpending" to="." method="_on_nav_spending_pressed"]
 [connection signal="pressed" from="Window/VBox/BodyMargin/Body/Rail/Nav/NavBudget" to="." method="_on_nav_budget_pressed"]
