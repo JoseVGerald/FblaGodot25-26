@@ -11,7 +11,7 @@
 #      path stays up until they clock in (worked_today) or lose the job.
 extends Node
 
-var tutorial_hint_scene = preload("res://scenes/ui/tutorial_hint.tscn")
+var tutorial_hint_scene = load("res://scenes/ui/tutorial_hint.tscn")
 var tutorial_hint: CanvasLayer = null
 
 var main_game: Node = null

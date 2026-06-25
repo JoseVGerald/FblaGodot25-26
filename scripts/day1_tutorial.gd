@@ -2,7 +2,7 @@
 # Manages conversational or legacy tutorials on the first day based on the chosen pathway.
 extends Node
 
-var tutorial_hint_scene = preload("res://scenes/ui/tutorial_hint.tscn")
+var tutorial_hint_scene = load("res://scenes/ui/tutorial_hint.tscn")
 var tutorial_hint: CanvasLayer = null
 
 var current_step: int = 1

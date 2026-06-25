@@ -107,7 +107,7 @@ func _on_shop_closed():
 	if not home_hint_shown:
 		home_hint_shown = true
 		# Show hint after shop
-		var tutorial_hint_scene = preload("res://scenes/ui/tutorial_hint.tscn")
+		var tutorial_hint_scene = load("res://scenes/ui/tutorial_hint.tscn")
 		var hint = tutorial_hint_scene.instantiate()
 		get_tree().root.add_child(hint)
 		hint.show_hint("Press 📱 to go home.", 6.0)
@@ -361,7 +361,7 @@ func spawn_mother_npc():
 		mother = CharacterBody2D.new()
 		mother.name = "MotherNPC"
 		var mm := get_node_or_null("KidTeenMotherSpawn")
-		mother.global_position = mm.position if mm else Vector2(565, -640)
+		mother.global_position = mm.position if mm else Vector2(510, -795)
 		mother.scale = Vector2(0.75, 0.75)
 		mother.motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 		mother.input_pickable = true
@@ -406,14 +406,19 @@ func spawn_mother_npc():
 		mother = load("res://scenes/girl1.tscn").instantiate()
 		mother.name = "MotherNPC"
 		var mm := get_node_or_null("KidTeenMotherSpawn")
-		mother.global_position = mm.position if mm else Vector2(565, -640)
+		mother.global_position = mm.position if mm else Vector2(510, -795)
 		mother.scale = Vector2(0.75, 0.75)
-		
+
+		# Remove the camera that comes bundled with girl1.tscn so it doesn't hijack the viewport
+		var cam = mother.get_node_or_null("Camera2D")
+		if cam:
+			cam.queue_free()
+
 		var anim_sprite = mother.get_node_or_null("Sprite2D") as AnimatedSprite2D
 		if anim_sprite:
-			if anim_sprite.sprite_frames.has_animation("idle_left"):
-				anim_sprite.play("idle_left")
-			else:
+			if anim_sprite.sprite_frames.has_animation("idle_right"):
+				anim_sprite.play("idle_right")
+			elif anim_sprite.sprite_frames.has_animation("idle_down"):
 				anim_sprite.play("idle_down")
 				
 	# Add a name tag
@@ -443,10 +448,11 @@ func spawn_mother_npc():
 	# Set script dynamically
 	var mother_script = GDScript.new()
 	mother_script.source_code = "extends CharacterBody2D\n\nvar player_in_range = false\n\nfunc _ready():\n\t$InteractionArea.body_entered.connect(_on_body_entered)\n\t$InteractionArea.body_exited.connect(_on_body_exited)\n\nfunc _on_body_entered(body):\n\tif body.is_in_group(\"player\"):\n\t\tplayer_in_range = true\n\nfunc _on_body_exited(body):\n\tif body.is_in_group(\"player\"):\n\t\tplayer_in_range = false\n\nfunc _input(event):\n\tif player_in_range and event.is_action_pressed(\"interact\"):\n\t\tif GameState.is_dialogue_active:\n\t\t\treturn\n\t\tvar dialogue_resource = load(\"res://dialogues/tutorial.dialogue\")\n\t\tvar balloon_scene = load(\"res://dialogues/balloon.tscn\")\n\t\tvar balloon = balloon_scene.instantiate()\n\t\tget_tree().root.add_child(balloon)\n\t\tballoon.start(dialogue_resource, \"mother_idle\")\n"
+	mother_script.reload()
 	mother.set_script(mother_script)
-	
+
 	add_child(mother)
-	print("[MainGame] Mother NPC successfully spawned at (565, -640) facing left.")
+	print("[MainGame] Mother NPC successfully spawned at (510, -795) facing left.")
 
 
 # Job-location managers. Each is a layered component character (same system as
