@@ -5,10 +5,6 @@
 [ext_resource type="PackedScene" path="res://scenes/maps/shop/Items_2.tscn" id="2_id"]
 [ext_resource type="PackedScene" path="res://scenes/maps/shop/Carpet_&_Shelves_3.tscn" id="3_id"]
 [ext_resource type="PackedScene" path="res://scenes/maps/shop/Floor_4.tscn" id="4_id"]
-[ext_resource type="Script" uid="uid://g0ejl0vmeh0n" path="res://scripts/shop_npc.gd" id="shop_npc_script"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mkf6l"]
-size = Vector2(40, 20)
 
 [node name="oldshop" type="Node2D" unique_id=1603676545]
 scale = Vector2(2, 2)
@@ -23,10 +19,3 @@ tile_map_data = PackedByteArray("AAAMAAcAAAAAAAEAAAAOAAcAAAABAAEAAAANAAcAAAACAAE
 [node name="Person_1" parent="." unique_id=870488165 instance=ExtResource("1_id")]
 
 [node name="POV_fixing_0" parent="." unique_id=1644014569 instance=ExtResource("0_id")]
-
-[node name="shopNPC" type="Area2D" parent="." unique_id=125024094]
-script = ExtResource("shop_npc_script")
-
-[node name="talk" type="CollisionShape2D" parent="shopNPC" unique_id=1010599684]
-position = Vector2(216, 175)
-shape = SubResource("RectangleShape2D_mkf6l")

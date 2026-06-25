@@ -32,16 +32,16 @@ size = Vector2(125, 28)
 size = Vector2(332, 79.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_331gq"]
-size = Vector2(64, 52)
+size = Vector2(80, 52)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rl3lx"]
 size = Vector2(181.5, 87)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vl4kh"]
-size = Vector2(292, 52)
+size = Vector2(342, 52)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u3yci"]
-size = Vector2(95, 52)
+size = Vector2(45, 111)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xbs0w"]
 size = Vector2(50, 87)
@@ -294,7 +294,7 @@ target_position = Vector2(500, -650)
 is_house = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/HouseEnter" unique_id=517450806]
-position = Vector2(728, 251)
+position = Vector2(723, 274)
 shape = SubResource("RectangleShape2D_331gq")
 
 [node name="HouseExit" type="Area2D" parent="Interaction areas" unique_id=458805674]
@@ -314,7 +314,7 @@ hint_text = "Press E to enter the vet"
 target_position = Vector2(-1390, 2915)
 
 [node name="Enter" type="CollisionShape2D" parent="Interaction areas/VetEnter" unique_id=209352795]
-position = Vector2(1497, 1790)
+position = Vector2(1491, 1798)
 shape = SubResource("RectangleShape2D_rl3lx")
 
 [node name="VetExit" type="Area2D" parent="Interaction areas" unique_id=2052228924]
@@ -334,7 +334,7 @@ hint_text = "Press E to enter the shop"
 target_position = Vector2(-1375, 1590)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/ShopEnter" unique_id=1860229903]
-position = Vector2(734, 2175)
+position = Vector2(712, 2199)
 shape = SubResource("RectangleShape2D_vl4kh")
 
 [node name="ShopExit" type="Area2D" parent="Interaction areas" unique_id=857615921]
@@ -344,7 +344,7 @@ target_position = Vector2(734, 2250)
 is_exit = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/ShopExit" unique_id=2091526074]
-position = Vector2(-1373, 1645)
+position = Vector2(1212, -5734)
 shape = SubResource("RectangleShape2D_u3yci")
 
 [node name="Bed interact" type="Area2D" parent="Interaction areas" unique_id=341791579]
@@ -406,7 +406,7 @@ script = ExtResource("interaction_area_script")
 hint_text = "Press E to enter the burger shop"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Burger enter" unique_id=485382266]
-position = Vector2(-532, 2305)
+position = Vector2(-527, 2311)
 shape = SubResource("RectangleShape2D_331gq")
 
 [node name="Burger exit" type="Area2D" parent="Interaction areas" unique_id=1321111364]
@@ -440,7 +440,7 @@ script = ExtResource("interaction_area_script")
 hint_text = "Press E to enter the bank"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/bank enter" unique_id=599815672]
-position = Vector2(312, 1706)
+position = Vector2(309, 1714)
 shape = SubResource("RectangleShape2D_0q8w0")
 
 [node name="bank exit" type="Area2D" parent="Interaction areas" unique_id=379450110]
@@ -559,8 +559,8 @@ shape = SubResource("RectangleShape2D_yuljb")
 position = Vector2(-1804, 1052)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="inside collisons/Npc borders" unique_id=722699245]
-position = Vector2(-309, -797)
-polygon = PackedVector2Array(698, 1049, 699, 1131, 776, 1130, 780, 1045)
+position = Vector2(-154, -795)
+polygon = PackedVector2Array(545, 1059, 546, 1141, 623, 1140, 627, 1055)
 
 [node name="Vet borders" type="StaticBody2D" parent="inside collisons" unique_id=795931855]
 position = Vector2(-1804, 1052)
@@ -612,7 +612,7 @@ position = Vector2(-8594, -4017)
 scale = Vector2(2, 2)
 
 [node name="new ship" parent="." unique_id=1361788123 instance=ExtResource("12_nwshp")]
-position = Vector2(642, -6155)
+position = Vector2(728, -6035)
 scale = Vector2(2, 2)
 
 [node name="Burger path" type="Path2D" parent="." unique_id=998379080]
