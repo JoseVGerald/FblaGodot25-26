@@ -32,7 +32,7 @@ func _ready() -> void:
 	collision_layer = 1
 	
 	if GameState.selected_pathway in ["kid", "teenager"]:
-		last_dir = Vector2.RIGHT
+		last_dir = Vector2.LEFT
 		_play_idle_anim()
 
 

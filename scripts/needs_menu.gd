@@ -31,6 +31,8 @@ const FLASH_INTERVAL := 0.45
 @onready var energy_val = $PanelContainer/VBoxContainer/GridContainer/Energy/HBox/Value
 @onready var health_bar = $PanelContainer/VBoxContainer/GridContainer/Health/HBox/ProgressBar
 @onready var health_val = $PanelContainer/VBoxContainer/GridContainer/Health/HBox/Value
+@onready var emotion_label = $PanelContainer/VBoxContainer/BottomBar/EmotionLabel
+@onready var hints_label = $PanelContainer/VBoxContainer/BottomBar/HintsLabel
 
 # ── Internal state ─────────────────────────────────────────────────────────────
 var target_dog   : Node2D        # The dog node to read stats from
@@ -48,6 +50,8 @@ func _ready() -> void:
 	UITheme.apply_overlay_theme(self)
 	# Restyle the title + close button per the redesign spec
 	_style_title_bar()
+	# Style the hints label with appropriate color and font
+	_style_hints_label()
 	# Start hidden — show_menu() is called by the world script / HUD
 	panel.hide()
 	# Enforce minimum bar height (≥24px for visibility)
@@ -88,6 +92,7 @@ func show_menu(dog: Node2D) -> void:
 	target_dog = dog
 	panel.show()
 	update_ui()
+	_connect_tutorial_hint_signals()
 
 # ── Per-frame update ───────────────────────────────────────────────────────────
 
@@ -131,6 +136,8 @@ func update_ui() -> void:
 		$PanelContainer/VBoxContainer/GridContainer/Energy/Label)
 	_update_stat_row(health_bar, health_val, health_val_raw, CLR_HEALTH,
 		$PanelContainer/VBoxContainer/GridContainer/Health/Label)
+	# Update emotion based on overall pet state
+	_update_emotion(hunger_val_raw, thirst_val_raw, energy_val_raw, health_val_raw)
 
 ## Update a single stat row: progress bar fill, value label, and warning icon.
 func _update_stat_row(
@@ -210,5 +217,60 @@ func _style_header_strip() -> void:
 	header_bg.show_behind_parent = true
 	title_hbox.add_child(header_bg)
 	title_hbox.move_child(header_bg, 0)
+
+## Style the hints label with maroon color and pixel font.
+func _style_hints_label() -> void:
+	if hints_label:
+		hints_label.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
+		hints_label.add_theme_font_override("font", UITheme.get_pixel_font())
+
+## Connect to tutorial hint signals to display active hints.
+func _connect_tutorial_hint_signals() -> void:
+	# Find the active TutorialHint instance in the scene tree
+	var tutorial_hint = get_tree().root.find_child("TutorialHint", true, false)
+	if tutorial_hint:
+		# Disconnect any previous connections to avoid duplicates
+		if tutorial_hint.is_connected("hint_shown", Callable(self, "_on_tutorial_hint_shown")):
+			tutorial_hint.disconnect("hint_shown", Callable(self, "_on_tutorial_hint_shown"))
+		if tutorial_hint.is_connected("hint_hidden", Callable(self, "_on_tutorial_hint_hidden")):
+			tutorial_hint.disconnect("hint_hidden", Callable(self, "_on_tutorial_hint_hidden"))
+		tutorial_hint.connect("hint_shown", Callable(self, "_on_tutorial_hint_shown"))
+		tutorial_hint.connect("hint_hidden", Callable(self, "_on_tutorial_hint_hidden"))
+
+## Called whenever a tutorial hint is shown — update our hints label.
+func _on_tutorial_hint_shown() -> void:
+	if not hints_label:
+		return
+	# Find the TutorialHint and read its current text
+	var tutorial_hint = get_tree().root.find_child("TutorialHint", true, false)
+	if tutorial_hint:
+		var hint_label = tutorial_hint.get_node_or_null("Panel/MarginContainer/HintLabel")
+		if hint_label and hint_label is Label:
+			hints_label.text = hint_label.text
+
+## Called whenever a tutorial hint is hidden — clear our hints label.
+func _on_tutorial_hint_hidden() -> void:
+	if not hints_label:
+		return
+	hints_label.text = ""
+
+## Update pet emotion emoji based on current stat state (matches dog.gd logic).
+func _update_emotion(hunger: float, thirst: float, energy: float, health: float) -> void:
+	if not emotion_label:
+		return
+	# Match the emotion priority from dog.gd: health > hunger > thirst > energy > default
+	var emoji: String
+	if health < 50:
+		emoji = "🤒"
+	elif hunger < 30:
+		emoji = "😢"
+	elif thirst < 30:
+		emoji = "💧"
+	elif energy < 30:
+		emoji = "😴"
+	else:
+		emoji = "❤️"
+
+	emotion_label.text = emoji
 
 # Updated on 2026-04-19

@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=3 uid="uid://ynaasi3aiefb"]
+[gd_scene format=3 uid="uid://ynaasi3aiefb"]
 
 [ext_resource type="Script" uid="uid://cgnpu08xwmatr" path="res://scripts/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://pmq44lgc11fo" path="res://assets/Humans/STYLE2MALE.png" id="2_qhqgy"]
@@ -383,24 +383,22 @@ animations = [{
 "speed": 8.0
 }]
 
-[node name="Player" type="CharacterBody2D" groups=["player"]]
+[node name="Player" type="CharacterBody2D" unique_id=1802347165 groups=["player"]]
 scale = Vector2(0.75, 0.75)
 motion_mode = 1
 script = ExtResource("1_g2els")
 
-[node name="playerspriteanim" type="AnimatedSprite2D" parent="."]
+[node name="playerspriteanim" type="AnimatedSprite2D" parent="." unique_id=480164322]
 position = Vector2(0, -4.261163)
 sprite_frames = SubResource("SpriteFrames_a38lo")
 animation = &"move_left_dude1"
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=1046728631]
 scale = Vector2(0.99999994, 0.99999994)
-polygon = PackedVector2Array(0, -5.2855215, -3.5191326, -5.2855215, -3.0792403, 6.6069007, 0, 9.249661, 3.0792403, 6.6069007, 3.5191326, -5.2855215)
+polygon = PackedVector2Array(0, -5.2855215, -3.5191326, -5.2855215, -3.0792403, 6.6069007, 0, 13.333334, 3.0792403, 6.6069007, 3.5191326, -5.2855215)
 
-[node name="Camera2D" type="Camera2D" parent="." groups=["player"]]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1296786775 groups=["player"]]
 scale = Vector2(1.0052286, 1.0746742)
 zoom = Vector2(2.5, 2.5)
 process_callback = 0
 position_smoothing_enabled = true
-
-; COMMIT: Achievements and Catch Minigame Update

@@ -148,6 +148,24 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "30"
 
+[node name="BottomBar" type="HBoxContainer" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EmotionLabel" type="Label" parent="PanelContainer/VBoxContainer/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 48
+text = "😊"
+horizontal_alignment = 0
+
+[node name="HintsLabel" type="Label" parent="PanelContainer/VBoxContainer/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "[E] Enter"
+horizontal_alignment = 2
+
 [node name="PanelContainer2" type="PanelContainer" parent="."]
 visible = false
 self_modulate = Color(1, 1, 1, 0.5)

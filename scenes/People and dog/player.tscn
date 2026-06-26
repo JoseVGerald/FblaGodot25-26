@@ -395,7 +395,7 @@ animation = &"move_up_dude1"
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=948577035]
 scale = Vector2(0.99999994, 0.99999994)
-polygon = PackedVector2Array(0, -5.2855215, -3.5191326, -5.2855215, -3.0792403, 6.6069007, 0, 9.249661, 3.0792403, 6.6069007, 3.5191326, -5.2855215)
+polygon = PackedVector2Array(0, -5.2855215, -3.5191326, -5.2855215, -3.0792403, 6.6069007, 0, 13.333334, 3.0792403, 6.6069007, 3.5191326, -5.2855215)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1262646004 groups=["player"]]
 scale = Vector2(1.0052286, 1.0746742)
