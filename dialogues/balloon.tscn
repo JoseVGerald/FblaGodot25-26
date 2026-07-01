@@ -18,6 +18,10 @@ corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ri4m3"]
+content_margin_left = 28.0
+content_margin_top = 16.0
+content_margin_right = 28.0
+content_margin_bottom = 16.0
 bg_color = Color(1, 0.890196, 0.776471, 1)
 border_width_left = 3
 border_width_top = 3
@@ -30,6 +34,10 @@ corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e0njw"]
+content_margin_left = 28.0
+content_margin_top = 16.0
+content_margin_right = 28.0
+content_margin_bottom = 16.0
 bg_color = Color(0.898039, 0.713726, 0.498039, 1)
 border_width_left = 3
 border_width_top = 3
@@ -55,10 +63,13 @@ corner_radius_bottom_left = 8
 
 [sub_resource type="Theme" id="Theme_qq3yp"]
 default_font = ExtResource("4_font")
-default_font_size = 30
+default_font_size = 38
 Button/colors/font_color = Color(0.286275, 0.2, 0.2, 1)
+Button/colors/font_focus_color = Color(0.286275, 0.2, 0.2, 1)
 Button/colors/font_hover_color = Color(0.286275, 0.2, 0.2, 1)
+Button/colors/font_hover_pressed_color = Color(0.286275, 0.2, 0.2, 1)
 Button/colors/font_pressed_color = Color(0.286275, 0.2, 0.2, 1)
+Button/font_sizes/font_size = 38
 Button/styles/disabled = SubResource("StyleBoxFlat_spyqn")
 Button/styles/focus = SubResource("StyleBoxFlat_ri4m3")
 Button/styles/hover = SubResource("StyleBoxFlat_e0njw")
@@ -196,14 +207,14 @@ offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 8
-theme_override_constants/separation = 4
+theme_override_constants/separation = 10
 alignment = 1
 script = ExtResource("3_responses")
 response_template = NodePath("ResponseExample")
 
 [node name="ResponseExample" type="Button" parent="Balloon/ResponsesMenu"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 38
 text = "Response example"
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]

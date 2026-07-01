@@ -62,6 +62,14 @@ const CLR_GREY_ICON  := UITheme.CLR_GRAY_DRK
 const CLR_GREY_TITLE := Color("#8a786899")   # CLR_GRAY_DRK at 60% alpha
 const CLR_GREY_DESC  := UITheme.CLR_GRAY_DRK
 
+# Achievements that offer a direct teleport shortcut → destination name + world position.
+# These use the curtain animation but skip the taxi call-area check.
+const ACHIEVEMENT_TRAVEL := {
+	"Vet Regular"    : {"label": "Take a taxi to Vet",   "dest": Vector2(1380, 1760)},
+	"Shopaholic"     : {"label": "Take a taxi to Store", "dest": Vector2(1000, 2160)},
+	"World Explorer" : {"label": "Take a taxi to Park",  "dest": Vector2(1180, 580)},
+}
+
 var was_paused     : bool         = false
 var list_container : VBoxContainer = null
 
@@ -318,13 +326,47 @@ func _fill_list(list: VBoxContainer) -> void:
 			desc_label.add_theme_font_override("font", font)
 		row.add_child(desc_label)
 
-		# (No separator ColorRect to match clean bordered card spacing)
-		pass
+		# Travel shortcut button for location-linked achievements
+		if ACHIEVEMENT_TRAVEL.has(achievement_name):
+			var travel_info: Dictionary = ACHIEVEMENT_TRAVEL[achievement_name]
+			var travel_btn := Button.new()
+			travel_btn.text = travel_info["label"]
+			travel_btn.custom_minimum_size = Vector2(260, 44)
+			travel_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			UITheme.style_pixel_button(travel_btn, true)
+			var dest_pos: Vector2 = travel_info["dest"]
+			travel_btn.pressed.connect(func(): _achievement_travel_to(dest_pos))
+			row.add_child(travel_btn)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_close_popup()
 		get_viewport().set_input_as_handled()
+
+func _achievement_travel_to(destination_pos: Vector2) -> void:
+	var cost: float = GameState.taxi_cost
+	if GameState.active_job == "news_boy":
+		cost = 0.0
+	if cost > 0.0 and not GameState.spend_money(cost, "Travel"):
+		return
+	_close_popup()
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	var dog    := get_tree().get_first_node_in_group("dog")
+	var dog_travels: bool = dog != null and not GameState.is_dog_sleeping
+	if player:
+		player.hide()
+	if dog_travels:
+		dog.hide()
+	SceneManager.fade_in_place({
+		"pattern": "curtains",
+		"on_fade_out": func():
+			if player:
+				player.show()
+				player.global_position = destination_pos
+			if dog_travels:
+				dog.show()
+				dog.global_position = destination_pos + Vector2(50, 0)
+	})
 
 func _close_popup() -> void:
 	get_tree().paused = was_paused

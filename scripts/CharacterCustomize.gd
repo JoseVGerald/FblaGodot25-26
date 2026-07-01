@@ -29,7 +29,7 @@ const GRID_COLUMNS := 4
 const TILE_SIZE := 293           # tile width  (was 440 before preview upscale)
 const TILE_HEIGHT := 427         # tile height (was 640)
 const TILE_SPACING := 10
-const TILE_LABEL_H := 59         # bottom label strip height when selected
+const TILE_LABEL_H := 75         # bottom label strip height when selected
 const TILE_PAD := 11             # inner padding around the thumbnail
 
 # The 4 preview directions (matches the screenshot layout: left, front, back, right)
@@ -146,7 +146,7 @@ func _build_ui() -> void:
 	title.text = "CHARACTER CREATOR"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if viewport_h < 1200:
-		title.add_theme_font_size_override("font_size", 36)
+		title.add_theme_font_size_override("font_size", 44)
 		title.add_theme_constant_override("outline_size", 8)
 	else:
 		title.add_theme_font_size_override("font_size", 52)
@@ -299,13 +299,13 @@ func _build_left_panel() -> MarginContainer:
 
 	var prev_dir := _create_styled_button("<", Color(0.42, 0.48, 0.54))
 	prev_dir.custom_minimum_size = Vector2(70, 70)
-	prev_dir.add_theme_font_size_override("font_size", 36)
+	prev_dir.add_theme_font_size_override("font_size", 44)
 	prev_dir.pressed.connect(_on_direction_step.bind(-1))
 	carousel.add_child(prev_dir)
 
 	direction_label = Label.new()
 	direction_label.text = DIRECTION_LABELS[active_direction]
-	direction_label.add_theme_font_size_override("font_size", 32)
+	direction_label.add_theme_font_size_override("font_size", 48)
 	direction_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	direction_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	direction_label.add_theme_constant_override("outline_size", 8)
@@ -317,7 +317,7 @@ func _build_left_panel() -> MarginContainer:
 
 	var next_dir := _create_styled_button(">", Color(0.42, 0.48, 0.54))
 	next_dir.custom_minimum_size = Vector2(70, 70)
-	next_dir.add_theme_font_size_override("font_size", 36)
+	next_dir.add_theme_font_size_override("font_size", 44)
 	next_dir.pressed.connect(_on_direction_step.bind(1))
 	carousel.add_child(next_dir)
 
@@ -434,7 +434,7 @@ func _build_right_sidebar() -> VBoxContainer:
 	randomize_btn = _create_styled_button("RANDOMIZE", Color(0.92, 0.62, 0.08))
 	randomize_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	randomize_btn.custom_minimum_size = Vector2(260, 90)
-	randomize_btn.add_theme_font_size_override("font_size", 32)
+	randomize_btn.add_theme_font_size_override("font_size", 40)
 	randomize_btn.pressed.connect(_on_randomize_pressed)
 	inner_box.add_child(randomize_btn)
 
@@ -444,7 +444,7 @@ func _build_right_sidebar() -> VBoxContainer:
 		var check := CheckBox.new()
 		check.text = TAB_LABELS[cat]
 		check.button_pressed = true
-		check.add_theme_font_size_override("font_size", 24 if is_small else 30)
+		check.add_theme_font_size_override("font_size", 48 if is_small else 56)
 		check.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 		check.add_theme_color_override("font_hover_color", Color.WHITE)
 		check.add_theme_color_override("font_pressed_color", UITheme.CLR_CREAM_LT)
@@ -462,9 +462,9 @@ func _build_right_sidebar() -> VBoxContainer:
 func _create_tab_button(category: String) -> Button:
 	var btn := Button.new()
 	btn.text = TAB_LABELS[category]
-	btn.custom_minimum_size = Vector2(0, 48)
+	btn.custom_minimum_size = Vector2(0, 64)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_font_size_override("font_size", 38)
 	# Ink on cream (inactive); _refresh_tab_styles flips to white when active.
 	btn.add_theme_color_override("font_color", UITheme.CLR_INK)
 	btn.add_theme_color_override("font_hover_color", UITheme.CLR_INK)
@@ -573,7 +573,7 @@ func _create_bottom_bar() -> PanelContainer:
 
 	var name_label := Label.new()
 	name_label.text = "NAME:"
-	name_label.add_theme_font_size_override("font_size", 28 if is_small else 42)
+	name_label.add_theme_font_size_override("font_size", 36 if is_small else 50)
 	name_label.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	name_label.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	name_label.add_theme_constant_override("outline_size", 8)
@@ -585,7 +585,7 @@ func _create_bottom_bar() -> PanelContainer:
 	name_input.custom_minimum_size = Vector2(340 if is_small else 510, 48 if is_small else 72)
 	name_input.placeholder_text = "Enter Name"
 	name_input.max_length = 25
-	name_input.add_theme_font_size_override("font_size", 24 if is_small else 36)
+	name_input.add_theme_font_size_override("font_size", 32 if is_small else 44)
 	name_input.add_theme_color_override("font_color", UITheme.CLR_INK)
 	name_input.add_theme_color_override("font_placeholder_color", UITheme.CLR_GRAY_DRK)
 	if pixel_font:
@@ -634,17 +634,17 @@ func _scale_bottom_button(btn: Button) -> void:
 	var viewport_h := get_viewport_rect().size.y
 	if viewport_h < 1200:
 		btn.custom_minimum_size = Vector2(200, 55)
-		btn.add_theme_font_size_override("font_size", 28)
+		btn.add_theme_font_size_override("font_size", 36)
 	else:
 		btn.custom_minimum_size = Vector2(220, 60)
-		btn.add_theme_font_size_override("font_size", 32)
+		btn.add_theme_font_size_override("font_size", 40)
 
 
 func _create_styled_button(label_text: String, bg_color: Color) -> Button:
 	var btn := Button.new()
 	btn.text = label_text
 	btn.custom_minimum_size = Vector2(200, 55)
-	btn.add_theme_font_size_override("font_size", 28)
+	btn.add_theme_font_size_override("font_size", 36)
 	if pixel_font:
 		btn.add_theme_font_override("font", pixel_font)
 	
@@ -816,7 +816,7 @@ func _build_tile(category: String, index_0: int, tex_path: String) -> Button:
 	if is_selected:
 		var label := Label.new()
 		label.text = "%s %02d" % [TAB_LABELS[category], index_0 + 1]
-		label.add_theme_font_size_override("font_size", 40)
+		label.add_theme_font_size_override("font_size", 60)
 		label.add_theme_color_override("font_color", Color.WHITE)
 		if pixel_font:
 			label.add_theme_font_override("font", pixel_font)

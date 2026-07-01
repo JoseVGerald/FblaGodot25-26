@@ -34,4 +34,10 @@ script = ExtResource("vet_npc_script")
 position = Vector2(218, 74.5)
 shape = SubResource("RectangleShape2D_fdbq2")
 
-; COMMIT: Achievements and Catch Minigame Update
+[node name="Node2D" type="Node2D" parent="." unique_id=1673378934]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Node2D" unique_id=1677867784]
+polygon = PackedVector2Array(128.5, 0, 304, 1, 304, 225.5, 235.5, 225.5, 126.5, 225.5, 127, 224, 303.5, 224, 303.5, 207.5, 282, 208, 281, 158, 292.5, 157.5, 289, 150.5, 291, 137.5, 303.5, 136, 303.5, 128, 282, 128, 281, 78.5, 292, 78, 289, 72.5, 290.5, 56.5, 238.5, 57, 234.5, 80.5, 195.5, 80.5, 194, 55.5, 160, 56, 159.5, 31.5, 128, 32)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="Node2D" unique_id=229176928]
+polygon = PackedVector2Array(128.5, 1, 128, 224.5, 129, 208, 150.5, 207.5, 150.5, 157.5, 142, 156.5, 142.5, 136, 128.5, 136, 128.5, 127.5, 150, 127.5, 150.5, 78, 140.5, 75.5, 143, 57.5, 129.5, 56, 129.5, 1)

@@ -78,8 +78,8 @@ func show_slide(index):
 
 		# Clamp panel to viewport
 		var vp := get_viewport().get_visible_rect().size
-		var pw := minf(1280.0, vp.x - 80.0)
-		var ph := minf(840.0, vp.y - 80.0)
+		var pw := minf(1600.0, vp.x - 80.0)
+		var ph := minf(1100.0, vp.y - 80.0)
 		technical_panel.offset_left   = -pw * 0.5
 		technical_panel.offset_right  =  pw * 0.5
 		technical_panel.offset_top    = -ph * 0.5
@@ -93,9 +93,9 @@ func show_slide(index):
 			technical_panel.get_node("OuterMargin/VBoxContainer").add_child(continue_button)
 
 		# Style the continue button to fill width properly
-		continue_button.custom_minimum_size = Vector2(0, 64)
+		continue_button.custom_minimum_size = Vector2(0, 80)
 		continue_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		continue_button.add_theme_font_size_override("font_size", 28)
+		continue_button.add_theme_font_size_override("font_size", 40)
 		continue_button.show()
 
 func start_typing(text):
@@ -125,10 +125,10 @@ func _setup_overview_panel() -> void:
 	var sb = technical_panel.get_theme_stylebox("panel")
 	if sb is StyleBoxFlat:
 		var new_sb = sb.duplicate() as StyleBoxFlat
-		new_sb.content_margin_top = 40
-		new_sb.content_margin_bottom = 20
-		new_sb.content_margin_left = 40
-		new_sb.content_margin_right = 40
+		new_sb.content_margin_top = 48
+		new_sb.content_margin_bottom = 24
+		new_sb.content_margin_left = 48
+		new_sb.content_margin_right = 48
 		technical_panel.add_theme_stylebox_override("panel", new_sb)
 
 	# Redesign Title area to feel like a premium plaque/banner
@@ -141,14 +141,14 @@ func _setup_overview_panel() -> void:
 		var plaque_sb := StyleBoxFlat.new()
 		plaque_sb.bg_color = UITheme.CLR_CREAM
 		plaque_sb.border_color = UITheme.CLR_INK
-		plaque_sb.border_width_left = 4
-		plaque_sb.border_width_top = 4
-		plaque_sb.border_width_right = 4
-		plaque_sb.border_width_bottom = 8 # 3D Depth
-		plaque_sb.content_margin_left = 36
-		plaque_sb.content_margin_right = 36
-		plaque_sb.content_margin_top = 10
-		plaque_sb.content_margin_bottom = 10
+		plaque_sb.border_width_left = 5
+		plaque_sb.border_width_top = 5
+		plaque_sb.border_width_right = 5
+		plaque_sb.border_width_bottom = 10 # 3D Depth
+		plaque_sb.content_margin_left = 40
+		plaque_sb.content_margin_right = 40
+		plaque_sb.content_margin_top = 12
+		plaque_sb.content_margin_bottom = 12
 		plaque_sb.anti_aliasing = false
 		plaque_sb.set_corner_radius_all(0)
 		plaque.add_theme_stylebox_override("panel", plaque_sb)
@@ -162,21 +162,21 @@ func _setup_overview_panel() -> void:
 		vbox.move_child(plaque, title_idx)
 
 	title.add_theme_font_override("font", UITheme.get_pixel_font())
-	title.add_theme_font_size_override("font_size", 54)
+	title.add_theme_font_size_override("font_size", 64)
 	title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
-	title.add_theme_constant_override("outline_size", 16) # thick visual boundary
+	title.add_theme_constant_override("outline_size", 18) # thick visual boundary
 	title.add_theme_constant_override("shadow_offset_x", 0)
 	title.add_theme_constant_override("shadow_offset_y", 0)
 	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
 
 	# Style the subtitle Overview label
 	var overview: Label = vbox.get_node("Overview")
-	overview.add_theme_font_size_override("font_size", 24)
+	overview.add_theme_font_size_override("font_size", 28)
 	overview.add_theme_color_override("font_color", UITheme.CLR_INK)
 	overview.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	overview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	overview.add_theme_constant_override("line_spacing", 6)
+	overview.add_theme_constant_override("line_spacing", 8)
 	overview.add_theme_constant_override("shadow_offset_x", 0)
 	overview.add_theme_constant_override("shadow_offset_y", 0)
 	overview.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
@@ -200,19 +200,19 @@ func _setup_overview_panel() -> void:
 		
 		var left_line := ColorRect.new()
 		left_line.color = UITheme.CLR_INK
-		left_line.custom_minimum_size = Vector2(150, 4)
+		left_line.custom_minimum_size = Vector2(150, 5)
 		left_line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		left_line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		
 		var center_lbl := Label.new()
 		center_lbl.text = " 🐾 ✦ 🐾 "
 		center_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
-		center_lbl.add_theme_font_size_override("font_size", 24)
+		center_lbl.add_theme_font_size_override("font_size", 28)
 		center_lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
 		
 		var right_line := ColorRect.new()
 		right_line.color = UITheme.CLR_INK
-		right_line.custom_minimum_size = Vector2(150, 4)
+		right_line.custom_minimum_size = Vector2(150, 5)
 		right_line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		right_line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		
@@ -221,10 +221,10 @@ func _setup_overview_panel() -> void:
 		container.add_child(right_line)
 		
 		var top_spacer := Control.new()
-		top_spacer.custom_minimum_size = Vector2(0, 24)
+		top_spacer.custom_minimum_size = Vector2(0, 28)
 		
 		var bottom_spacer := Control.new()
-		bottom_spacer.custom_minimum_size = Vector2(0, 24)
+		bottom_spacer.custom_minimum_size = Vector2(0, 28)
 		
 		vbox.add_child(top_spacer)
 		vbox.move_child(top_spacer, divider_idx)
@@ -261,22 +261,24 @@ func _setup_overview_panel() -> void:
 		
 		# Reuse standard UITheme pixel button style
 		UITheme.style_pixel_button(header, false)
+		header.add_theme_font_size_override("font_size", 32)
+		header.custom_minimum_size = Vector2(0, 60)
 		header.alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 		# Content label styling — no shadow, readable size
-		content.add_theme_font_size_override("font_size", 28)
+		content.add_theme_font_size_override("font_size", 32)
 		content.add_theme_color_override("font_color", UITheme.CLR_INK)
 		content.add_theme_constant_override("shadow_offset_x", 0)
 		content.add_theme_constant_override("shadow_offset_y", 0)
 		content.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
 		content.remove_theme_font_override("font")
 		content.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		content.add_theme_constant_override("margin_left", 24)
+		content.add_theme_constant_override("margin_left", 28)
 
 	# Deferred style override for the continue button (overriding show_slide values)
 	var apply_continue_style = func():
-		continue_button.custom_minimum_size = Vector2(0, 72)
-		continue_button.add_theme_font_size_override("font_size", 34)
+		continue_button.custom_minimum_size = Vector2(0, 84)
+		continue_button.add_theme_font_size_override("font_size", 38)
 		UITheme.style_pixel_button_colored(continue_button, UITheme.CLR_GREEN)
 		
 		continue_button.add_theme_color_override("font_color", Color.WHITE)
@@ -319,16 +321,16 @@ func _on_section_header_pressed(index: int) -> void:
 			var sb_content := StyleBoxFlat.new()
 			sb_content.bg_color = Color("#fffcf8")
 			sb_content.border_color = UITheme.CLR_INK
-			sb_content.border_width_left = 3
-			sb_content.border_width_right = 3
-			sb_content.border_width_bottom = 6
+			sb_content.border_width_left = 4
+			sb_content.border_width_right = 4
+			sb_content.border_width_bottom = 8
 			sb_content.border_width_top = 0 # Merge
 			sb_content.anti_aliasing = false
 			sb_content.set_corner_radius_all(0)
-			sb_content.content_margin_left = 24
-			sb_content.content_margin_right = 24
-			sb_content.content_margin_top = 16
-			sb_content.content_margin_bottom = 16
+			sb_content.content_margin_left = 28
+			sb_content.content_margin_right = 28
+			sb_content.content_margin_top = 18
+			sb_content.content_margin_bottom = 18
 			content.add_theme_stylebox_override("normal", sb_content)
 
 	_resize_panel()
@@ -341,8 +343,8 @@ func _resize_panel() -> void:
 	
 	# Fetch actual content margin heights from the StyleBox
 	var sb = technical_panel.get_theme_stylebox("panel")
-	var margin_top: float = sb.content_margin_top if sb else 20.0
-	var margin_bottom: float = sb.content_margin_bottom if sb else 20.0
+	var margin_top: float = sb.content_margin_top if sb else 22.0
+	var margin_bottom: float = sb.content_margin_bottom if sb else 22.0
 	
 	var target_h: float = minf(content_h + margin_top + margin_bottom, vp.y - 60.0)
 	technical_panel.offset_top = -target_h * 0.5

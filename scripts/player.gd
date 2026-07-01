@@ -36,7 +36,8 @@ func _physics_process(_delta: float) -> void:
 
 	if input_dir != Vector2.ZERO:
 		input_dir = input_dir.normalized()
-		velocity = input_dir * speed
+		var effective_speed = speed * 0.5 if GameState.is_in_house else speed
+		velocity = input_dir * effective_speed
 		move_and_slide()
 		
 		last_dir = input_dir

@@ -15,7 +15,7 @@ const CLR_ORANGE := Color(0.92, 0.62, 0.08)
 const CLR_RED    := Color(0.72, 0.25, 0.25)
 
 # ── New UI maroon pixel-art palette ──────────────────────────────────────────
-const CLR_INK       := Color("#493333")   # All borders, text, outlines
+const CLR_INK       := Color("#7a4a35")   # All borders, text, outlines
 const CLR_MAROON    := Color("#b75b5f")   # Panel background (full-screen menus)
 const CLR_MAROON_D  := Color("#9c4351")   # Darker sections, dividers, grid trays
 const CLR_CREAM     := Color("#ffd7a8")   # Title plaque bg, overlay panel bg

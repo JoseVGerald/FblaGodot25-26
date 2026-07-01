@@ -164,7 +164,11 @@ var tutorial_blocks_movement: bool = false # When true, blocks movement but allo
 var is_dog_sleeping: bool = false # Freeze needs when dog sleeps
 
 # Location + conversation flags (set by Area2D + DialogueManager signals)
-var is_in_house: bool = false
+# is_in_house doubles as the "inside a building" flag (house, vet, bank, job,
+# etc.). Player speed is halved while it is true. Starts true because the player
+# spawns inside the house. Flipped by interaction_area.teleport() on every
+# building enter/exit door.
+var is_in_house: bool = true
 var is_dialogue_active: bool = false
 
 # Explicit flag set by the house-enter/exit teleport (E key). Prints on every
@@ -300,9 +304,21 @@ signal job_selection_requested
 
 func _enter_tree():
 	get_tree().debug_collisions_hint = false
+	get_tree().debug_paths_hint = false
+	get_tree().debug_navigation_hint = false
+
+func _process(_delta):
+	var tree = get_tree()
+	if tree:
+		tree.debug_collisions_hint = false
+		tree.debug_paths_hint = false
+		tree.debug_navigation_hint = false
 
 func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().debug_collisions_hint = false
+	if not get_tree().node_added.is_connected(_on_global_node_added):
+		get_tree().node_added.connect(_on_global_node_added)
 	apply_volume()
 	# Apply any user-saved keybinds on top of the project.godot defaults.
 	load("res://scripts/KeybindsMenu.gd").load_saved_keybinds()
@@ -319,6 +335,10 @@ func _connect_dialogue_tracking() -> void:
 		DialogueManager.dialogue_started.connect(_on_dialogue_started)
 	if not DialogueManager.dialogue_ended.is_connected(_on_dialogue_ended):
 		DialogueManager.dialogue_ended.connect(_on_dialogue_ended)
+
+func _on_global_node_added(node: Node) -> void:
+	if node is CollisionShape2D or node is CollisionPolygon2D:
+		node.visible = false
 
 func _on_dialogue_started(_res) -> void:
 	is_dialogue_active = true
@@ -1233,7 +1253,7 @@ func reset_all() -> void:
 	is_day_one = true; is_tutorial_complete = false
 	day_two_tutorial_done = false
 	tutorial_blocks_movement = false; is_dog_sleeping = false
-	is_in_house = false; is_dialogue_active = false
+	is_in_house = true; is_dialogue_active = false
 	# Catch minigame
 	catch_played_today = false; catch_last_played_day = -1; catch_total_earnings = 0
 	# Daycare system

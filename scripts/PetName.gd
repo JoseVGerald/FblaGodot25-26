@@ -18,25 +18,32 @@ func _ready():
 	var pixel_font = UITheme.get_pixel_font()
 	if pixel_font:
 		pet_name_input.add_theme_font_override("font", pixel_font)
-	pet_name_input.add_theme_font_size_override("font_size", 36)
+	pet_name_input.add_theme_font_size_override("font_size", 72)
 	pet_name_input.add_theme_color_override("font_color", UITheme.CLR_INK)
 	pet_name_input.add_theme_color_override("font_placeholder_color", UITheme.CLR_GRAY_DRK)
-	pet_name_input.custom_minimum_size = Vector2(510, 72)
-	
+	pet_name_input.custom_minimum_size = Vector2(1020, 144)
+
+	# Shift box down 10px via a spacer inserted before it
+	var _spacer := Control.new()
+	_spacer.custom_minimum_size = Vector2(0, 10)
+	var _parent := pet_name_input.get_parent()
+	_parent.add_child(_spacer)
+	_parent.move_child(_spacer, pet_name_input.get_index())
+
 	var input_sb := StyleBoxFlat.new()
 	input_sb.bg_color = UITheme.CLR_CREAM_LT
 	input_sb.border_color = UITheme.CLR_INK
-	input_sb.set_border_width_all(5)
-	input_sb.content_margin_left = 18
-	input_sb.content_margin_right = 18
-	input_sb.content_margin_top = 9
-	input_sb.content_margin_bottom = 9
+	input_sb.set_border_width_all(10)
+	input_sb.content_margin_left = 36
+	input_sb.content_margin_right = 36
+	input_sb.content_margin_top = 18
+	input_sb.content_margin_bottom = 18
 	input_sb.set_corner_radius_all(0)
 	pet_name_input.add_theme_stylebox_override("normal", input_sb)
-	
+
 	var input_sb_focus: StyleBoxFlat = input_sb.duplicate()
 	input_sb_focus.border_color = UITheme.CLR_ORANGE_PX
-	input_sb_focus.border_width_bottom = 6
+	input_sb_focus.border_width_bottom = 12
 	pet_name_input.add_theme_stylebox_override("focus", input_sb_focus)
 
 	# New UI pixel-art styling

@@ -74,6 +74,15 @@ func _ready():
 	GameState.day_started.connect(_on_day_started)
 	GameState.vet_talk_finished.connect(_on_vet_talk_finished)
 	GameState.open_shop_requested.connect(_on_open_shop_requested)
+	
+	# Forcefully hide any collision or navigation polygons that might have been made visible
+	_hide_all_debug_shapes(self)
+
+func _hide_all_debug_shapes(node: Node) -> void:
+	if node is CollisionShape2D or node is CollisionPolygon2D or node is NavigationRegion2D:
+		node.visible = false
+	for child in node.get_children():
+		_hide_all_debug_shapes(child)
 
 func _on_open_shop_requested():
 	if shop_path:
@@ -149,7 +158,8 @@ func show_job_path(node_name: String) -> void:
 	if path and path is Path2D and path.curve:
 		_job_path_line = PathGuider.new()
 		_job_path_line.setup_path(path, 6.0, Color(1, 0.9, 0.1))
-		_job_path_line.z_index = 100 # Always draw above the map/buildings
+		# z_index = 0 is sufficient to draw above the tilemap but below the player
+		_job_path_line.z_index = 0
 		path.add_child(_job_path_line)
 
 func hide_job_path() -> void:
@@ -349,6 +359,11 @@ func _make_paths_visible():
 			line.setup_path(path, 5.0, Color(1, 0.9, 0.1))
 			path.add_child(line)
 			print("[MainGame] Made path visible with PathGuider: ", path.name)
+			
+	if original_path:
+		original_path.visible = true
+	if shop_path:
+		shop_path.visible = false
 
 func spawn_mother_npc():
 	# Only spawn for Kid and Teenager pathways

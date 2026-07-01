@@ -25,6 +25,14 @@ func _apply_redesign_styling() -> void:
 		close_btn.custom_minimum_size = Vector2(64, 64)
 		UITheme.style_close_button(close_btn)
 
+	# Balance the close button so the title is truly centered
+	var header := get_node_or_null("Panel/VBox/Header")
+	if header is HBoxContainer:
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(64, 0)
+		header.add_child(spacer)
+		header.move_child(spacer, 0)
+
 	# Style row buttons with semantic color-coding to avoid flat gray colors
 	for node_name in ["SettingsBtn", "HelpBtn", "AchievementsBtn", "ResumeBtn", "QuitBtn"]:
 		var b := get_node_or_null("Panel/VBox/" + node_name)

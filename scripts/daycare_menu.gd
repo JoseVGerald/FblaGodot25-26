@@ -54,7 +54,7 @@ func _build_ui() -> void:
 	col.add_child(title)
 
 	var sub := Label.new()
-	sub.text = "Send your pup while you work. Pick a plan:"
+	sub.text = "Send your pup while you work. Pick a plan —"
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD
 	sub.custom_minimum_size = Vector2(720, 0)

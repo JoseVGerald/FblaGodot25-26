@@ -65,8 +65,11 @@ func teleport():
 		dest = _area_trigger_position(partner)
 		entering = _door_info()["entering"]
 
-	# Flip the house flag BEFORE teleporting so listeners (dog routine) see
-	# the change as soon as the player commits to entering/exiting.
+	# Flip the location flags BEFORE teleporting so listeners (dog routine,
+	# player speed) see the change as soon as the player commits to
+	# entering/exiting. is_in_house is the generic "inside a building" flag
+	# (house, vet, bank, job, etc.) — true while inside, halving player speed.
+	GameState.is_in_house = entering
 	if is_house:
 		GameState.Inside_house = entering
 
@@ -74,13 +77,15 @@ func teleport():
 		if player is CharacterBody2D:
 			player.velocity = Vector2.ZERO
 		player.global_position = dest
-	# Leave the dog alone while it's sleeping — the player entering/exiting
-	# the house shouldn't drag the dog off its sleep spot.
 	if dog and not GameState.is_dog_sleeping:
 		if dog is CharacterBody2D:
 			dog.velocity = Vector2.ZERO
+			
+		var door_prefix = _door_info().get("prefix", "")
 		if is_house and entering:
 			dog.global_position = Vector2(560, -755)
+		elif door_prefix == "shop" and entering:
+			dog.global_position = Vector2(1075, -5715)
 		else:
 			dog.global_position = dest + Vector2(40, 0)
 		if "path" in dog:

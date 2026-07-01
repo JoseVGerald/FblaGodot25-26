@@ -85,6 +85,27 @@ static func label_of(type: String) -> String:
 static func generate_order(day: int) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
+
+	# First shift: fixed tutorial order every time
+	if day == 1:
+		return {
+			"name": NAMES[rng.randi() % NAMES.size()],
+			"items": [
+				{"type": "bunBottom"},
+				{"type": "patty", "doneness": "Rare"},
+				{"type": "tomato"},
+				{"type": "lettuce"},
+				{"type": "cheese"},
+				{"type": "bunTop"},
+			],
+			"avatar_seed": rng.randi(),
+			"base_pay": 8.4,
+			"patience_max": 39.5,
+			"patience": 39.5,
+			"mood": "neutral",
+			"resolved": false,
+		}
+
 	var items: Array = [{"type": "bunBottom"}]
 
 	var doneness_opts: Array = ["Rare", "Medium", "Well"] if day >= 2 else ["Medium", "Well"]

@@ -112,27 +112,29 @@ func _style_inputs_recursive_internal(node: Node, sb: StyleBoxFlat, sb_focus: St
 				le.add_theme_color_override("font_color", Color.BLACK)
 				le.add_theme_color_override("font_selected_color", Color.WHITE)
 				le.add_theme_color_override("selection_color", UITheme.CLR_INK)
-				le.add_theme_font_size_override("font_size", 24)
+				le.add_theme_font_size_override("font_size", 29)
 				le.alignment = HORIZONTAL_ALIGNMENT_CENTER
 				le.add_theme_font_override("font", font_medium)
+				child.custom_minimum_size.y = 64
 		elif child is LineEdit:
 			child.add_theme_stylebox_override("normal", sb)
 			child.add_theme_stylebox_override("focus", sb_focus)
 			child.add_theme_color_override("font_color", Color.BLACK)
 			child.add_theme_color_override("font_selected_color", Color.WHITE)
 			child.add_theme_color_override("selection_color", UITheme.CLR_INK)
-			child.add_theme_font_size_override("font_size", 24)
+			child.add_theme_font_size_override("font_size", 29)
 			child.alignment = HORIZONTAL_ALIGNMENT_CENTER
 			child.add_theme_font_override("font", font_medium)
+			child.custom_minimum_size.y = 64
 		elif child is Label:
 			if child.name.ends_with("Header") or child.text.contains("Settings") or child.text.contains("Values") or child.text.contains("Costs") or child.text.contains("Limits") or child.text.contains("Modifiers"):
 				child.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
-				child.add_theme_font_size_override("font_size", 28)
+				child.add_theme_font_size_override("font_size", 33)
 				child.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 				child.add_theme_font_override("font", font_bold)
 			else:
 				child.add_theme_color_override("font_color", UITheme.CLR_INK)
-				child.add_theme_font_size_override("font_size", 22)
+				child.add_theme_font_size_override("font_size", 27)
 				child.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				child.add_theme_font_override("font", font_medium)
 			
@@ -193,7 +195,7 @@ func _setup_header() -> void:
 		var title_font := SystemFont.new()
 		title_font.font_weight = 900 # Heavy/Black weight SystemFont
 		title.add_theme_font_override("font", title_font)
-		title.add_theme_font_size_override("font_size", 48)
+		title.add_theme_font_size_override("font_size", 53)
 		title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 		title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 		title.add_theme_constant_override("outline_size", 14) # thick outline
@@ -203,7 +205,7 @@ func _setup_header() -> void:
 
 	var subtitle: Label = header.get_node_or_null("Subtitle")
 	if subtitle:
-		subtitle.add_theme_font_size_override("font_size", 24)
+		subtitle.add_theme_font_size_override("font_size", 29)
 		subtitle.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 		subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -244,7 +246,7 @@ func _setup_header() -> void:
 		var center_lbl := Label.new()
 		center_lbl.text = " ✦ ❖ ✦ "
 		center_lbl.add_theme_font_override("font", UITheme.get_pixel_font())
-		center_lbl.add_theme_font_size_override("font_size", 24)
+		center_lbl.add_theme_font_size_override("font_size", 29)
 		center_lbl.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 		
 		var right_line := ColorRect.new()
@@ -316,8 +318,10 @@ func setup_layout() -> void:
 		
 		if back_button:
 			UITheme.style_pixel_button_colored(back_button, UITheme.CLR_RED)
+			back_button.add_theme_font_size_override("font_size", 41)
 		if continue_button:
 			UITheme.style_pixel_button_colored(continue_button, UITheme.CLR_GREEN)
+			continue_button.add_theme_font_size_override("font_size", 41)
 			
 	var main_hbox := HBoxContainer.new()
 	main_hbox.name = "MainHBox"
@@ -355,7 +359,7 @@ func setup_layout() -> void:
 	var pref_font := SystemFont.new()
 	pref_font.font_weight = 850
 	pref_title.add_theme_font_override("font", pref_font)
-	pref_title.add_theme_font_size_override("font_size", 32)
+	pref_title.add_theme_font_size_override("font_size", 37)
 	pref_title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	pref_title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	pref_title.add_theme_constant_override("outline_size", 10)
@@ -399,7 +403,7 @@ func setup_new_variables() -> void:
 	# Section Header: Adult Settings
 	adult_section_header = Label.new()
 	adult_section_header.text = "Adult Pathway Settings"
-	adult_section_header.add_theme_font_size_override("font_size", 28)
+	adult_section_header.add_theme_font_size_override("font_size", 33)
 	adult_section_header.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if pf: adult_section_header.add_theme_font_override("font", pf)
 	sections.add_child(adult_section_header)
@@ -414,13 +418,13 @@ func setup_new_variables() -> void:
 	# Row 1 Labels
 	var rent_lbl := Label.new()
 	rent_lbl.text = "Monthly Rent"
-	rent_lbl.add_theme_font_size_override("font_size", 22)
+	rent_lbl.add_theme_font_size_override("font_size", 27)
 	rent_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	adult_grid.add_child(rent_lbl)
 	
 	var hp_lbl := Label.new()
 	hp_lbl.text = "House Purchase Price"
-	hp_lbl.add_theme_font_size_override("font_size", 22)
+	hp_lbl.add_theme_font_size_override("font_size", 27)
 	hp_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	adult_grid.add_child(hp_lbl)
 	
@@ -429,14 +433,14 @@ func setup_new_variables() -> void:
 	
 	# Row 2 LineEdits
 	rent_input = LineEdit.new()
-	rent_input.custom_minimum_size = Vector2(220, 56)
-	rent_input.add_theme_font_size_override("font_size", 28)
+	rent_input.custom_minimum_size = Vector2(220, 64)
+	rent_input.add_theme_font_size_override("font_size", 33)
 	rent_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	adult_grid.add_child(rent_input)
 	
 	house_price_input = LineEdit.new()
-	house_price_input.custom_minimum_size = Vector2(220, 56)
-	house_price_input.add_theme_font_size_override("font_size", 28)
+	house_price_input.custom_minimum_size = Vector2(220, 64)
+	house_price_input.add_theme_font_size_override("font_size", 33)
 	house_price_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	adult_grid.add_child(house_price_input)
 	
@@ -450,7 +454,7 @@ func setup_new_variables() -> void:
 	# Section Header: Career Settings
 	career_section_header = Label.new()
 	career_section_header.text = "Career Day Pay Settings"
-	career_section_header.add_theme_font_size_override("font_size", 28)
+	career_section_header.add_theme_font_size_override("font_size", 33)
 	career_section_header.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if pf: career_section_header.add_theme_font_override("font", pf)
 	sections.add_child(career_section_header)
@@ -465,45 +469,45 @@ func setup_new_variables() -> void:
 	# Row 1 Labels
 	var nb_lbl := Label.new()
 	nb_lbl.text = "Mail Boy Day Pay"
-	nb_lbl.add_theme_font_size_override("font_size", 22)
+	nb_lbl.add_theme_font_size_override("font_size", 27)
 	nb_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(nb_lbl)
 	
 	var bc_lbl := Label.new()
 	bc_lbl.text = "The Cook Day Pay"
-	bc_lbl.add_theme_font_size_override("font_size", 22)
+	bc_lbl.add_theme_font_size_override("font_size", 27)
 	bc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(bc_lbl)
 	
 	var ba_lbl := Label.new()
 	ba_lbl.text = "Bank Accountant Day Pay"
-	ba_lbl.add_theme_font_size_override("font_size", 22)
+	ba_lbl.add_theme_font_size_override("font_size", 27)
 	ba_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(ba_lbl)
 	
 	# Row 2 LineEdits
 	news_boy_input = LineEdit.new()
-	news_boy_input.custom_minimum_size = Vector2(220, 56)
-	news_boy_input.add_theme_font_size_override("font_size", 28)
+	news_boy_input.custom_minimum_size = Vector2(220, 64)
+	news_boy_input.add_theme_font_size_override("font_size", 33)
 	news_boy_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(news_boy_input)
 	
 	burger_cashier_input = LineEdit.new()
-	burger_cashier_input.custom_minimum_size = Vector2(220, 56)
-	burger_cashier_input.add_theme_font_size_override("font_size", 28)
+	burger_cashier_input.custom_minimum_size = Vector2(220, 64)
+	burger_cashier_input.add_theme_font_size_override("font_size", 33)
 	burger_cashier_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(burger_cashier_input)
 	
 	bank_accountant_input = LineEdit.new()
-	bank_accountant_input.custom_minimum_size = Vector2(220, 56)
-	bank_accountant_input.add_theme_font_size_override("font_size", 28)
+	bank_accountant_input.custom_minimum_size = Vector2(220, 64)
+	bank_accountant_input.add_theme_font_size_override("font_size", 33)
 	bank_accountant_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(bank_accountant_input)
 
 	# Row 3: promotion boost percent label (Aligned vertically like other rows)
 	var boost_lbl := Label.new()
 	boost_lbl.text = "Promotion Boost %"
-	boost_lbl.add_theme_font_size_override("font_size", 22)
+	boost_lbl.add_theme_font_size_override("font_size", 27)
 	boost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pf: boost_lbl.add_theme_font_override("font", pf)
 	career_grid.add_child(boost_lbl)
@@ -516,8 +520,8 @@ func setup_new_variables() -> void:
 
 	# Row 4: promotion boost input
 	promotion_boost_input = LineEdit.new()
-	promotion_boost_input.custom_minimum_size = Vector2(220, 56)
-	promotion_boost_input.add_theme_font_size_override("font_size", 28)
+	promotion_boost_input.custom_minimum_size = Vector2(220, 64)
+	promotion_boost_input.add_theme_font_size_override("font_size", 33)
 	promotion_boost_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	career_grid.add_child(promotion_boost_input)
 
@@ -534,7 +538,7 @@ func setup_new_variables() -> void:
 	# Section header: Daycare Settings
 	daycare_section_header = Label.new()
 	daycare_section_header.text = "Daycare Settings"
-	daycare_section_header.add_theme_font_size_override("font_size", 28)
+	daycare_section_header.add_theme_font_size_override("font_size", 33)
 	daycare_section_header.add_theme_color_override("font_color", UITheme.CLR_MAROON_D)
 	if pf: daycare_section_header.add_theme_font_override("font", pf)
 	sections.add_child(daycare_section_header)
@@ -547,13 +551,13 @@ func setup_new_variables() -> void:
 
 	var dc_cheap_lbl := Label.new()
 	dc_cheap_lbl.text = "Cheap Daycare Price"
-	dc_cheap_lbl.add_theme_font_size_override("font_size", 22)
+	dc_cheap_lbl.add_theme_font_size_override("font_size", 27)
 	dc_cheap_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	daycare_grid.add_child(dc_cheap_lbl)
 
 	var dc_premium_lbl := Label.new()
 	dc_premium_lbl.text = "Premium Daycare Price"
-	dc_premium_lbl.add_theme_font_size_override("font_size", 22)
+	dc_premium_lbl.add_theme_font_size_override("font_size", 27)
 	dc_premium_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	daycare_grid.add_child(dc_premium_lbl)
 
@@ -561,14 +565,14 @@ func setup_new_variables() -> void:
 	daycare_grid.add_child(dc_spacer)
 
 	daycare_cheap_input = LineEdit.new()
-	daycare_cheap_input.custom_minimum_size = Vector2(220, 56)
-	daycare_cheap_input.add_theme_font_size_override("font_size", 28)
+	daycare_cheap_input.custom_minimum_size = Vector2(220, 64)
+	daycare_cheap_input.add_theme_font_size_override("font_size", 33)
 	daycare_cheap_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	daycare_grid.add_child(daycare_cheap_input)
 
 	daycare_premium_input = LineEdit.new()
-	daycare_premium_input.custom_minimum_size = Vector2(220, 56)
-	daycare_premium_input.add_theme_font_size_override("font_size", 28)
+	daycare_premium_input.custom_minimum_size = Vector2(220, 64)
+	daycare_premium_input.add_theme_font_size_override("font_size", 33)
 	daycare_premium_input.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	daycare_grid.add_child(daycare_premium_input)
 
@@ -713,7 +717,7 @@ func setup_sidebar(parent_hbox: HBoxContainer) -> void:
 	var title_font := SystemFont.new()
 	title_font.font_weight = 850 # Extra bold SystemFont
 	title.add_theme_font_override("font", title_font)
-	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_font_size_override("font_size", 37)
 	title.add_theme_color_override("font_color", UITheme.CLR_CREAM_LT)
 	title.add_theme_color_override("font_outline_color", UITheme.CLR_INK)
 	title.add_theme_constant_override("outline_size", 10)
@@ -727,9 +731,9 @@ func setup_sidebar(parent_hbox: HBoxContainer) -> void:
 	pathway_cards.add_theme_constant_override("separation", 14)
 	vbox.add_child(pathway_cards)
 	
-	_create_sidebar_card(pathway_cards, "kid", "Kid Pathway", "Allow: $100\nChore: $0.20\nRent: Free", UITheme.CLR_GREEN)
-	_create_sidebar_card(pathway_cards, "teenager", "Teenager", "Allow: $50\nChore: $0.20\nRent: Free\nJobs: Part-Time", UITheme.CLR_ORANGE_PX)
-	_create_sidebar_card(pathway_cards, "adult", "Adult", "Allow: $0\nRent: $200\nJobs: Full-Time\nGoal: Buy Home", UITheme.CLR_RED)
+	_create_sidebar_card(pathway_cards, "kid", "Kid Pathway", "Allowance: $100\nChore: $0.20\nRent: Free", UITheme.CLR_GREEN)
+	_create_sidebar_card(pathway_cards, "teenager", "Teenager", "Allowance: $50\nChore: $0.20\nRent: Free\nJobs: Part-Time", UITheme.CLR_ORANGE_PX)
+	_create_sidebar_card(pathway_cards, "adult", "Adult", "Allowance: $0\nRent: $200\nJobs: Full-Time\nGoal: Buy Home", UITheme.CLR_RED)
 	
 	# Select preset from GameState or default to Kid
 	call_deferred("_select_default")
@@ -747,7 +751,7 @@ func _select_default() -> void:
 
 func _create_sidebar_card(parent: Control, id: String, title_text: String, stats: String, accent_color: Color) -> void:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(400, 160) # Increased size to fit larger fonts
+	panel.custom_minimum_size = Vector2(400, 185) # Increased size to fit larger fonts
 	panel.set_meta("pathway_id", id)
 	panel.set_meta("accent_color", accent_color)
 	panel.set_meta("base_title", title_text)
@@ -793,22 +797,22 @@ func _create_sidebar_card(parent: Control, id: String, title_text: String, stats
 	vbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	margins.add_child(vbox)
 	
-	# Use a bold SystemFont for card title (increased size to 36)
+	# Use a bold SystemFont for card title (increased size to 41)
 	var title_lbl := Label.new()
 	title_lbl.name = "TitleLabel"
 	title_lbl.text = title_text
 	title_lbl.add_theme_color_override("font_color", accent_color)
-	title_lbl.add_theme_font_size_override("font_size", 36)
+	title_lbl.add_theme_font_size_override("font_size", 41)
 	title_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 	var title_font := SystemFont.new()
 	title_font.font_weight = 750 # Bold
 	title_lbl.add_theme_font_override("font", title_font)
 	vbox.add_child(title_lbl)
 	
-	# Use medium SystemFont for card stats/content (increased size to 22)
+	# Use medium SystemFont for card stats/content (increased size to 27)
 	var stats_lbl := Label.new()
 	stats_lbl.text = stats
-	stats_lbl.add_theme_font_size_override("font_size", 22)
+	stats_lbl.add_theme_font_size_override("font_size", 27)
 	stats_lbl.add_theme_color_override("font_color", UITheme.CLR_INK)
 	stats_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 	var stats_font := SystemFont.new()

@@ -933,13 +933,13 @@ func _setup_notif_button() -> void:
 	for child in notif_btn.get_children():
 		child.queue_free()
 
-	# TextureRect icon inside the button, centered and scaled to 80x80 (larger size)
+	# TextureRect icon inside the button, centered and scaled to 140x140
 	_notif_icon = TextureRect.new()
 	_notif_icon.texture = _tex_normal
 	_notif_icon.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
 	_notif_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_notif_icon.custom_minimum_size = Vector2(80, 80)
-	_notif_icon.size = Vector2(80, 80)
+	_notif_icon.custom_minimum_size = Vector2(140, 140)
+	_notif_icon.size = Vector2(140, 140)
 	_notif_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	notif_btn.add_child(_notif_icon)
 
@@ -950,10 +950,10 @@ func _setup_notif_button() -> void:
 	_notif_icon.anchor_bottom = 0.5
 	_notif_icon.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_notif_icon.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_notif_icon.offset_left = -40.0
-	_notif_icon.offset_right = 40.0
-	_notif_icon.offset_top = -40.0
-	_notif_icon.offset_bottom = 40.0
+	_notif_icon.offset_left = -70.0
+	_notif_icon.offset_right = 70.0
+	_notif_icon.offset_top = -70.0
+	_notif_icon.offset_bottom = 70.0
 
 	# Wire pressed signal if not connected
 	if not notif_btn.pressed.is_connected(_on_notif_btn_pressed):

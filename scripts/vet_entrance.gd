@@ -55,7 +55,7 @@ func teleport_to_vet():
 	if player:
 		player.global_position = VET_ENTRANCE_POS
 	if dog:
-		dog.global_position = VET_ENTRANCE_POS + Vector2(50, 0) # Dog beside player
+		dog.global_position = Vector2(770, -890) # Safe area for dog at vet
 	
 	# Hide the hint after teleporting
 	if hint_instance:

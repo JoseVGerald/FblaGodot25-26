@@ -23,13 +23,16 @@ size = Vector2(103, 53)
 size = Vector2(248.5, 219.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_j74j7"]
-size = Vector2(28, 162)
+size = Vector2(64.375, 12.75)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xgklt"]
 size = Vector2(125, 28)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jr0ft"]
 size = Vector2(332, 79.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hvpye"]
+size = Vector2(19.5, 131)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_331gq"]
 size = Vector2(80, 52)
@@ -59,13 +62,16 @@ size = Vector2(1723.5, 227)
 size = Vector2(943.75, 301.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_de2tl"]
-size = Vector2(591.875, 239)
+size = Vector2(592.9375, 191.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_o1h1t"]
 size = Vector2(215.9375, 1069.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gcspp"]
-size = Vector2(215.9375, 974.75)
+size = Vector2(215.9375, 960.375)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ekpwy"]
+size = Vector2(106, 75)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hk16l"]
 size = Vector2(90, 56)
@@ -141,10 +147,10 @@ y_sort_enabled = true
 script = ExtResource("1_maingame")
 
 [node name="Background2" type="ColorRect" parent="." unique_id=1359324232]
-offset_left = -86602.0
-offset_top = -50335.0
-offset_right = 95445.0
-offset_bottom = 45475.0
+offset_left = -81840.0
+offset_top = -45625.0
+offset_right = 100207.0
+offset_bottom = 50185.0
 mouse_filter = 2
 color = Color(0.0056876484, 0.008664037, 0.012504921, 1)
 
@@ -261,7 +267,7 @@ shape = SubResource("RectangleShape2D_subro")
 position = Vector2(319, -153)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/chairs" unique_id=179873382]
-position = Vector2(3985, 1086)
+position = Vector2(274.8125, -475.375)
 shape = SubResource("RectangleShape2D_j74j7")
 
 [node name="chairs2" type="StaticBody2D" parent="bank collisons" unique_id=1148582393]
@@ -284,6 +290,24 @@ shape = SubResource("RectangleShape2D_subro")
 position = Vector2(3245, -420)
 build_mode = 1
 polygon = PackedVector2Array(722, 1341, 708, 1482, 841, 1484, 841, 1540, 959, 1540, 952, 1452, 1086, 1458, 1079, 1232, 943, 1224, 947, 1344)
+
+[node name="chairs3" type="StaticBody2D" parent="bank collisons" unique_id=411619828]
+position = Vector2(319, -153)
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="bank collisons/chairs3" unique_id=868240798]
+position = Vector2(925, -5583)
+shape = SubResource("RectangleShape2D_hvpye")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/chairs3" unique_id=624525559]
+position = Vector2(1021, -5777)
+shape = SubResource("RectangleShape2D_hvpye")
+
+[node name="chairs4" type="StaticBody2D" parent="bank collisons" unique_id=173594261]
+position = Vector2(319, -153)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="bank collisons/chairs4" unique_id=336447236]
+position = Vector2(-9158.5, 3328)
+shape = SubResource("RectangleShape2D_j74j7")
 
 [node name="Interaction areas" type="Node" parent="." unique_id=1849057895]
 
@@ -368,7 +392,7 @@ shape = SubResource("RectangleShape2D_catch")
 [node name="Taxi call horizantal" type="Area2D" parent="Interaction areas" unique_id=1545817761 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal" unique_id=1124766675]
-position = Vector2(585.5, 425.5)
+position = Vector2(572, 451)
 shape = SubResource("RectangleShape2D_2ha63")
 
 [node name="Taxi call horizantal2" type="Area2D" parent="Interaction areas" unique_id=1530531656 groups=["taxi_call_area"]]
@@ -380,25 +404,25 @@ shape = SubResource("RectangleShape2D_6o2a8")
 [node name="Taxi call horizantal3" type="Area2D" parent="Interaction areas" unique_id=1855460194 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal3" unique_id=463850496]
-position = Vector2(2156.875, 1408.25)
+position = Vector2(2150, 1427)
 shape = SubResource("RectangleShape2D_h6vey")
 
 [node name="Taxi call horizantal4" type="Area2D" parent="Interaction areas" unique_id=260315488 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call horizantal4" unique_id=216199341]
-position = Vector2(1568.0625, 1173.5)
+position = Vector2(1560.5313, 1181.25)
 shape = SubResource("RectangleShape2D_de2tl")
 
 [node name="Taxi call vertical" type="Area2D" parent="Interaction areas" unique_id=1323903949 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call vertical" unique_id=1337698868]
-position = Vector2(1122.9688, 1073.25)
+position = Vector2(1107, 1092)
 shape = SubResource("RectangleShape2D_o1h1t")
 
 [node name="Taxi call vertical2" type="Area2D" parent="Interaction areas" unique_id=48909009 groups=["taxi_call_area"]]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Taxi call vertical2" unique_id=1674782223]
-position = Vector2(1121, 2407.625)
+position = Vector2(1108, 2426.8125)
 shape = SubResource("RectangleShape2D_gcspp")
 
 [node name="Burger enter" type="Area2D" parent="Interaction areas" unique_id=2054590385]
@@ -415,8 +439,8 @@ hint_text = "Press E to exit the burger shop"
 is_exit = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Interaction areas/Burger exit" unique_id=1622483771]
-position = Vector2(-8835, 3121)
-shape = SubResource("RectangleShape2D_hk16l")
+position = Vector2(-8835, 3130.5)
+shape = SubResource("RectangleShape2D_ekpwy")
 
 [node name="post exit" type="Area2D" parent="Interaction areas" unique_id=974423938]
 script = ExtResource("interaction_area_script")
@@ -584,13 +608,6 @@ position = Vector2(-1804, 1052)
 position = Vector2(-475, 195)
 polygon = PackedVector2Array(718, 1335, 722, 1478, 759, 1474, 762, 1337)
 
-[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=67586023]
-
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D" unique_id=1380951137]
-position = Vector2(-26, 8)
-build_mode = 1
-polygon = PackedVector2Array(2666, 2885, 2664, -175, -716, -179, -714, 2912)
-
 [node name="bank" parent="." unique_id=659678687 instance=ExtResource("8_subro")]
 position = Vector2(3934, 797)
 scale = Vector2(2, 2)
@@ -612,7 +629,7 @@ position = Vector2(-8594, -4017)
 scale = Vector2(2, 2)
 
 [node name="new ship" parent="." unique_id=1361788123 instance=ExtResource("12_nwshp")]
-position = Vector2(728, -6035)
+position = Vector2(722, -6035)
 scale = Vector2(2, 2)
 
 [node name="Burger path" type="Path2D" parent="." unique_id=998379080]
@@ -635,3 +652,50 @@ position = Vector2(990, -915)
 
 [node name="KidTeenMotherSpawn" type="Marker2D" parent="." unique_id=738846599]
 position = Vector2(510, -795)
+
+[node name="car collisions" type="Node2D" parent="." unique_id=371952496]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="car collisions" unique_id=67586023]
+
+[node name="CollisionPolygon2D5" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=635626484]
+position = Vector2(-1, 349)
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=1380951137]
+position = Vector2(-26, 9)
+build_mode = 1
+polygon = PackedVector2Array(2666, 2885, 2664, -175, -663, -172, -674, 2904)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=1110899441]
+position = Vector2(256, 352)
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=208096996]
+position = Vector2(512, 350)
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D4" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=568371973]
+position = Vector2(768, 348)
+polygon = PackedVector2Array(15, 229, 54, 229, 66, 249, 64, 332, 52, 342, 16, 342, 7, 332, 5, 244)
+
+[node name="CollisionPolygon2D6" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=405911837]
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D7" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=1268601341]
+position = Vector2(256, -1)
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D8" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=1619209027]
+position = Vector2(512, -2)
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D9" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=1396700291]
+position = Vector2(768, -3)
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D10" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=1918005991]
+position = Vector2(1024, -4)
+polygon = PackedVector2Array(15, 227, 54, 227, 66, 247, 64, 330, 52, 340, 16, 340, 7, 330, 5, 242)
+
+[node name="CollisionPolygon2D11" type="CollisionPolygon2D" parent="car collisions/StaticBody2D" unique_id=623946509]
+polygon = PackedVector2Array(-207, 355, -167, 330, -124, 331, -100, 354, -100, 391, -123, 404, -155, 403, -156, 370)

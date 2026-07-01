@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" path="res://stuff/post office/Wall_Trim_7.tscn" id="7_id"]
 [ext_resource type="PackedScene" path="res://stuff/post office/Wall_8.tscn" id="8_id"]
 [ext_resource type="PackedScene" path="res://stuff/post office/Floor_9.tscn" id="9_id"]
-[ext_resource type="PackedScene" path="res://stuff/post office/post_collisions.tscn" id="11_ir6up"]
+[ext_resource type="PackedScene" uid="uid://t2y4xxllp2bf" path="res://stuff/post office/post_collisions.tscn" id="11_ir6up"]
 
 [node name="map" type="Node2D" unique_id=1764718613]
 

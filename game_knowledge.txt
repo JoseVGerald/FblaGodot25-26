@@ -101,12 +101,73 @@ To improve Health:
 3. If prescribed, buy medication at the Shop ($40)
 4. Health also changes randomly at the start of each day
 
+=== JOB SYSTEM ===
+Location: You are automatically prompted to pick a job at the start of your playthrough.
+
+There are 3 jobs to choose from:
+- Mail Boy (news_boy): Start pay $10/shift. Ranks: Paper Boy → Route Captain → Postmaster. Benefit: ALL taxi rides are FREE.
+- The Cook (burger_cashier): Start pay $15/shift + tips. Ranks: Trainee → Hard Worker → Grill Master. Benefit: Tips go straight to your cash, plus a free employee meal.
+- Bank Accountant (bank_accountant): Start pay $25/shift. Ranks: Bank Teller → Loan Officer → Branch Manager. Benefit: No savings withdrawal penalty and rising interest (6% → 10%).
+
+How working works:
+- Go to your job location and talk to your manager NPC to work a shift.
+- You have a weekly shift quota (teens: 3 days, others: 5 days). Meet it or risk getting fired.
+- The Cook works a burger mini-game; the Bank Accountant works a loan decision mini-game; Mail Boy runs the shift automatically.
+- You can ask for a raise or promotion from the Career menu (risky — failure can get you fired!).
+- Getting fired from a job permanently closes it. If fired from all 3, no jobs are available.
+- Weekly allowance shrinks as you miss shifts: $150 normally, $100 if quota is barely met, $50 if very short.
+
+=== CAREERS MENU ===
+Location: "Work" button in the HUD, or accessible via the Pause Menu.
+
+Shows your current job title, rank, pay per shift, and shift progress this week.
+- Ask for a Raise: Risky! Lower promotion standing = higher chance of being fired.
+- Ask for a Promotion: Moves you up a rank with higher pay. Risky if standing is low. Disabled at max rank.
+
+=== DOG DAYCARE ===
+When you go to work, you must decide what to do with your dog:
+- Cheap Daycare — $15: Basic care. Your dog's health may drop.
+- Premium Daycare — $30: Full care. Health is protected.
+- Bringing your dog to work is not allowed! First offense is a warning; repeated offenses lower your promotion standing.
+
+=== CHORES ===
+Location: Accessible from the Pause Menu or HUD.
+
+A math multiplication quiz minigame. Solve multiplication problems (up to 12x12) to earn cash rewards (~$15 per correct answer, scales with inflation). Close the panel at any time.
+
+=== TAXI SYSTEM ===
+Location: Taxi button in the HUD. You must be near a road/taxi call area to hail one.
+
+Taxi costs $10 per ride (free if you are a Mail Boy).
+Destinations:
+- Home: Your house at the top of the map
+- Store: The shop (left of center)
+- Vet: The vet clinic (bottom-left)
+- Park: The park area
+
+=== ACHIEVEMENTS ===
+Location: Pause Menu → Achievements button.
+
+There are 30+ achievements across 6 categories:
+- Pet Care: Feed, hydrate, medicate, and heal your dog (e.g., "Master Chef" — feed 10 times)
+- Economy: Save money, spend money, take taxis, earn allowances (e.g., "Rainy Day Fund" — save $500)
+- Catch Minigame: Earn cash and survive frenzy mode throwing/catching with your dog
+- Day/Time: Survive to Day 7, 14, 30 (e.g., "Golden Years" — reach Day 30)
+- Character Customization: Equip accessories and change your look
+- Social/Exploration: Talk to NPCs and visit all 4 locations by taxi
+
+=== INFLATION ===
+Costs in the game increase over time via an inflation rate. The longer you play, the more supplies and chore rewards cost. Budget accordingly.
+
 === TIPS ===
 - On Day 1, follow the tutorial to learn the basics
 - Visit the vet first to check your dog's health
 - Always keep some emergency savings for unexpected costs
 - Budget your weekly allowance to avoid running out of money
 - Check your supplies before going home to care for your dog
+- Meet your weekly shift quota to avoid getting fired and losing your allowance
+- Send your dog to Premium Daycare if you can afford it — Cheap Daycare risks your dog's health
+- Mail Boy job is great for saving money on travel if you take a lot of taxis
 
 
 if player says they are stuck say this exactly(Exit and reopen to save game data and saves with options menu and arrive back at the house )

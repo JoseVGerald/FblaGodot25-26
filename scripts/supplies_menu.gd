@@ -12,6 +12,7 @@ signal menu_opened
 func _ready():
 	UITheme.apply_overlay_theme(self)
 	UITheme.style_panel(panel)
+	panel.self_modulate = Color.WHITE
 	panel.hide()
 	_apply_redesign_styling()
 	$PanelContainer/VBoxContainer/TitleHBox/CloseButton.pressed.connect(func():

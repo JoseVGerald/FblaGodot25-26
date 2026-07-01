@@ -389,6 +389,10 @@ func start_day() -> void:
 	if trash_mode:
 		toggle_trash(true)
 	set_tab("grill", true)
+	# First shift: lock assemble tab until player has a ready patty
+	if day == 1 and _tab_build != null:
+		_tab_build.disabled = true
+		_tab_build.modulate.a = 0.4
 	if _result_layer:
 		_result_layer.queue_free()
 		_result_layer = null
@@ -848,6 +852,11 @@ func _process(delta: float) -> void:
 	if spawned_count < day_customers and queue.size() < 3 and spawn_timer <= 0.0:
 		spawn_customer()
 	grill_station.update(dt)
+	# First shift: unlock assemble tab once a patty is ready
+	if day == 1 and _tab_build != null and _tab_build.disabled:
+		if grill_station != null and grill_station.ready_patties.size() > 0:
+			_tab_build.disabled = false
+			_tab_build.modulate.a = 1.0
 	if _grill_alert:
 		_apply_tab_styles()
 	_update_hud()

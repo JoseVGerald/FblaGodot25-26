@@ -11,7 +11,7 @@ signal menu_closed
 const CLR_PAPER      := Color("#f9dcab")
 const CLR_PAPER2     := Color("#f3cf95")
 const CLR_PAPER_EDGE := Color("#ecc483")
-const CLR_INK        := Color("#3a2616")
+const CLR_INK        := Color("#7a4a35")
 const CLR_INK2       := Color("#5c3d23")
 const CLR_MUTED      := Color("#8a6a44")
 const CLR_NAVY       := Color("#16273e")
@@ -1136,7 +1136,9 @@ func _style_window_chrome() -> void:
 		main_title_label.add_theme_color_override("font_color", CLR_INK)
 	if main_hint:
 		main_hint.add_theme_color_override("font_color", CLR_MUTED)
-	var main_panel = get_node_or_null("Window/VBox/BodyMargin/Body/Main")
+	var main_panel = get_node_or_null("Window/VBox/BodyMargin/Body/MainContainer/Main")
+	if not main_panel:
+		main_panel = get_node_or_null("Window/VBox/BodyMargin/Body/Main")
 	if main_panel:
 		var msb := StyleBoxFlat.new()
 		msb.bg_color = CLR_PAPER2
@@ -1150,7 +1152,18 @@ func _style_window_chrome() -> void:
 		msb.content_margin_top = 22
 		msb.content_margin_bottom = 18
 		main_panel.add_theme_stylebox_override("panel", msb)
-	var head = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead")
+	# Strip Godot 4.6's dark default panel off the ScrollContainer so labels
+	# inherit the paper background from Main instead of a near-black overlay.
+	var view_scroll = get_node_or_null("Window/VBox/BodyMargin/Body/MainContainer/Main/MainVBox/ViewScroll")
+	if not view_scroll:
+		view_scroll = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/ViewScroll")
+	if view_scroll:
+		var empty_sb := StyleBoxEmpty.new()
+		view_scroll.add_theme_stylebox_override("panel", empty_sb)
+		view_scroll.add_theme_stylebox_override("bg", empty_sb)
+	var head = get_node_or_null("Window/VBox/BodyMargin/Body/MainContainer/Main/MainVBox/MainHead")
+	if not head:
+		head = get_node_or_null("Window/VBox/BodyMargin/Body/Main/MainVBox/MainHead")
 	if head:
 		var hsb := StyleBoxFlat.new()
 		hsb.bg_color = Color(0, 0, 0, 0)
@@ -1306,7 +1319,23 @@ func _style_deposit_withdraw_buttons() -> void:
 		if n:
 			if font: n.add_theme_font_override("font", font)
 			n.add_theme_font_size_override("font_size", ov_font_sizes[path])
-			
+
+	# Section divider labels need an explicit paper background + readable ink color
+	# because Godot 4.6's default theme would otherwise render them on a dark panel.
+	var sec_sb := StyleBoxFlat.new()
+	sec_sb.bg_color = CLR_PAPER_EDGE
+	sec_sb.set_border_width_all(0)
+	sec_sb.set_corner_radius_all(0)
+	sec_sb.content_margin_left = 10
+	sec_sb.content_margin_right = 10
+	sec_sb.content_margin_top = 6
+	sec_sb.content_margin_bottom = 6
+	for sec_name in ["ThisWeekLabel", "BudgetsLabel", "SavingsGoalLabel", "EmergencyLabel"]:
+		var lbl = overview_tab.get_node_or_null(sec_name)
+		if lbl:
+			lbl.add_theme_stylebox_override("normal", sec_sb)
+			lbl.add_theme_color_override("font_color", CLR_INK2)
+
 	# Paper cards + accent-bordered stat cards
 	for path in ["NetCard", "GoalCard", "EmergencyCard"]:
 		var c = overview_tab.get_node_or_null(path)

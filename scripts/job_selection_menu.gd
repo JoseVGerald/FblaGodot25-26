@@ -33,7 +33,7 @@ func _ready() -> void:
 	# Title
 	var title := Label.new()
 	title.text = "SELECT YOUR JOB"
-	title.add_theme_font_size_override("font_size", 54)
+	title.add_theme_font_size_override("font_size", 80)
 	title.add_theme_color_override("font_color", Color("#53d8fb")) # cyan neon
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pf: title.add_theme_font_override("font", pf)
@@ -80,7 +80,7 @@ func _ready() -> void:
 		subtitle.text = "%d position(s) still open — choose carefully, firings close doors for good!" % available.size()
 	else:
 		subtitle.text = "Earn cash to buy supplies & save for your pet's future!"
-	subtitle.add_theme_font_size_override("font_size", 20)
+	subtitle.add_theme_font_size_override("font_size", 30)
 	subtitle.add_theme_color_override("font_color", Color("#a0b2d6"))
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if pf: subtitle.add_theme_font_override("font", pf)
@@ -93,7 +93,7 @@ func _ready() -> void:
 	# HBoxContainer for the remaining Job Cards
 	var card_row := HBoxContainer.new()
 	card_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	card_row.add_theme_constant_override("separation", 30)
+	card_row.add_theme_constant_override("separation", 50)
 	card_row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	layout.add_child(card_row)
 
@@ -117,9 +117,9 @@ func _ready() -> void:
 	# Continue / Close button
 	var accept_btn := Button.new()
 	accept_btn.text = "CLOSE" if available.is_empty() else "CONTINUE"
-	accept_btn.add_theme_font_size_override("font_size", 28)
+	accept_btn.add_theme_font_size_override("font_size", 36)
 	if pf: accept_btn.add_theme_font_override("font", pf)
-	accept_btn.custom_minimum_size = Vector2(300, 60)
+	accept_btn.custom_minimum_size = Vector2(420, 80)
 	accept_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	UITheme.style_button(accept_btn, Color("#4CAF50"))
 	layout.add_child(accept_btn)
@@ -141,7 +141,7 @@ func _select_default(card_row: HBoxContainer) -> void:
 func _create_job_card(parent: Control, id: String, title: String, emoji: String, desc: String, accent_color: Color) -> void:
 	var panel := PanelContainer.new()
 	panel.set_meta("job_id", id)
-	panel.custom_minimum_size = Vector2(290, 380)
+	panel.custom_minimum_size = Vector2(520, 650)
 	
 	# Card styling
 	var sb := StyleBoxFlat.new()
@@ -152,7 +152,7 @@ func _create_job_card(parent: Control, id: String, title: String, emoji: String,
 	sb.border_width_left = 4
 	sb.border_width_right = 4
 	sb.set_corner_radius_all(14)
-	sb.set_content_margin_all(16)
+	sb.set_content_margin_all(28)
 	panel.add_theme_stylebox_override("panel", sb)
 	parent.add_child(panel)
 	
@@ -163,14 +163,14 @@ func _create_job_card(parent: Control, id: String, title: String, emoji: String,
 	
 	var emoji_lbl := Label.new()
 	emoji_lbl.text = ""
-	emoji_lbl.add_theme_font_size_override("font_size", 44)
+	emoji_lbl.add_theme_font_size_override("font_size", 80)
 	emoji_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(emoji_lbl)
 	
 	var title_lbl := Label.new()
 	title_lbl.text = title
 	title_lbl.add_theme_color_override("font_color", accent_color)
-	title_lbl.add_theme_font_size_override("font_size", 22)
+	title_lbl.add_theme_font_size_override("font_size", 36)
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var pf := UITheme.get_pixel_font()
 	if pf: title_lbl.add_theme_font_override("font", pf)
@@ -179,7 +179,7 @@ func _create_job_card(parent: Control, id: String, title: String, emoji: String,
 	var desc_lbl := Label.new()
 	desc_lbl.text = desc
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	desc_lbl.add_theme_font_size_override("font_size", 15)
+	desc_lbl.add_theme_font_size_override("font_size", 22)
 	desc_lbl.add_theme_color_override("font_color", Color("#f0f4ff"))
 	vbox.add_child(desc_lbl)
 	
@@ -193,16 +193,16 @@ func _create_job_card(parent: Control, id: String, title: String, emoji: String,
 	if id in GameState.fired_jobs_history:
 		select_btn.text = "🚫 Fired"
 		select_btn.disabled = true
-		select_btn.add_theme_font_size_override("font_size", 20)
+		select_btn.add_theme_font_size_override("font_size", 28)
 		if pf: select_btn.add_theme_font_override("font", pf)
-		select_btn.custom_minimum_size = Vector2(140, 44)
+		select_btn.custom_minimum_size = Vector2(220, 64)
 		select_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		UITheme.style_button(select_btn, Color("#555555"))
 	else:
 		select_btn.text = "Choose"
-		select_btn.add_theme_font_size_override("font_size", 20)
+		select_btn.add_theme_font_size_override("font_size", 28)
 		if pf: select_btn.add_theme_font_override("font", pf)
-		select_btn.custom_minimum_size = Vector2(140, 44)
+		select_btn.custom_minimum_size = Vector2(220, 64)
 		select_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		UITheme.style_button(select_btn, Color("#2d6aad"))
 	vbox.add_child(select_btn)

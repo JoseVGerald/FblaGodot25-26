@@ -62,6 +62,7 @@ func _on_body_exited(body: Node2D) -> void:
 
 func _input(event: InputEvent) -> void:
 	if player_in_area and (event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and event.keycode == KEY_E)):
+		get_viewport().set_input_as_handled()
 		_interact()
 
 

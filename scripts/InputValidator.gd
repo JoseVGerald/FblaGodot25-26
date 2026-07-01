@@ -126,6 +126,10 @@ func _show_error(message: String) -> void:
 	label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.6))
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
+	
+	var viewport_w := get_viewport().get_visible_rect().size.x
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label.size = Vector2(viewport_w - 80.0, 60.0)
 	label.position  = Vector2(40.0, base_y + 40.0)
 	label.modulate.a = 0.0
 	add_child(label)

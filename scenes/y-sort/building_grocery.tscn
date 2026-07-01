@@ -8,7 +8,7 @@
 position = Vector2(0, 0)
 tile_set = ExtResource("1_tt6py")
 collision_animatable = false
-collision_visibility_mode = 1
+collision_visibility_mode = 0
 format = 2
 layer_0/tile_data = PackedInt32Array(3866687, 5111808, 387, 3932223, 5111808, 388, 3997759, 5111808, 389)
 

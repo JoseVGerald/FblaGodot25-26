@@ -11,7 +11,7 @@ radius = 33.06055
 position = Vector2(0, 0)
 tile_set = ExtResource("1_b3a3f")
 collision_animatable = false
-collision_visibility_mode = 1
+collision_visibility_mode = 0
 format = 2
 
 [node name="Visual" type="TileMapLayer" parent="TileMap"]
